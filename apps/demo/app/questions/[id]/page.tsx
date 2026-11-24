@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { QuestionContext } from "@/components/question-context";
 import { repo } from "@/lib/data/repository";
 
 /** Renders one question, with the worked answer behind a disclosure. */
@@ -9,6 +10,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   if (!question) notFound();
   return (
     <>
+      <QuestionContext questionId={question.id} />
       <Link href={`/practice?subject=${question.subject}`}>Back to practice</Link>
       <p className="muted">
         {repo.getSubject(question.subject)?.name.en} · {question.topic} · {question.difficulty}

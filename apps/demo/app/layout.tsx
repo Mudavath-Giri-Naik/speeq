@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Assistant } from "@/components/assistant";
+import { canViewAudit } from "@/lib/audit-access";
 import { getCurrentUser } from "@/lib/demo-auth";
+import { llmMode } from "@/lib/speeq";
 import { signOut } from "./login/actions";
 import "./globals.css";
 
@@ -27,6 +30,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <Link href="/practice">Practice</Link>
               <Link href="/pricing">Pricing</Link>
               <Link href="/about">About</Link>
+              {canViewAudit(user) && <Link href="/admin/conversations">Admin</Link>}
             </nav>
             {user ? (
               <form action={signOut} className="account">
@@ -43,6 +47,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <main className="shell content">{children}</main>
+        <Assistant llmMode={llmMode} viewerId={user?.id} />
         <footer className="shell site-footer">
           <Link href="/about">About Vidya Study</Link>
         </footer>
