@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { defineConfig } from "tsup";
 import ts from "typescript";
 
-// Materialize the schema-inferred wire shapes so a consumer's typechecker needs no schema library.
+// Materialize schema-inferred wire shapes without shipping the schema library.
 const source = "../core/src/index.ts";
 const program = ts.createProgram([source], {
   strict: true,
@@ -13,20 +13,27 @@ const checker = program.getTypeChecker();
 const file = program.getSourceFile(source);
 const moduleSymbol = file && checker.getSymbolAtLocation(file);
 if (!moduleSymbol) throw new Error("Could not load core types");
+const names = new Set([
+  "ClientConfig",
+  "ProtocolEvent",
+  "SessionListResponse",
+  "SessionDetailResponse",
+  "SessionSummary",
+  "ConversationEvent",
+  "SessionFilter",
+]);
 const declarations = [
   'export type { SpeechInput, SpeechOutput } from "@speeq/core/speech";',
   'export type { CreateSessionResponse } from "@speeq/core/http";',
 ];
 for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
-  if (symbol.name === "ClientConfig" || symbol.name === "ProtocolEvent") {
-    const type = checker.getDeclaredTypeOfSymbol(symbol);
-    const shape = checker.typeToString(
-      type,
-      undefined,
-      ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias,
-    );
-    declarations.push(`export type ${symbol.name} = ${shape};`);
-  }
+  if (!names.has(symbol.name)) continue;
+  const shape = checker.typeToString(
+    checker.getDeclaredTypeOfSymbol(symbol),
+    undefined,
+    ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias,
+  );
+  declarations.push(`export type ${symbol.name} = ${shape};`);
 }
 const cache = "./node_modules/.cache/speeq";
 mkdirSync(cache, { recursive: true });

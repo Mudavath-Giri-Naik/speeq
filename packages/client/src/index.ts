@@ -1,3 +1,15 @@
+export { isSpeeqError, SpeeqError } from "@speeq/core/errors";
+export type {
+  AuditClient,
+  AuditClientOptions,
+  AuditListParams,
+  ConversationEvent,
+  SessionDetailResponse,
+  SessionFilter,
+  SessionListResponse,
+  SessionSummary,
+} from "./audit.js";
+export { createAuditClient } from "./audit.js";
 export { createSpeeqClient } from "./client.js";
 export type {
   ChatMessage,

@@ -131,3 +131,24 @@ const client = createSpeeqClient({
 Speech recognition works best in Chrome and Edge. Firefox has no default `SpeechRecognition` support, so offer a text input. Chrome recognition uses a cloud service and needs a network connection. Microphone access requires a secure context (HTTPS or localhost) and user permission.
 
 Some devices lack matching `te-IN` or `hi-IN` voices. When `support.voiceForLanguage` is `false`, replies stay text-only for that language. Recognition availability is tracked separately. Use `detectSpeechSupport()` to check the browser APIs, or the snapshot's support fields to account for custom adapters. React users should see `@speeq/react`.
+
+## Audit client
+
+Use `createAuditClient` to read session summaries and ordered event history from your own server. Configure `audit.authorize` on the server. Requests include cookies by default.
+
+```ts
+import { createAuditClient } from "@speeq/client";
+
+const audit = createAuditClient({ endpoint: "/api/speeq" });
+const { sessions, nextCursor } = await audit.listSessions({ limit: 25 });
+const first = sessions[0];
+if (first) {
+  const { session, events } = await audit.getSession(first.id);
+  console.log(session.id, events.length);
+}
+if (nextCursor) {
+  await audit.listSessions({ limit: 25, cursor: nextCursor });
+}
+```
+
+Both methods accept an abort signal and report HTTP errors as `SpeeqError`.
