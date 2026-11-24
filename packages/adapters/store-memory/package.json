@@ -1,0 +1,61 @@
+{
+  "name": "@speeq/store-memory",
+  "version": "0.1.0",
+  "description": "In-memory ConversationStore for speeq (development and tests only).",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/speeq-dev/speeq.git",
+    "directory": "packages/adapters/store-memory"
+  },
+  "homepage": "https://github.com/speeq-dev/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@speeq/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "zod": "4.6.7"
+  }
+}

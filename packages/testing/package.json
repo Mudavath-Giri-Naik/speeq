@@ -1,0 +1,80 @@
+{
+  "name": "@speeq/testing",
+  "version": "0.1.0",
+  "description": "Test doubles for speeq: FakeLLMProvider, MockLLMProvider, fake speech, SSE helpers and a store contract suite.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/speeq-dev/speeq.git",
+    "directory": "packages/testing"
+  },
+  "homepage": "https://github.com/speeq-dev/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./store-contract": {
+      "@speeq/source": "./src/store-contract.ts",
+      "import": {
+        "types": "./dist/store-contract.d.ts",
+        "default": "./dist/store-contract.js"
+      },
+      "require": {
+        "types": "./dist/store-contract.d.cts",
+        "default": "./dist/store-contract.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@speeq/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0",
+    "vitest": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "zod": "4.6.7"
+  }
+}

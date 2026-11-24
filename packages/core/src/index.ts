@@ -43,4 +43,11 @@ export * from "./schemas/common.js";
 export * from "./schemas/http.js";
 export * from "./schemas/protocol.js";
 export * from "./schemas/telemetry.js";
+export {
+  applyEventToSummary,
+  decodeCursor,
+  emptySummary,
+  encodeCursor,
+  isAfterCursor,
+} from "./store-helpers.js";
 export * from "./utils/index.js";
