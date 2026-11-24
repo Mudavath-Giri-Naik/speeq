@@ -1,0 +1,12 @@
+{
+  "name": "@speeq/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared TypeScript configuration bases for the speeq monorepo.",
+  "license": "MIT",
+  "files": [
+    "base.json",
+    "library.json",
+    "nextjs.json"
+  ]
+}

@@ -1,0 +1,21 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Code or steps. Please remove secrets and personal data.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "@speeq/server 0.1.0, Next.js 16, Chrome 140, Node 24"
