@@ -118,7 +118,7 @@ with a Conventional Commit message.
 
 ### Next step (resume here)
 
-Stage 7: `@speeq/client` (zero runtime deps; bundles `@speeq/core/errors|utils` via tsup `noExternal`, inline core types in d.ts): state machine idle→listening→thinking→speaking(+error), `getSnapshot()` + typed emitter, fetch-based SSE reader with abort, `WebSpeechInput`/`WebSpeechOutput` with support detection and text fallback, barge-in, sentence-by-sentence TTS via `SentenceChunker`, in-memory (+ optional sessionStorage) token with refresh on `SESSION_EXPIRED`, page context on every turn. Tests with `FakeSpeechInput/Output` and a fake fetch. Then stage 8 `@speeq/react`.
+Work now runs as Claude (briefs + review) / Codex (build). See `handoff/INDEX.md` and `handoff/PLAN-REMAINING.md`. Task 001 (client core) is briefed.
 
 ### Notes for the next session
 
