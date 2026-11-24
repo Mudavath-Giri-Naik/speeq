@@ -1,13 +1,12 @@
 import type { Language, PageContext } from "../schemas/common.js";
 
 /**
- * The signed-in user as resolved by the developer's `resolveUser`. speeq only reads `id`; any
- * other fields (roles, plan, org) are passed through to tools untouched.
+ * The signed-in user as resolved by the developer's `resolveUser`. speeq only reads `id`. Use
+ * your own type with any extra fields (roles, plan, org): `createSpeeq<MyUser>({...})`, and tools
+ * receive it untouched in `ctx.user`.
  */
 export interface AgentUser {
   id: string;
-  roles?: string[];
-  [key: string]: unknown;
 }
 
 /**

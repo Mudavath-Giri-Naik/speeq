@@ -106,26 +106,17 @@ with a Conventional Commit message.
 
 ## 5. Progress and handoff (updated 2026-11-24)
 
-| Stage | Status |
-|---|---|
-| 1. Scaffold | ✅ done |
-| 2. `core` | ✅ done (32 tests) |
-| 3. `testing` + `store-memory` | ✅ done (store contract suite passes) |
-| 4. `server` | 🟡 **in progress**: all source written, typechecks and builds, 3 smoke tests pass |
-| 5–12 | ⏳ not started |
+| Stage                         | Status                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| 1. Scaffold                   | ✅ done                                                                           |
+| 2. `core`                     | ✅ done (32 tests)                                                                |
+| 3. `testing` + `store-memory` | ✅ done (store contract suite passes)                                             |
+| 4. `server`                   | 🟡 **in progress**: all source written, typechecks and builds, 3 smoke tests pass |
+| 5–12                          | ⏳ not started                                                                    |
 
-### Next steps to finish stage 4 (resume here)
+### Next step (resume here)
 
-1. Write the full server test suite in `packages/server/test/` (the smoke test shows the pattern):
-   - `token.test.ts`: signing, expiry (`SESSION_EXPIRED`), tampering, wrong session id → `FORBIDDEN`, other user → `FORBIDDEN`.
-   - `routes.test.ts`: unknown route rejected, params validated, path params encoded, extras go to query.
-   - `tools.test.ts`: input validation error goes back to the model, timeout → `TOOL_TIMEOUT`, output truncation, thrown `SpeeqError` message passed through, unknown error hidden.
-   - `loop.test.ts`: single tool, multi-step, max-steps stop (last step gets no tools), provider error → `error` event, `RATE_LIMITED` mapped and the stream still ends with `turn.finished`.
-   - `confirm.test.ts`: write tool asks for confirmation, approve runs it, reject does not, **replay → 409 CONFLICT**, **other session's confirmationId → 404**, other user → 403, new turn auto-declines a pending one.
-   - `audit.test.ts`: 404 without `authorize`, 403 when it returns false, list/detail work, `redact` applied, `purgeExpired`.
-   - `handler.test.ts`: CORS (foreign origin 403, allowed origin gets headers, OPTIONS 204), body size limit, unknown route 404.
-2. Write `packages/server/README.md`.
-3. Commit: `feat(server): add handler, agent loop, tools, audit and confirmations`.
+Stage 5: `@speeq/llm-openai-compatible` (fetch + SSE `/chat/completions`, split tool-call deltas, 429 → `RATE_LIMITED`), then `@speeq/llm-gemini` (`streamGenerateContent?alt=sse`, `functionResponse` with `id`, echo `thoughtSignature` via `providerMetadata`). Mocked-network tests for both.
 
 ### Notes for the next session
 
