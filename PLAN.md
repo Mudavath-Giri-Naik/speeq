@@ -106,13 +106,13 @@ with a Conventional Commit message.
 
 ## 5. Progress and handoff (updated 2026-11-24)
 
-| Stage                         | Status                                                                            |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| 1. Scaffold                   | ✅ done                                                                           |
-| 2. `core`                     | ✅ done (32 tests)                                                                |
-| 3. `testing` + `store-memory` | ✅ done (store contract suite passes)                                             |
-| 4. `server`                   | 🟡 **in progress**: all source written, typechecks and builds, 3 smoke tests pass |
-| 5–12                          | ⏳ not started                                                                    |
+| Stage                         | Status                                |
+| ----------------------------- | ------------------------------------- |
+| 1. Scaffold                   | ✅ done                               |
+| 2. `core`                     | ✅ done (32 tests)                    |
+| 3. `testing` + `store-memory` | ✅ done (store contract suite passes) |
+| 4. `server`                   | ✅ done (45 tests)                    |
+| 5–12                          | ⏳ not started                        |
 
 ### Next step (resume here)
 
