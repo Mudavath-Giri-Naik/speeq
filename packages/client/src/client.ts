@@ -12,6 +12,8 @@ import type {
   SpeeqClientOptions,
   SpeeqSnapshot,
 } from "./types.js";
+import { WebSpeechInput } from "./web-speech-input.js";
+import { WebSpeechOutput } from "./web-speech-output.js";
 
 function freeze<T>(value: T): T {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -23,7 +25,7 @@ function freeze<T>(value: T): T {
 
 /** Creates a headless client. The first turn or confirmation establishes the session. */
 export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
-  const { input, output } = options.speech ?? {};
+  const { input = new WebSpeechInput(), output = new WebSpeechOutput() } = options.speech ?? {};
   const language = options.language ?? options.languages?.[0] ?? "en-IN";
   let snapshot: SpeeqSnapshot = freeze({
     state: "idle",
@@ -47,6 +49,19 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let generation = 0;
   let turn: AbortController | undefined;
   let destroyed = false;
+  if (snapshot.support.speechOutput) {
+    setTimeout(() => {
+      if (destroyed || snapshot.language !== language) return;
+      void speech.voice(language).then((voiceForLanguage) => {
+        if (
+          !destroyed &&
+          snapshot.language === language &&
+          snapshot.support.voiceForLanguage !== voiceForLanguage
+        )
+          update({ support: { ...snapshot.support, voiceForLanguage } });
+      });
+    }, 0);
+  }
   function update(patch: Partial<SpeeqSnapshot>) {
     const previous = snapshot;
     if (

@@ -58,7 +58,7 @@ export interface SpeeqClientOptions {
   language?: string;
   onNavigate?: (action: NavigateAction) => void;
   getContext?: () => PageContextInput | undefined;
-  /** Omit or pass null to disable. (Task 002 adds Web Speech defaults.) */
+  /** Omitted or undefined input/output use Web Speech defaults. Pass null to disable either adapter. */
   speech?: { input?: SpeechInput | null; output?: SpeechOutput | null };
   /** Speak assistant replies when possible. Default true. */
   speakReplies?: boolean;

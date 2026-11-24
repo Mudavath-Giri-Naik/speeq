@@ -10,3 +10,6 @@ export type {
   SpeeqSnapshot,
   SpeeqState,
 } from "./types.js";
+export { WebSpeechInput } from "./web-speech-input.js";
+export { WebSpeechOutput, type WebSpeechOutputOptions } from "./web-speech-output.js";
+export { detectSpeechSupport } from "./web-speech-types.js";
