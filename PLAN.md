@@ -106,17 +106,18 @@ with a Conventional Commit message.
 
 ## 5. Progress and handoff (updated 2026-11-24)
 
-| Stage                         | Status                                |
-| ----------------------------- | ------------------------------------- |
-| 1. Scaffold                   | ✅ done                               |
-| 2. `core`                     | ✅ done (32 tests)                    |
-| 3. `testing` + `store-memory` | ✅ done (store contract suite passes) |
-| 4. `server`                   | ✅ done (45 tests)                    |
-| 5–12                          | ⏳ not started                        |
+| Stage                         | Status                                              |
+| ----------------------------- | --------------------------------------------------- |
+| 1. Scaffold                   | ✅ done                                             |
+| 2. `core`                     | ✅ done (32 tests)                                  |
+| 3. `testing` + `store-memory` | ✅ done (store contract suite passes)               |
+| 4. `server`                   | ✅ done (45 tests)                                  |
+| 5. LLM adapters               | ✅ done (openai-compatible 8 tests, gemini 5 tests) |
+| 6–12                          | ⏳ not started                                      |
 
 ### Next step (resume here)
 
-Stage 5: `@speeq/llm-openai-compatible` (fetch + SSE `/chat/completions`, split tool-call deltas, 429 → `RATE_LIMITED`), then `@speeq/llm-gemini` (`streamGenerateContent?alt=sse`, `functionResponse` with `id`, echo `thoughtSignature` via `providerMetadata`). Mocked-network tests for both.
+Stage 6: `@speeq/store-mongodb` (accepts `Db | Promise<Db>`, collections `speeq_sessions` + `speeq_events`, indexes on first use, atomic seq via `$inc` on the session doc, unique `sessionId+dedupeKey` partial index; must pass `runConversationStoreContract`; try `mongodb-memory-server`, else an in-memory fake). Then stage 7 `@speeq/client`.
 
 ### Notes for the next session
 

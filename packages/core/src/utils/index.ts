@@ -12,6 +12,12 @@ export {
   type TruncateResult,
   truncate,
 } from "./json.js";
+export {
+  mapProviderHttpError,
+  parseRetryAfter,
+  providerFetch,
+  readSseData,
+} from "./provider-http.js";
 export { DEFAULT_SECRET_KEYS, REDACTED, redactKeys, redactText } from "./redact.js";
 export { SentenceChunker, type SentenceChunkerOptions } from "./sentence-chunker.js";
 export { encodeSse, type SseMessage, SseParser } from "./sse.js";
