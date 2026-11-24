@@ -1,0 +1,61 @@
+{
+  "name": "@speeq/client",
+  "version": "0.1.0",
+  "description": "Headless browser client for speeq.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mudavath-Giri-Naik/speeq.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/Mudavath-Giri-Naik/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "zod": "4.6.7",
+    "@speeq/core": "workspace:*",
+    "@speeq/server": "workspace:*",
+    "@speeq/store-memory": "workspace:*"
+  }
+}
