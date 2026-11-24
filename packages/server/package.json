@@ -1,0 +1,78 @@
+{
+  "name": "@speeq/server",
+  "version": "0.1.0",
+  "description": "speeq server runtime: web-standard handler, agent loop, tools, navigation, audit log and confirmations. Runs in your backend.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/speeq-dev/speeq.git",
+    "directory": "packages/server"
+  },
+  "homepage": "https://github.com/speeq-dev/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless",
+    "nextjs",
+    "tools"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./next": {
+      "@speeq/source": "./src/next.ts",
+      "import": {
+        "types": "./dist/next.d.ts",
+        "default": "./dist/next.js"
+      },
+      "require": {
+        "types": "./dist/next.d.cts",
+        "default": "./dist/next.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@speeq/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "@speeq/store-memory": "workspace:*",
+    "zod": "4.6.7"
+  }
+}

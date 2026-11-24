@@ -47,7 +47,9 @@ export function checkPackage(pkg: PackageUnderCheck, rules = RULES): string[] {
     if (!allowed) problems.push(`${pkg.manifest.name}: dependency "${dep}" is not allowed`);
   }
   for (const { file, code } of pkg.sources) {
-    for (const match of code.matchAll(IMPORT_RE)) {
+    // Ignore comments so JSDoc examples (e.g. `import { x } from "@/lib/x"`) are not checked.
+    const stripped = code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    for (const match of stripped.matchAll(IMPORT_RE)) {
       const name = packageNameOf(match[1] ?? match[2] ?? match[3] ?? "");
       if (!name || name === pkg.manifest.name) continue;
       const ok = name.startsWith("@speeq/")
