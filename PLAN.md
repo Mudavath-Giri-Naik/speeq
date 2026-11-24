@@ -106,21 +106,23 @@ with a Conventional Commit message.
 
 ## 5. Progress and handoff (updated 2026-11-24)
 
-| Stage                         | Status                                              |
-| ----------------------------- | --------------------------------------------------- |
-| 1. Scaffold                   | ✅ done                                             |
-| 2. `core`                     | ✅ done (32 tests)                                  |
-| 3. `testing` + `store-memory` | ✅ done (store contract suite passes)               |
-| 4. `server`                   | ✅ done (45 tests)                                  |
-| 5. LLM adapters               | ✅ done (openai-compatible 8 tests, gemini 5 tests) |
-| 6–12                          | ⏳ not started                                      |
+| Stage                         | Status                                                      |
+| ----------------------------- | ----------------------------------------------------------- |
+| 1. Scaffold                   | ✅ done                                                     |
+| 2. `core`                     | ✅ done (32 tests)                                          |
+| 3. `testing` + `store-memory` | ✅ done (store contract suite passes)                       |
+| 4. `server`                   | ✅ done (45 tests)                                          |
+| 5. LLM adapters               | ✅ done (openai-compatible 8 tests, gemini 5 tests)         |
+| 6. `store-mongodb`            | ✅ done (11 tests on real mongod via mongodb-memory-server) |
+| 7–12                          | ⏳ not started                                              |
 
 ### Next step (resume here)
 
-Stage 6: `@speeq/store-mongodb` (accepts `Db | Promise<Db>`, collections `speeq_sessions` + `speeq_events`, indexes on first use, atomic seq via `$inc` on the session doc, unique `sessionId+dedupeKey` partial index; must pass `runConversationStoreContract`; try `mongodb-memory-server`, else an in-memory fake). Then stage 7 `@speeq/client`.
+Stage 7: `@speeq/client` (zero runtime deps; bundles `@speeq/core/errors|utils` via tsup `noExternal`, inline core types in d.ts): state machine idle→listening→thinking→speaking(+error), `getSnapshot()` + typed emitter, fetch-based SSE reader with abort, `WebSpeechInput`/`WebSpeechOutput` with support detection and text fallback, barge-in, sentence-by-sentence TTS via `SentenceChunker`, in-memory (+ optional sessionStorage) token with refresh on `SESSION_EXPIRED`, page context on every turn. Tests with `FakeSpeechInput/Output` and a fake fetch. Then stage 8 `@speeq/react`.
 
 ### Notes for the next session
 
 - `packages/server/src/telemetry/index.ts` is a no-op placeholder; stage 10 implements the real collector behind the existing `TelemetrySink` interface (`telemetry/sink.ts`). The handler already calls every hook and flushes in the stream tail.
 - Known simplifications to document in stage 11: redaction also changes the history the model sees later; confirmation args are re-validated from the stored (redacted) copy; the rate limiter is per instance.
+- Commits: Conventional Commits authored by the repo owner, with **no AI attribution or Co-Authored-By trailers** (owner request). Remote: `origin` = https://github.com/Mudavath-Giri-Naik/speeq.git, branch `main`.
 - Use the Write tool, not bash heredocs, for files that contain backticks or quotes (heredocs broke once).

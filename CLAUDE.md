@@ -58,7 +58,8 @@ The definition of "green" is: `pnpm lint && pnpm typecheck && pnpm test && pnpm 
   Adapters map provider errors (e.g. HTTP 429 → `RATE_LIMITED`).
 - Model IDs always come from env/config. Defaults live in the adapters' README and `.env.example`.
 - Conventional Commits (`feat(server): …`, `fix(client): …`, `docs: …`). Add a changeset for
-  any change to a published package.
+  any change to a published package. Do not add AI attribution or `Co-Authored-By` trailers to
+  commits or PRs in this repo.
 - Record lasting decisions as a short ADR in `docs/decisions/` (next free number).
 
 ## Where things are

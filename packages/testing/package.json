@@ -7,10 +7,10 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/speeq-dev/speeq.git",
+    "url": "git+https://github.com/Mudavath-Giri-Naik/speeq.git",
     "directory": "packages/testing"
   },
-  "homepage": "https://github.com/speeq-dev/speeq#readme",
+  "homepage": "https://github.com/Mudavath-Giri-Naik/speeq#readme",
   "keywords": [
     "speeq",
     "voice",
