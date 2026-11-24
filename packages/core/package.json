@@ -1,0 +1,82 @@
+{
+  "name": "@speeq/core",
+  "version": "0.1.0",
+  "description": "Types, Zod schemas, protocol, errors and utilities shared by every speeq package.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/speeq-dev/speeq.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/speeq-dev/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./errors": {
+      "@speeq/source": "./src/errors.ts",
+      "import": {
+        "types": "./dist/errors.d.ts",
+        "default": "./dist/errors.js"
+      },
+      "require": {
+        "types": "./dist/errors.d.cts",
+        "default": "./dist/errors.cjs"
+      }
+    },
+    "./utils": {
+      "@speeq/source": "./src/utils/index.ts",
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "zod": "4.6.7"
+  }
+}
