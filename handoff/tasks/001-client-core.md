@@ -46,9 +46,12 @@ Create:
 - `packages/client/src/speech-queue.ts` (ordered TTS queue with generation counter)
 - `packages/client/src/context.ts` (page context collection)
 - `packages/client/test/*.test.ts`
-  Modify:
+
+Modify:
+
 - `handoff/INDEX.md` (set 001 to `in-progress` at start; do not mark accepted)
-  Do NOT touch: anything under `packages/core`, `packages/server`, `packages/testing`, adapters, `scripts/`, root configs. If you believe core needs a change, record it in the report instead.
+
+Do NOT touch: anything under `packages/core`, `packages/server`, `packages/testing`, adapters, `scripts/`, root configs. If you believe core needs a change, record it in the report instead.
 
 ## 5. Requirements (numbered, each testable)
 
