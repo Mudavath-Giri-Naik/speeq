@@ -74,7 +74,7 @@ speeq/
    `waitUntil` when one is provided. Otherwise it runs in the stream tail after `turn.finished`,
    with a hard timeout of 1.5 s. Telemetry is enabled by default, but it only sends when an
    endpoint is configured (`SPEEQ_PLATFORM_URL`). ADR-0004.
-9. **Platform DB:** Drizzle with postgres.js when `DATABASE_URL` is set (Neon or any Postgres).
+9. **Platform DB:** Drizzle with postgres.js when `DATABASE_URL` is set (Supabase, Neon or any Postgres; pooled `DATABASE_URL` at runtime, `DATABASE_URL_DIRECT` for migrations).
    Without it, the platform uses embedded **PGlite**, so `pnpm dev` works with zero setup. ADR-0009.
 10. **shadcn/ui-style primitives are vendored by hand** into `apps/platform/components/ui`. They
     follow the same open-code idea as the shadcn CLI, but the build stays non-interactive and

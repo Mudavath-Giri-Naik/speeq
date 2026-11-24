@@ -162,6 +162,11 @@ dialogs, `/admin/conversations` and Playwright come in task 005.
     (`next build`), `start`, `typecheck` (must work without a prior `next build`: commit a
     `next-env.d.ts`, or run `next typegen` first, your choice), and `test` (vitest, node environment).
     If `next build` needs the env at build time, read env lazily (no top-level throw on missing keys).
+13. **One env file at the repo root.**
+    - `next.config.ts` calls `loadEnvConfig(<repo root>)` from `@next/env` (it ships with Next), so the
+      root `.env` / `.env.local` is used. An `apps/demo/.env.local`, if present, still wins (it is loaded
+      by Next as usual). Tests never load env files: they pass `env` explicitly.
+    - `selectLlm` and the auth helpers `trim()` every env value and treat empty strings as unset.
 
 ## 4. Scope
 
@@ -184,7 +189,7 @@ stop and describe it under "Open questions". Do not work around it inside the pa
 
 ## 5. Requirements
 
-1. All of decisions 1–12 are implemented as written.
+1. All of decisions 1–13 are implemented as written.
 2. On a fresh clone with no `.env`, `pnpm --filter @speeq/demo dev` serves every page with no
    runtime error, and `POST /api/speeq/session` returns 200 in mock mode.
 3. Every manifest route path has a matching page file. Every subject slug in the route enum
