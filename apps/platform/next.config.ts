@@ -15,6 +15,22 @@ loadEnvConfig(resolve(process.cwd(), "../.."), dev, logger, true);
 
 const config: NextConfig = {
   agentRules: false,
+  async headers() {
+    const noStore = [{ key: "cache-control", value: "no-store" }];
+    return [
+      {
+        source: "/:path((?!api/v1/ingest/?$).*)",
+        headers: [
+          { key: "x-frame-options", value: "DENY" },
+          { key: "x-content-type-options", value: "nosniff" },
+          { key: "referrer-policy", value: "no-referrer" },
+          { key: "x-robots-tag", value: "noindex, nofollow" },
+        ],
+      },
+      { source: "/dashboard/:path*", headers: noStore },
+      { source: "/login", headers: noStore },
+    ];
+  },
   serverExternalPackages: ["@electric-sql/pglite", "postgres"],
 };
 export default config;

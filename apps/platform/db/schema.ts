@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -80,6 +81,13 @@ export const errorCounts = pgTable(
   { ...period(), code: text("code").notNull(), count: count("count") },
   (t) => [index("errors_code_received_idx").on(t.code, t.receivedAt)],
 );
+/** Cached aggregate responses from the package and repository registries. */
+export const externalStats = pgTable("external_stats", {
+  key: text("key").primaryKey(),
+  payload: jsonb("payload").notNull(),
+  ok: boolean("ok").notNull(),
+  fetchedAt: date("fetched_at").notNull(),
+});
 /** Shared per-minute ingest limits. */
 export const ingestThrottle = pgTable(
   "ingest_throttle",
