@@ -179,3 +179,20 @@ Commit on the branch (Conventional Commits, no attribution lines of any kind, no
 Write `handoff/reports/007-platform-ingest.md` from `handoff/REPORT_TEMPLATE.md` and print it. Do not
 merge to main. Do not push. Do not edit `handoff/INDEX.md`. If any rule in §3.3 seems wrong or
 impossible, stop and say so in the report; do not weaken it.
+
+## Amendment A (architect decision, answers the blocked report)
+
+Rule 7 is wrong for confirmations: an approval or rejection can arrive in a later batch than its
+request, because the collector resets counters after each send and a resume is not a turn
+(Task 006 Amendment A). **Remove the confirmations inequality entirely** from §3.3 rule 7; the
+confirmation counters get no cross-field check beyond the schema's own per-counter limits.
+
+Rule 7 keeps these checks, which hold within a single batch by construction because they are all
+incremented together in `turn()`: `voiceTurns + textTurns = turns`; sum of `languages` values
+≤ `turns`; each latency histogram sum ≤ `turns`. Do not add any other cross-field or cross-batch
+check, and do not reject batches on a rule you cannot prove the real collector always satisfies.
+
+Update the validation tests accordingly: delete the confirmation-inequality case and add one
+asserting that a rollup with `approved: 1, requested: 0, turns: 0` is accepted (202). Add one
+integration test that sends the real SDK's two batches from a bookmark request followed by an
+approval (`flushIntervalMs: 0`) and expects 202 for both.
