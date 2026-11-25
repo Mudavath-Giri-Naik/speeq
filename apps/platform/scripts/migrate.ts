@@ -1,9 +1,11 @@
 import { resolve } from "node:path";
-import { loadEnvConfig, updateInitialEnv } from "@next/env";
+import nextEnv from "@next/env";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { getDb, openPostgres } from "../db/client";
 import { setting } from "../lib/env";
+
+const { loadEnvConfig, updateInitialEnv } = nextEnv;
 
 async function main() {
   const logger = { info: () => {}, error: () => console.error("Environment load failed") };
