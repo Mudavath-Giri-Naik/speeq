@@ -1,0 +1,37 @@
+{
+  "name": "@speeq/platform",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "predev": "turbo run build --filter=@speeq/core",
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.6.0",
+    "@next/env": "16.4.6",
+    "@speeq/core": "workspace:*",
+    "drizzle-orm": "0.45.4",
+    "postgres": "3.4.8",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@speeq/server": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "@speeq/store-memory": "workspace:*",
+    "@speeq/tsconfig": "workspace:*",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "tsx": "4.23.15"
+  }
+}
