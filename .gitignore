@@ -17,3 +17,4 @@ test-results/
 .DS_Store
 .verify.log
 .data/
+.packs/
