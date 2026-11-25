@@ -1,3 +1,4 @@
+import "./globals.css";
 import type { ReactNode } from "react";
 /** Platform document shell. */
 export default function Layout({ children }: { children: ReactNode }) {

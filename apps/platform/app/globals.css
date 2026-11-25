@@ -1,0 +1,286 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f3f5f4;
+  --panel: #fff;
+  --ink: #172c2c;
+  --dim: #526565;
+  --line: #cad5d1;
+  --accent: #086455;
+  --tint: #deeee7;
+  --track: #e3e9e5;
+  font:
+    16px / 1.5 system-ui,
+    sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+a {
+  color: var(--accent);
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.shell {
+  max-width: 82rem;
+  padding: 0 clamp(1rem, 4vw, 4rem);
+  margin: auto;
+}
+.head,
+.title,
+.inline,
+.ranges,
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.head,
+.title {
+  justify-content: space-between;
+}
+.head {
+  min-height: 4rem;
+}
+.wordmark {
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  font-size: 1.45rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.wordmark span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--dim);
+}
+.tabs {
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+.tabs a,
+.ranges a {
+  text-decoration: none;
+  padding: 0.7rem 0.85rem;
+  color: var(--dim);
+}
+.tabs a[aria-current] {
+  box-shadow: inset 0 -3px var(--accent);
+  color: var(--ink);
+  font-weight: 650;
+}
+.ranges {
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+.ranges a {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+}
+.ranges a[aria-current] {
+  background: var(--tint);
+  color: var(--accent);
+  font-weight: bold;
+}
+.title {
+  margin: 2rem 0 1rem;
+}
+h1,
+h2 {
+  line-height: 1.15;
+}
+h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+h2 {
+  font-size: 1.04rem;
+  margin: 0 0 1rem;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  min-width: 0;
+  margin-bottom: 1rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: 0 1rem;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1.2rem;
+  margin: 0;
+}
+.stats dt,
+figcaption,
+summary,
+.empty {
+  color: var(--dim);
+  font-size: 0.875rem;
+}
+.stats dd {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.button {
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  background: var(--accent);
+  color: var(--panel);
+  font: inherit;
+  cursor: pointer;
+}
+.subtle {
+  background: transparent;
+  color: var(--accent);
+}
+input {
+  font: inherit;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0.55rem;
+  display: block;
+  width: 100%;
+}
+.inline {
+  align-items: end;
+  flex-wrap: wrap;
+}
+.scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+td,
+th {
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.revoked,
+.badge {
+  color: var(--dim);
+}
+.badge {
+  border: 1px solid var(--line);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+.pagination,
+figcaption,
+details {
+  margin-top: 0.75rem;
+}
+.distribution {
+  margin: 0;
+}
+.distribution > div {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) 2fr;
+  gap: 0.8rem;
+  align-items: center;
+  margin: 0.55rem 0;
+}
+.distribution dd {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0;
+}
+.track {
+  height: 0.45rem;
+  background: var(--track);
+  flex: 1;
+  border-radius: 4px;
+}
+.track span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+figure {
+  margin: 0;
+}
+svg {
+  width: 100%;
+  height: 7rem;
+  fill: var(--accent);
+}
+polyline {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  fill: none;
+}
+main {
+  padding-bottom: 3rem;
+}
+.login {
+  background: var(--panel);
+  max-width: 25rem;
+  margin: 12vh auto;
+  padding: 2rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.login h1 {
+  margin: 1.5rem 0;
+}
+.login input {
+  margin: 0.4rem 0 1rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101918;
+    --panel: #182522;
+    --ink: #e7f2ea;
+    --dim: #acbeb7;
+    --line: #364c43;
+    --accent: #8dd9ba;
+    --tint: #203e33;
+    --track: #34493f;
+  }
+}
+@media (max-width: 480px) {
+  .tabs a {
+    padding: 0.6rem 0.45rem;
+    font-size: 0.85rem;
+  }
+  .login {
+    margin: 8vh 1rem;
+  }
+  .title {
+    gap: 0.5rem;
+  }
+}

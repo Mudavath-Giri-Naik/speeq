@@ -1,9 +1,7 @@
-/** Platform landing page. */
+import { redirect } from "next/navigation";
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+/** Sends visitors to the authenticated overview. */
 export default function Home() {
-  return (
-    <main>
-      <h1>speeq platform</h1>
-      <p>The dashboard is coming in a later release.</p>
-    </main>
-  );
+  redirect("/dashboard");
 }
