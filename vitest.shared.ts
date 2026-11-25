@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defaultClientConditions, defaultServerConditions } from "vite";
 import { defineConfig, type ViteUserConfig } from "vitest/config";
 
@@ -9,6 +10,11 @@ export function speeqVitestConfig(overrides: ViteUserConfig["test"] = {}): ViteU
   return defineConfig({
     resolve: { conditions: ["@speeq/source", ...defaultClientConditions] },
     ssr: { resolve: { conditions: ["@speeq/source", ...defaultServerConditions] } },
-    test: { environment: "node", include: ["test/**/*.test.{ts,tsx}"], ...overrides },
+    test: {
+      environment: "node",
+      include: ["test/**/*.test.{ts,tsx}"],
+      setupFiles: [fileURLToPath(new URL("./vitest.setup-env.ts", import.meta.url))],
+      ...overrides,
+    },
   });
 }
