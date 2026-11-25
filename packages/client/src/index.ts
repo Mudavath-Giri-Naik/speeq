@@ -12,6 +12,8 @@ export type {
 export { createAuditClient } from "./audit.js";
 export { createSpeeqClient } from "./client.js";
 export type {
+  CallOptions,
+  CallState,
   ChatMessage,
   NavigateAction,
   PageContextInput,

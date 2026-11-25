@@ -2,8 +2,14 @@
 export interface SpeechInputHandlers {
   /** Partial transcript while the user is speaking. */
   onInterim?(transcript: string): void;
-  /** Final transcript of one utterance. */
+  /**
+   * Final transcript. In single-utterance mode this is called once when recognition ends. In
+   * {@link SpeechInputOptions.continuous} mode it is called for every finished phrase while
+   * recognition keeps running.
+   */
   onFinal(transcript: string): void;
+  /** Sound that looks like speech was detected (before any transcript exists). Optional. */
+  onSpeechStart?(): void;
   /** Recognition failed (no permission, no speech, network). */
   onError?(error: {
     code: "not-allowed" | "no-speech" | "network" | "aborted" | "unsupported" | "other";
@@ -19,6 +25,11 @@ export interface SpeechInputOptions {
   language: string;
   /** Emit interim transcripts. Default `true`. */
   interimResults?: boolean;
+  /**
+   * Keep listening after a pause and deliver each finished phrase through `onFinal`. Used for
+   * hands-free calls. Default `false` (one utterance, then recognition ends).
+   */
+  continuous?: boolean;
 }
 
 /** Speech-to-text. The default implementation uses the browser Web Speech API. */
@@ -48,4 +59,8 @@ export interface SpeechOutput {
   speak(text: string, options: SpeakOptions): Promise<void>;
   /** Stops speaking and clears the queue. */
   cancel(): void;
+  /** Pauses the current utterance so that `resume()` can continue from the same spot. Optional. */
+  pause?(): void;
+  /** Continues after `pause()`. Optional. */
+  resume?(): void;
 }

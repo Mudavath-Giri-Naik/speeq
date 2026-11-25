@@ -61,6 +61,7 @@
   --color-accent-2: var(--accent-2);
   --color-ok: var(--ok);
   --color-danger: var(--danger);
+  --color-warn: var(--warn);
 }
 
 html {

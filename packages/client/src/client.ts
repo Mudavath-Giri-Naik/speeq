@@ -6,11 +6,13 @@ import { sessions } from "./session.js";
 import { SpeechQueue } from "./speech-queue.js";
 import { readEvents } from "./stream.js";
 import type {
+  CallState,
   ChatMessage,
   SpeeqClient,
   SpeeqClientEvents,
   SpeeqClientOptions,
   SpeeqSnapshot,
+  SpeeqState,
 } from "./types.js";
 import { WebSpeechInput } from "./web-speech-input.js";
 import { WebSpeechOutput } from "./web-speech-output.js";
@@ -36,6 +38,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     pendingConfirmation: null,
     error: null,
     activeTools: [],
+    call: { active: false, interrupted: false },
     support: {
       speechInput: !!input?.supported,
       speechOutput: !!output?.supported,
@@ -49,6 +52,20 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let generation = 0;
   let turn: AbortController | undefined;
   let destroyed = false;
+
+  // Hands-free call state. See startCall().
+  const graceMs = options.call?.interruptGraceMs ?? 1000;
+  const echoGuard = options.call?.echoGuard !== false;
+  const commitAfterMs = options.call?.commitAfterMs ?? 0;
+  const ECHO_TAIL_MS = 1500;
+  let callActive = false;
+  let callId = 0;
+  let graceTimer: ReturnType<typeof setTimeout> | undefined;
+  let commitTimer: ReturnType<typeof setTimeout> | undefined;
+  let committed: string | null = null;
+  let spoken = "";
+  let lastAudioEnd = 0;
+  let restarts: number[] = [];
   if (snapshot.support.speechOutput) {
     setTimeout(() => {
       if (destroyed || snapshot.language !== language) return;
@@ -74,6 +91,38 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     if (snapshot !== next) return;
     if (next.state !== previous.state) emitter.emit("state", next.state);
     if (next.error && next.error !== previous.error) emitter.emit("error", next.error);
+  }
+
+  const restState = (): SpeeqState => (callActive ? "listening" : "idle");
+  function setCall(patch: Partial<CallState>) {
+    const next = { ...snapshot.call, ...patch };
+    if (next.active !== snapshot.call.active || next.interrupted !== snapshot.call.interrupted)
+      update({ call: next });
+  }
+  function remember(text: string) {
+    spoken = `${spoken} ${text}`.slice(-1500);
+  }
+  function wordsOf(text: string) {
+    return text.toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [];
+  }
+  const audible = () => snapshot.state === "speaking";
+  /** True when the microphone is probably hearing the assistant's own voice. */
+  function isEcho(text: string) {
+    if (!echoGuard) return false;
+    if (!audible() && Date.now() - lastAudioEnd > ECHO_TAIL_MS) return false;
+    const heard = wordsOf(text);
+    if (heard.length === 0) return true;
+    const known = new Set(wordsOf(spoken));
+    return heard.filter((w) => known.has(w)).length / heard.length >= 0.8;
+  }
+  function clearGrace() {
+    if (graceTimer) clearTimeout(graceTimer);
+    graceTimer = undefined;
+    setCall({ interrupted: false });
+  }
+  function clearCommit() {
+    if (commitTimer) clearTimeout(commitTimer);
+    commitTimer = undefined;
   }
 
   const request = sessions(options, ({ sessionId, config }) => {
@@ -104,7 +153,8 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     if (force || turn || speech.pending || snapshot.state === "speaking") speech.cancel();
     turn?.abort();
     turn = undefined;
-    if (snapshot.state === "listening") input?.abort();
+    clearGrace();
+    if (!callActive && snapshot.state === "listening") input?.abort();
   }
   function clearActivity() {
     return {
@@ -133,8 +183,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     let language = snapshot.language;
     update({ ...cleared, messages, pendingConfirmation: null, state: "thinking" });
     let chunker = new SentenceChunker();
+    spoken = "";
     function enqueue(text: string) {
-      if (!signal.aborted) void speech.enqueue(text, language, () => update({ state: "speaking" }));
+      if (signal.aborted || !text) return;
+      remember(text);
+      void speech.enqueue(text, language, () => update({ state: "speaking" }));
     }
     function fail(error: PublicError) {
       update({ error, messages: markStreaming("error") });
@@ -223,9 +276,10 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     if (signal.aborted) return;
     await speech.drain();
     if (signal.aborted) return;
+    lastAudioEnd = Date.now();
     turn = undefined;
     update({
-      state: snapshot.error ? "error" : speech.pending ? "speaking" : "idle",
+      state: snapshot.error && !callActive ? "error" : speech.pending ? "speaking" : restState(),
       activeTools: snapshot.activeTools.length ? [] : snapshot.activeTools,
     });
   }
@@ -233,7 +287,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   function cancel() {
     if (destroyed) return;
     interrupt(true);
-    update({ ...clearActivity(), state: "idle" });
+    update({ ...clearActivity(), state: restState() });
   }
   async function sendText(
     text: string,
@@ -242,7 +296,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     if (!destroyed && text.trim()) await run({ text: text.trim(), inputMode });
   }
   function startListening() {
-    if (destroyed) return;
+    if (destroyed || callActive) return;
     interrupt(true);
     if (!input?.supported) {
       update({
@@ -303,6 +357,147 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       },
     );
   }
+  const NOISE = /^(um+|uh+|hm+|mm+|ah+|oh+|er+|erm|huh)$/i;
+
+  /** The visitor is talking. Pause the assistant, and resume if nothing real follows. */
+  function onCallInterim(text: string) {
+    if (!callActive) return;
+    if (isEcho(text)) return;
+    if (committed !== null && wordsOf(text).join(" ") === committed) return;
+    if (audible()) {
+      if (speech.canPause) {
+        if (!snapshot.call.interrupted) {
+          speech.pause();
+          setCall({ interrupted: true });
+        }
+        if (graceTimer) clearTimeout(graceTimer);
+        graceTimer = setTimeout(() => {
+          graceTimer = undefined;
+          if (!callActive || !snapshot.call.interrupted) return;
+          speech.resume();
+          update({ interimTranscript: "", call: { active: true, interrupted: false } });
+        }, graceMs);
+      } else {
+        // This output cannot pause, so stop talking right away.
+        speech.cancel();
+        update({ state: restState() });
+      }
+    }
+    update({ interimTranscript: text });
+    if (commitAfterMs > 0) {
+      clearCommit();
+      commitTimer = setTimeout(() => {
+        commitTimer = undefined;
+        if (callActive && snapshot.interimTranscript === text) onCallFinal(text, true);
+      }, commitAfterMs);
+    }
+  }
+
+  function onCallFinal(text: string, early = false) {
+    if (!callActive) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    clearCommit();
+    const key = wordsOf(trimmed).join(" ");
+    if (!early && committed !== null) {
+      const same = committed === key;
+      committed = null;
+      if (same) return; // the browser finished a phrase that was already sent early
+    }
+    if (isEcho(trimmed)) return;
+    if ((audible() || snapshot.call.interrupted) && NOISE.test(trimmed)) {
+      update({ interimTranscript: "" }); // a filler word: let the grace timer resume speech
+      return;
+    }
+    clearGrace();
+    committed = early ? key : null;
+    void sendText(trimmed, { inputMode: "voice" });
+  }
+
+  function callListen(id: number) {
+    if (!callActive || id !== callId || !input) return;
+    input.start(
+      { language: snapshot.language, interimResults: true, continuous: true },
+      {
+        onInterim: (t) => id === callId && onCallInterim(t),
+        onFinal: (t) => id === callId && onCallFinal(t),
+        onError({ code }) {
+          if (id !== callId || !callActive) return;
+          if (code === "not-allowed")
+            endCall({
+              code: "FORBIDDEN",
+              message: "Microphone permission was denied.",
+              retryable: false,
+            });
+          else if (code === "unsupported" && restarts.length === 0)
+            endCall({
+              code: "NOT_CONFIGURED",
+              message: "Voice input is not available in this browser. Please type instead.",
+              retryable: false,
+            });
+        },
+        onEnd() {
+          if (id !== callId || !callActive) return;
+          // The browser ends recognition now and then (silence, network). Start it again.
+          const now = Date.now();
+          restarts = restarts.filter((t) => now - t < 5000);
+          restarts.push(now);
+          if (restarts.length > 8) {
+            endCall({
+              code: "INTERNAL",
+              message: "Voice input keeps stopping. The call was ended.",
+              retryable: true,
+            });
+            return;
+          }
+          setTimeout(() => callListen(id), restarts.length > 2 ? 500 : 120);
+        },
+      },
+    );
+  }
+
+  function startCall() {
+    if (destroyed || callActive) return;
+    interrupt(true);
+    if (!input?.supported) {
+      update({
+        ...clearActivity(),
+        state: "error",
+        error: {
+          code: "NOT_CONFIGURED",
+          message: "Voice input is not supported in this browser. Please type instead.",
+          retryable: false,
+        },
+      });
+      return;
+    }
+    callActive = true;
+    callId++;
+    restarts = [];
+    committed = null;
+    spoken = "";
+    speech.setEnabled(true);
+    update({ ...clearActivity(), call: { active: true, interrupted: false }, state: "listening" });
+    callListen(callId);
+  }
+
+  function endCall(error?: PublicError) {
+    if (!callActive) return;
+    callActive = false;
+    callId++;
+    clearCommit();
+    committed = null;
+    interrupt(true);
+    input?.abort();
+    speech.setEnabled(options.speakReplies !== false);
+    update({
+      ...clearActivity(),
+      call: { active: false, interrupted: false },
+      state: error ? "error" : "idle",
+      ...(error ? { error } : {}),
+    });
+  }
+
   return {
     getSnapshot: () => snapshot,
     subscribe: (cb) => (destroyed ? () => {} : emitter.on("change", cb)),
@@ -310,8 +505,12 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     sendText,
     startListening,
     cancel,
+    startCall,
+    endCall: () => endCall(),
     stopListening() {
-      if (!destroyed && snapshot.state === "listening") input?.stop();
+      if (destroyed) return;
+      if (callActive) endCall();
+      else if (snapshot.state === "listening") input?.stop();
     },
     async confirm(confirmationId, approved) {
       if (!destroyed) await run(null, { confirmationId, approved });
@@ -320,8 +519,9 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       if (destroyed) return;
       if (!snapshot.languages.includes(language))
         throw new SpeeqError("INVALID_INPUT", { message: `Language not enabled: ${language}` });
-      if (snapshot.state === "listening") cancel();
+      if (snapshot.state === "listening" && !callActive) cancel();
       update({ language, support: { ...snapshot.support, voiceForLanguage: null } });
+      if (callActive) input?.abort(); // the call restarts recognition in the new language
       if (output)
         void speech.voice(language).then((voiceForLanguage) => {
           if (!destroyed && snapshot.language === language)
@@ -331,17 +531,22 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     async speak(text) {
       if (destroyed) return;
       const id = generation;
+      remember(text);
       await speech.enqueue(text, snapshot.language, () => {
         const listening = snapshot.state === "listening";
         update({ state: "speaking", interimTranscript: "", ...(turn ? {} : { error: null }) });
-        if (listening && id === generation) input?.abort();
+        if (listening && !callActive && id === generation) input?.abort();
       });
+      lastAudioEnd = Date.now();
       if (id === generation && !turn && !speech.pending && snapshot.state === "speaking")
-        update({ state: snapshot.error ? "error" : "idle" });
+        update({ state: snapshot.error && !callActive ? "error" : restState() });
     },
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      callActive = false;
+      callId++;
+      clearCommit();
       interrupt(true);
       emitter.clear();
       update({ ...clearActivity(), state: "idle" });

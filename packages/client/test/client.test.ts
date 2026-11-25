@@ -59,6 +59,7 @@ it("constructs a stable, idle snapshot in Node and ignores blank text", async ()
     pendingConfirmation: null,
     error: null,
     activeTools: [],
+    call: { active: false, interrupted: false },
     support: { speechInput: false, speechOutput: false, voiceForLanguage: null },
     config: null,
     sessionId: null,

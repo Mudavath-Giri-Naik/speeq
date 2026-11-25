@@ -2,6 +2,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { AssistantProvider } from "../components/assistant/assistant-provider";
 import { Enhancer } from "../components/enhancer";
 import { Footer } from "../components/footer";
 import { Header } from "../components/header";
@@ -42,12 +43,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-dvh antialiased">
-        <Header />
-        <div id="main" tabIndex={-1} className="outline-none">
-          {children}
-        </div>
-        <Footer />
-        <Enhancer />
+        <AssistantProvider>
+          <Header />
+          <div id="main" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
+          <Footer />
+          <Enhancer />
+        </AssistantProvider>
       </body>
     </html>
   );

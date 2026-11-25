@@ -20,7 +20,10 @@ function errorCode(error: string): Parameters<NonNullable<Handlers["onError"]>>[
   }
 }
 
-/** Recognizes a single utterance using the browser's Web Speech API. */
+/**
+ * Recognizes speech using the browser's Web Speech API. By default it captures one utterance.
+ * With `continuous: true` it keeps listening and reports each finished phrase through `onFinal`.
+ */
 export class WebSpeechInput implements SpeechInput {
   private active?: { stop(): void; abort(): void };
 
@@ -30,7 +33,9 @@ export class WebSpeechInput implements SpeechInput {
 
   start(options: StartOptions, handlers: Handlers): void {
     this.abort();
+    const continuous = options.continuous === true;
     let finalText = "";
+    let delivered = 0;
     let previousInterim = "";
     let aborted = false;
     let ended = false;
@@ -40,7 +45,7 @@ export class WebSpeechInput implements SpeechInput {
       ended = true;
       if (this.active === session) this.active = undefined;
       try {
-        if (!aborted && finalText.trim()) handlers.onFinal(finalText.trim());
+        if (!continuous && !aborted && finalText.trim()) handlers.onFinal(finalText.trim());
       } finally {
         handlers.onEnd?.();
       }
@@ -63,10 +68,32 @@ export class WebSpeechInput implements SpeechInput {
       this.active = session;
       recognition.lang = options.language;
       recognition.interimResults = options.interimResults ?? true;
-      recognition.continuous = false;
+      recognition.continuous = continuous;
       recognition.maxAlternatives = 1;
+      recognition.onspeechstart = () => {
+        if (!ended && !aborted) handlers.onSpeechStart?.();
+      };
       recognition.onresult = ({ results }) => {
         if (ended || aborted) return;
+        if (continuous) {
+          // Deliver each newly finished phrase once, and report the phrase still in progress.
+          const list = Array.from(results);
+          let interim = "";
+          list.forEach((result, index) => {
+            const text = (result[0]?.transcript ?? "").trim();
+            if (result.isFinal) {
+              if (index >= delivered) {
+                delivered = index + 1;
+                if (text) handlers.onFinal(text);
+              }
+            } else interim += result[0]?.transcript ?? "";
+          });
+          if (interim !== previousInterim) {
+            previousInterim = interim;
+            if (interim) handlers.onInterim?.(interim);
+          }
+          return;
+        }
         // The result list contains the whole session, including earlier final results.
         finalText = "";
         let interim = "";

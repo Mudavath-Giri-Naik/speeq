@@ -12,6 +12,24 @@ export class SpeechQueue {
     private enabled: boolean,
   ) {}
 
+  /** Turn spoken replies on or off for future text. */
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+  }
+
+  /** Whether the output can pause and resume the current utterance. */
+  get canPause() {
+    return !!this.output?.pause && !!this.output.resume;
+  }
+
+  pause() {
+    this.output?.pause?.();
+  }
+
+  resume() {
+    this.output?.resume?.();
+  }
+
   voice(language: string) {
     let result = this.voices.get(language);
     if (!result) {

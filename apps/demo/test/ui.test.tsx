@@ -28,6 +28,8 @@ const snapshot: UseSpeeqResult = {
   sendText,
   startListening,
   stopListening,
+  startCall: vi.fn(),
+  endCall: vi.fn(),
   cancel,
   setLanguage,
   confirm,

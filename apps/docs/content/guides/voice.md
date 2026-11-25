@@ -52,3 +52,18 @@ With the default adapters, the browser vendor may process the audio on its own s
 
 - [Browser client reference](/docs/reference/client)
 - [React hooks](/docs/reference/react)
+
+## Hands-free calls
+
+For a phone-style conversation, call `startCall()` from a button. The microphone stays on, your words appear live, each phrase you finish is sent, and the replies are spoken. Call `endCall()` to stop.
+
+```tsx
+const { startCall, endCall, call, interimTranscript } = useSpeeq();
+```
+
+- `call.active` is true during a call. `interimTranscript` shows what the visitor is saying right now.
+- **Talking over the assistant.** If the visitor starts talking while the assistant speaks, the speech pauses. If real words follow, the assistant stops and answers the new question. If nothing real follows within a second (a cough, a filler word like "um"), it continues from where it stopped. While paused, `call.interrupted` is true.
+- **Echo guard.** If your speakers are loud, the microphone can hear the assistant. speeq ignores words that match what it is saying, so it does not interrupt itself. Headphones work best.
+- **Tuning.** Pass `call={{ interruptGraceMs: 1000, commitAfterMs: 700, echoGuard: true }}` to the provider. `commitAfterMs` sends a phrase after that long without new words, instead of waiting for the browser to finish it. Lower is faster but may cut people off.
+
+`startCall()` must run from a click or tap, because browsers ask for microphone permission. A call keeps going while the visitor moves between pages, as long as the provider stays mounted.

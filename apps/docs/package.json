@@ -24,8 +24,10 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
     "shiki": "^4.6.0",
+    "speeq": "workspace:*",
     "unified": "^11.0.5",
-    "unist-util-visit": "^5.2.0"
+    "unist-util-visit": "^5.2.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@speeq/tsconfig": "workspace:*",

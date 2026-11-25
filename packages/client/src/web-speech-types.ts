@@ -18,6 +18,7 @@ export interface RecognitionLike {
   continuous: boolean;
   maxAlternatives: number;
   onresult: ((event: { results: ArrayLike<RecognitionResult> }) => void) | null;
+  onspeechstart?: (() => void) | null;
   onerror: ((event: { error: string; message?: string }) => void) | null;
   onend: (() => void) | null;
   start(): void;
@@ -41,6 +42,7 @@ export interface SynthesisLike {
   getVoices(): readonly SpeechSynthesisVoiceLike[];
   addEventListener(type: "voiceschanged", listener: () => void): void;
   removeEventListener(type: "voiceschanged", listener: () => void): void;
+  pause?(): void;
   resume(): void;
   speak(utterance: UtteranceLike): void;
   cancel(): void;

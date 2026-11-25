@@ -77,3 +77,12 @@ npm download counts update about once a day and include automated installs.
    | `GITHUB_TOKEN`         | A token with no scopes. Raises the GitHub rate limit for the stats. Server only.                                                                        |
 
 The site sets no cookies and loads nothing from third parties. Fonts are bundled.
+
+## The site's own assistant
+
+The widget in the bottom-right corner is built with speeq. The server is `app/api/speeq/[[...speeq]]/route.ts`, configured in `lib/assistant/`. It can open every page, search the docs and read live install numbers.
+
+- With no keys it uses a small offline guide. For a real model set `GROQ_API_KEY` (fast) or `GEMINI_API_KEY` in Vercel. Optional: `GROQ_MODEL`, `SPEEQ_LLM`.
+- Set `SPEEQ_SECRET` (32 or more random characters) so every serverless instance signs sessions the same way.
+- This app now depends on the workspace packages (`speeq`), so `vercel.json` builds from the repository root with Turborepo. Keep the Vercel root directory at `apps/docs` and "Include files outside the Root Directory" on.
+- The endpoint is public and calls a paid model. Rate limits are per instance (15 turns a minute); add a shared limit if you see abuse.

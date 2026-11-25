@@ -40,6 +40,26 @@ export class FakeSpeechInput implements SpeechInput {
     this.end();
   }
 
+  /** Simulates the browser detecting speech before any words exist. */
+  speechStart(): void {
+    this.handlers?.onSpeechStart?.();
+  }
+
+  /** Emits an interim transcript and keeps listening (for calls). */
+  interim(text: string): void {
+    this.handlers?.onInterim?.(text);
+  }
+
+  /** Emits a finished phrase and keeps listening (for calls). */
+  final(text: string): void {
+    this.handlers?.onFinal(text);
+  }
+
+  /** Ends recognition, as a browser does after silence. */
+  finish(): void {
+    this.end();
+  }
+
   /** Simulates an interim transcript only (user still speaking). */
   partial(text: string): void {
     this.pendingFinal = text;
@@ -78,6 +98,11 @@ export class FakeSpeechOutput implements SpeechOutput {
   readonly spoken: Array<{ text: string; language: string }> = [];
   /** Number of `cancel()` calls. */
   cancelCount = 0;
+  /** Number of `pause()` and `resume()` calls. */
+  pauseCount = 0;
+  resumeCount = 0;
+  /** True between `pause()` and `resume()` or `cancel()`. */
+  paused = false;
   private readonly voices: Set<string> | null;
   private readonly speakMs: number;
 
@@ -102,5 +127,16 @@ export class FakeSpeechOutput implements SpeechOutput {
 
   cancel(): void {
     this.cancelCount += 1;
+    this.paused = false;
+  }
+
+  pause(): void {
+    this.pauseCount += 1;
+    this.paused = true;
+  }
+
+  resume(): void {
+    this.resumeCount += 1;
+    this.paused = false;
   }
 }

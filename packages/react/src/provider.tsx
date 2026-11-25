@@ -63,7 +63,11 @@ export function SpeeqProvider(props: SpeeqProviderProps): JSX.Element {
   const client = props.client ?? initial.client;
   const owned = initial.owned && client === initial.client && props.client === undefined;
   useEffect(() => {
-    if (owned) return () => client.cancel();
+    if (owned)
+      return () => {
+        client.endCall(); // never leave the microphone on after the provider is gone
+        client.cancel();
+      };
   }, [owned, client]);
   const value = useMemo(() => {
     const snapshot = initialServerSnapshot(client);

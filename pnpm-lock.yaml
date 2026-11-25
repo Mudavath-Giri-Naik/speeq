@@ -318,12 +318,18 @@ importers:
       shiki:
         specifier: ^4.6.0
         version: 4.6.0
+      speeq:
+        specifier: workspace:*
+        version: link:../../packages/speeq
       unified:
         specifier: ^11.0.5
         version: 11.0.5
       unist-util-visit:
         specifier: ^5.2.0
         version: 5.2.0
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
     devDependencies:
       '@speeq/tsconfig':
         specifier: workspace:*

@@ -35,6 +35,33 @@ export interface PageContextInput {
   data?: Record<string, unknown>;
 }
 
+/** State of a hands-free call. */
+export interface CallState {
+  /** True from `startCall()` until `endCall()`. */
+  active: boolean;
+  /** True while spoken output is paused because the visitor started talking over it. */
+  interrupted: boolean;
+}
+
+/** Tuning for hands-free calls. All fields are optional. */
+export interface CallOptions {
+  /**
+   * How long to keep spoken output paused after the visitor starts talking over it. If no real
+   * words follow, speech resumes from where it stopped. Default 1000 ms.
+   */
+  interruptGraceMs?: number;
+  /**
+   * Ignore the assistant's own voice when the microphone picks it up from the speakers, so it
+   * does not interrupt itself. Default true.
+   */
+  echoGuard?: boolean;
+  /**
+   * Send what the visitor said after this many milliseconds without new words, instead of waiting
+   * for the browser to finish the phrase. Lower is faster but may cut people off. Default 0 (off).
+   */
+  commitAfterMs?: number;
+}
+
 /** Current view of the conversation and device capabilities. */
 export interface SpeeqSnapshot {
   state: SpeeqState;
@@ -45,6 +72,8 @@ export interface SpeeqSnapshot {
   pendingConfirmation: PendingConfirmation | null;
   error: PublicError | null;
   activeTools: Array<{ callId: string; name: string }>;
+  /** Hands-free call status. */
+  call: CallState;
   support: { speechInput: boolean; speechOutput: boolean; voiceForLanguage: boolean | null };
   config: ClientConfig | null;
   sessionId: string | null;
@@ -66,6 +95,8 @@ export interface SpeeqClientOptions {
   autoSendOnFinal?: boolean;
   /** Default "memory". */
   persistSession?: "memory" | "sessionStorage";
+  /** Tuning for `startCall()`. */
+  call?: CallOptions;
   fetch?: typeof fetch;
 }
 
@@ -89,6 +120,14 @@ export interface SpeeqClient {
   sendText(text: string, options?: { inputMode?: "text" | "voice" }): Promise<void>;
   startListening(): void;
   stopListening(): void;
+  /**
+   * Starts a hands-free call: the microphone stays on, each finished phrase is sent as a turn,
+   * replies are spoken, and the visitor can talk over the assistant at any time. Must be called
+   * from a user gesture so the browser allows the microphone.
+   */
+  startCall(): void;
+  /** Ends the call, stops listening and stops speaking. */
+  endCall(): void;
   cancel(): void;
   setLanguage(language: string): void;
   confirm(confirmationId: string, approved: boolean): Promise<void>;

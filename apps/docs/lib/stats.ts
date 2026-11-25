@@ -247,3 +247,53 @@ export async function getGithubStars(): Promise<number | null> {
     return null;
   }
 }
+
+export interface QuickStats {
+  version: string | null;
+  week: number | null;
+  month: number | null;
+  allTime: number | null;
+  stars: number | null;
+  forks: number | null;
+}
+
+let quick: { at: number; value: Promise<QuickStats> } | null = null;
+
+/**
+ * Just the headline numbers, from five requests instead of fifty, for the voice assistant where
+ * every second counts. Cached for ten minutes in the server process. Never rejects.
+ */
+export function getQuickStats(): Promise<QuickStats> {
+  if (quick && Date.now() - quick.at < 10 * 60_000) return quick.value;
+  const value = (async (): Promise<QuickStats> => {
+    const base = "https://api.npmjs.org/downloads";
+    const [week, month, range, registry, github] = await Promise.all([
+      getJson(`${base}/point/last-week/speeq`, undefined, NO_DOWNLOADS),
+      getJson(`${base}/point/last-month/speeq`, undefined, NO_DOWNLOADS),
+      getJson(
+        `${base}/range/${clampRangeStart(FIRST_PUBLISH)}:${today()}/speeq`,
+        undefined,
+        NO_RANGE,
+      ),
+      getJson("https://registry.npmjs.org/speeq"),
+      githubStats(),
+    ]);
+    return {
+      version: parseRegistry(registry).latest,
+      week: parseDownloadsPoint(week),
+      month: parseDownloadsPoint(month),
+      allTime: isRecord(range) ? sumDownloads(parseDownloadsRange(range)) : null,
+      stars: github?.stars ?? null,
+      forks: github?.forks ?? null,
+    };
+  })().catch(() => ({
+    version: null,
+    week: null,
+    month: null,
+    allTime: null,
+    stars: null,
+    forks: null,
+  }));
+  quick = { at: Date.now(), value };
+  return value;
+}

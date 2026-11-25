@@ -8,6 +8,8 @@ export interface UseSpeeqResult extends SpeeqSnapshot {
   sendText: SpeeqClient["sendText"];
   startListening: SpeeqClient["startListening"];
   stopListening: SpeeqClient["stopListening"];
+  startCall: SpeeqClient["startCall"];
+  endCall: SpeeqClient["endCall"];
   cancel: SpeeqClient["cancel"];
   setLanguage: SpeeqClient["setLanguage"];
   confirm: SpeeqClient["confirm"];
@@ -26,6 +28,8 @@ export function useSpeeq(): UseSpeeqResult {
         sendText: client.sendText.bind(client),
         startListening: client.startListening.bind(client),
         stopListening: client.stopListening.bind(client),
+        startCall: client.startCall.bind(client),
+        endCall: client.endCall.bind(client),
         cancel: client.cancel.bind(client),
         setLanguage: client.setLanguage.bind(client),
         confirm: client.confirm.bind(client),

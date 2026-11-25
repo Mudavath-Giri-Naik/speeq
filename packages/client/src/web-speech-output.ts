@@ -106,6 +106,15 @@ export class WebSpeechOutput implements SpeechOutput {
     });
   }
 
+  /** Pauses the current utterance. `resume()` continues from the same spot. */
+  pause(): void {
+    synthesisApi()?.synth.pause?.();
+  }
+
+  resume(): void {
+    synthesisApi()?.synth.resume();
+  }
+
   cancel(): void {
     try {
       synthesisApi()?.synth.cancel();
