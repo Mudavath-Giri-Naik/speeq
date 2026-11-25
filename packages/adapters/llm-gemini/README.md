@@ -4,7 +4,7 @@ An `LLMProvider` for [speeq](../../../README.md) that uses the Google Gemini API
 (`streamGenerateContent`) with function calling. It uses plain `fetch`, with no SDK.
 
 ```bash
-pnpm add @speeq/llm-gemini
+pnpm add @speeq/llm-gemini@next
 ```
 
 ```ts
@@ -12,16 +12,11 @@ import { createGeminiProvider } from "@speeq/llm-gemini";
 
 export const llm = createGeminiProvider({
   apiKey: process.env.GEMINI_API_KEY!,
-  model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
+  model: process.env.GEMINI_MODEL!,
 });
 ```
 
-Get a free key at [Google AI Studio](https://aistudio.google.com/apikey), no credit card needed.
-The default model was checked against the
-[Gemini pricing page](https://ai.google.dev/gemini-api/docs/pricing) on 2026-11-24: it is a stable
-model with a free tier and function calling. `gemini-3.5-flash-lite` is a lighter free option.
-Free-tier requests may be used by Google to improve its products, so read their terms. Always set
-the model through an env var.
+Choose a model that supports function calling. Pass its ID in server-side configuration.
 
 ## What the adapter handles for you
 
@@ -38,4 +33,6 @@ the model through an env var.
 ## Errors
 
 429 / `RESOURCE_EXHAUSTED` becomes `RATE_LIMITED`. An invalid key (Gemini returns 400
-`API_KEY_INVALID`) becomes `NOT_CONFIGURED`. Everything else becomes `PROVIDER_ERROR`.
+`API_KEY_INVALID`) and HTTP 401/403 become `NOT_CONFIGURED`. Other provider failures map to `PROVIDER_ERROR`.
+
+[Related guide or reference](../../../docs/guides/llm-providers.md)

@@ -3,7 +3,7 @@
 speeq is an open-source, **headless** conversational-AI framework for web apps: a voice/text agent
 that navigates the host app, answers from the developer's own data through developer-defined
 tools, and writes a full audit log. A separate platform app collects **anonymous** adoption
-counters. The full spec is `docs/SPEC.md`; build status is in `PLAN.md` and `handoff/INDEX.md`.
+counters. See `PLAN.md` for the build plan and `handoff/INDEX.md` for current status.
 
 ## Dependency rules (enforced by `scripts/check-deps-direction.ts`)
 

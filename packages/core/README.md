@@ -15,7 +15,7 @@ You normally don't install this directly. `@speeq/server`, `@speeq/client` and t
 it. Install it to write your own adapter:
 
 ```bash
-pnpm add @speeq/core zod
+pnpm add @speeq/core@next zod
 ```
 
 ## Entry points

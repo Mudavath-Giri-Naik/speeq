@@ -9,7 +9,7 @@ in tests.
 > [`@speeq/store-mongodb`](../store-mongodb) or write your own adapter.
 
 ```bash
-pnpm add @speeq/store-memory
+pnpm add @speeq/store-memory@next
 ```
 
 ```ts
@@ -21,3 +21,5 @@ export const store = (g.speeqStore ??= createMemoryStore());
 ```
 
 It passes the shared store contract (`@speeq/testing/store-contract`).
+
+[Related guide or reference](../../../docs/guides/stores.md)

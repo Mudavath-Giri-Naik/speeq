@@ -5,7 +5,7 @@ connection**, so speeq keeps the audit log and conversation history in your own 
 to your data.
 
 ```bash
-pnpm add @speeq/store-mongodb mongodb
+pnpm add @speeq/store-mongodb@next mongodb
 ```
 
 `mongodb` (v6 or later) is a peer dependency, so the store uses the driver you already have.
@@ -39,3 +39,5 @@ migrations.
 
 No transactions are required, so it works on standalone servers, replica sets and Atlas free tier
 (M0). Tested against a real `mongod` with `mongodb-memory-server` and the shared store contract.
+
+[Related guide or reference](../../../docs/guides/stores.md)

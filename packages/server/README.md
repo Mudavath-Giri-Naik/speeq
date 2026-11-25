@@ -5,10 +5,12 @@ signed-in user's permissions, and conversations go to your own store. speeq (the
 sees them.
 
 ```bash
-pnpm add @speeq/server @speeq/store-mongodb @speeq/llm-openai-compatible zod
+pnpm add @speeq/server@next @speeq/store-mongodb@next @speeq/llm-openai-compatible@next zod
 ```
 
-## Quick start (Next.js App Router)
+## Next.js App Router
+
+Supply your own database connection, user resolver, count query and admin check in the example below. For a runnable local setup, follow the [mock quickstart](../../docs/guides/nextjs.md).
 
 ```ts
 // lib/speeq.ts
@@ -21,9 +23,9 @@ export const speeq = createSpeeq({
   secret: process.env.SPEEQ_SECRET,
   agent: { name: "Helper", instructions: "You help students use this site." },
   llm: createOpenAICompatibleProvider({
-    baseURL: "https://api.groq.com/openai/v1",
+    baseURL: process.env.GROQ_BASE_URL!,
     apiKey: process.env.GROQ_API_KEY!,
-    model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+    model: process.env.GROQ_MODEL!,
   }),
   store: createMongoStore({ db: getDb() }),
   resolveUser: async (req) => getUserFromYourAuth(req), // { id, roles } | null
@@ -97,5 +99,5 @@ write-tool arguments.
 
 Configure a platform endpoint or a custom transport to send anonymous adoption counters. Set `SPEEQ_TELEMETRY=0` or `telemetry.enabled: false` to disable collection. See the [telemetry reference](../../docs/reference/telemetry.md) for the payload and delivery rules.
 
-See [`docs/reference/config.md`](../../docs/reference/config.md) for every option and
+See [`docs/reference/server-config.md`](../../docs/reference/server-config.md) for every option and
 [`docs/reference/protocol.md`](../../docs/reference/protocol.md) for the wire protocol.

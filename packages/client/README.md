@@ -5,7 +5,7 @@ A headless client for a speeq server handler. Subscribe to conversation state an
 ## Install
 
 ```sh
-pnpm add @speeq/client
+pnpm add @speeq/client@next
 ```
 
 ## Vanilla JavaScript
@@ -152,3 +152,5 @@ if (nextCursor) {
 ```
 
 Both methods accept an abort signal and report HTTP errors as `SpeeqError`.
+
+[Related guide or reference](../../docs/reference/client.md)

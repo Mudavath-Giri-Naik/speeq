@@ -23,6 +23,10 @@ Of special interest:
 - Telemetry sending any field outside the documented allow-list (`docs/reference/telemetry.md`).
 - Prompt-injection paths where tool output or retrieved content leads to an unconfirmed write.
 
+## Security model
+
+The handler verifies signed, expiring tokens and checks the current host identity. Write tools request confirmation by default and claim decisions using per-session dedupe keys. Tools must still enforce host permissions. Audit reads require explicit authorization. Secret-looking argument keys are masked before storage, and hosts can redact other content. The optional telemetry transport sends anonymous aggregate counts and runtime metadata. The SDK rate limiter is per process. Use a shared limiter for deployment-wide protection. [Session security](docs/concepts/sessions-and-security.md) and [Privacy](docs/concepts/privacy.md)
+
 ## Supported versions
 
 Before 1.0, only the latest published `next` and `latest` versions receive fixes.

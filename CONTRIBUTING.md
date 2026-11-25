@@ -23,7 +23,7 @@ pnpm dev          # demo on :3000 (mock LLM, no keys needed) + platform on :3001
 | `pnpm build`     | Build all packages (tsup) and apps (Next.js)                                                        |
 | `pnpm test:e2e`  | Playwright e2e for the demo (run `pnpm --filter @speeq/demo exec playwright install chromium` once) |
 
-A pull request must pass `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
+Run `bash scripts/verify.sh` before submitting. It runs lint, typecheck, tests and build. Run `pnpm test:e2e` separately after installing Chromium. Use `pnpm changeset` to record user-facing package changes, choose the affected packages and describe the impact.
 
 ## Dependency rules
 

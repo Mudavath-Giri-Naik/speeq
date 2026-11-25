@@ -1,0 +1,54 @@
+# speeq
+
+## Key facts
+
+- speeq is headless. The host renders controls and enforces permissions.
+- The conversation store belongs to the developer and supplies model history.
+- Only anonymous aggregates can reach the optional platform.
+
+## Documentation
+
+- [README.md](README.md): Start here for packages and the local demo.
+- [ARCHITECTURE.md](ARCHITECTURE.md): Trace the runtime and dependency graph.
+- [apps/demo/README.md](apps/demo/README.md): Run the mock study assistant.
+- [CONTRIBUTING.md](CONTRIBUTING.md): Set up and verify a workspace change.
+- [SECURITY.md](SECURITY.md): Report vulnerabilities privately and understand the security model.
+- [Conversation audit](docs/concepts/audit.md): Control access to stored conversation events and their retention.
+- [Confirmations](docs/concepts/confirmations.md): Approve a pending write once across server replicas.
+- [How a turn works](docs/concepts/how-it-works.md): Follow a user turn from input to a streamed reply.
+- [Privacy and data ownership](docs/concepts/privacy.md): Trace the data shared with each service.
+- [Sessions and security](docs/concepts/sessions-and-security.md): Bind signed tokens to host identities and configure request limits.
+- [ADR-0001 — Coordinate packages in one workspace](docs/decisions/0001-monorepo.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0002 — Keep the SDK headless and store history through an adapter](docs/decisions/0002-headless-and-store.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0003 — Share Zod schemas and source conditions](docs/decisions/0003-schemas-and-exports.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0004 — Flush anonymous counters after turns](docs/decisions/0004-anonymous-telemetry.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0005 — Use Fetch requests, SSE and stateless session tokens](docs/decisions/0005-http-and-sse.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0006 — Use Biome for formatting and lint](docs/decisions/0006-biome.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0007 — Pin TypeScript 6](docs/decisions/0007-typescript.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0008 — Bundle the dependency-free browser contract](docs/decisions/0008-browser-dependencies.md): Records the rationale and consequences of this architecture decision.
+- [ADR-0009 — Use Postgres and embedded PGlite for platform metrics](docs/decisions/0009-platform-database.md): Records the rationale and consequences of this architecture decision.
+- [Build an audit viewer](docs/guides/audit-viewer.md): Build a paginated admin viewer with audit hooks.
+- [Deploy the handler](docs/guides/deployment.md): Configure secrets, streaming and background work on replicas.
+- [Connect a model](docs/guides/llm-providers.md): Configure a streaming model adapter or provide your own.
+- [Add an assistant to Next.js](docs/guides/nextjs.md): Build an App Router assistant and verify a mock conversation.
+- [Register routes](docs/guides/routes-and-navigation.md): Resolve model-selected routes through your host router.
+- [Choose a conversation store](docs/guides/stores.md): Select or implement persistent conversation history.
+- [Test conversations without a model service](docs/guides/testing.md): Drive a handler and speech adapters deterministically.
+- [Add tools and knowledge](docs/guides/tools-and-knowledge.md): Define validated actions and searchable sources.
+- [Add voice and languages](docs/guides/voice-and-languages.md): Connect microphone, voice selection and text fallback.
+- [Browser client](docs/reference/client.md): Look up browser options, state, methods and events.
+- [Environment settings](docs/reference/environment.md): Identify server, demo and platform configuration settings.
+- [Error codes](docs/reference/errors.md): Map stable error codes to statuses and recovery actions.
+- [HTTP and SSE protocol](docs/reference/protocol.md): Look up HTTP paths, JSON inputs and SSE payloads.
+- [React bindings](docs/reference/react.md): Look up provider props and conversation and audit hooks.
+- [Server configuration](docs/reference/server-config.md): Look up every server option and its default.
+- [Server telemetry](docs/reference/telemetry.md): Inspect the field allow-list and delivery conditions.
+- [@speeq/llm-gemini](packages/adapters/llm-gemini/README.md): Installation and examples for @speeq/llm-gemini.
+- [@speeq/llm-openai-compatible](packages/adapters/llm-openai-compatible/README.md): Installation and examples for @speeq/llm-openai-compatible.
+- [@speeq/store-memory](packages/adapters/store-memory/README.md): Installation and examples for @speeq/store-memory.
+- [@speeq/store-mongodb](packages/adapters/store-mongodb/README.md): Installation and examples for @speeq/store-mongodb.
+- [@speeq/client](packages/client/README.md): Installation and examples for @speeq/client.
+- [@speeq/core](packages/core/README.md): Installation and examples for @speeq/core.
+- [@speeq/react](packages/react/README.md): Installation and examples for @speeq/react.
+- [@speeq/server](packages/server/README.md): Installation and examples for @speeq/server.
+- [@speeq/testing](packages/testing/README.md): Installation and examples for @speeq/testing.

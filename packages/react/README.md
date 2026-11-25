@@ -3,7 +3,7 @@
 Headless conversation and audit hooks for React 18.2+ and 19.
 
 ```sh
-pnpm add @speeq/react
+pnpm add @speeq/react@next
 ```
 
 ## Next.js App Router
@@ -105,3 +105,5 @@ export function AuditPage() {
 ```
 
 Use `useSpeeqAudit` to make direct audit calls from your own hooks. It memoizes by endpoint and credentials. Fetch and headers are captured when that client is created.
+
+[Related guide or reference](../../docs/reference/react.md)

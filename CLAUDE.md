@@ -18,7 +18,7 @@ verification runs. I never implement a whole stage myself.
 ## Briefs (`handoff/tasks/NNN-slug.md`, from `handoff/TASK_TEMPLATE.md`)
 
 Self-contained (Codex has no memory of my conversation). The hard thinking goes in sections 3
-(decisions) and 6 (contracts). Reference `docs/SPEC.md §x` and existing files instead of pasting
+(decisions) and 6 (contracts). Reference `PLAN.md` and existing files instead of pasting
 them. One coherent task per brief. List failure and edge cases explicitly under tests.
 
 ## Reviewing a report

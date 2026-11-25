@@ -3,7 +3,7 @@
 Test doubles for [speeq](../../README.md).
 
 ```bash
-pnpm add -D @speeq/testing
+pnpm add -D @speeq/testing@next
 ```
 
 | Export                                                           | Use it for                                                              |
@@ -15,6 +15,7 @@ pnpm add -D @speeq/testing
 | `runConversationStoreContract` (`@speeq/testing/store-contract`) | Checking that a store adapter behaves correctly                         |
 
 ```ts
+import { createMemoryStore } from "@speeq/store-memory";
 import { createSpeeq } from "@speeq/server";
 import { FakeLLMProvider, startSession } from "@speeq/testing";
 
@@ -22,10 +23,17 @@ const llm = new FakeLLMProvider([
   { toolCalls: [{ name: "navigate", arguments: { routeId: "pricing" } }] },
   { text: "Opening pricing." },
 ]);
-const speeq = createSpeeq({ /* …, */ llm });
+const speeq = createSpeeq({
+  agent: { name: "Helper", instructions: "Help visitors." },
+  llm,
+  routes: [{ id: "pricing", path: "/pricing", title: "Pricing" }],
+  store: createMemoryStore(),
+});
 const session = await startSession(speeq.handler);
 const events = await session.turn("take me to pricing");
 ```
 
 The main entry has no Vitest dependency, so apps can use `createMockLLMProvider` at runtime.
 The store contract needs Vitest (an optional peer dependency).
+
+[Related guide or reference](../../docs/guides/testing.md)
