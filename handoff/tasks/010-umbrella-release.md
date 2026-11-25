@@ -21,19 +21,19 @@ After this task a developer can `npm i speeq zod` and import every public entry 
 - It contains **no logic**. Each subpath file is a pure re-export: `export * from "@speeq/<pkg>"`. Do not copy source.
 - Subpaths (each with `@speeq/source`, import and require conditions, and types, in the same style as `@speeq/server`):
 
-  | Subpath | Re-exports |
-  | --- | --- |
-  | `speeq` (root) | `@speeq/core` only (types, schemas, protocol; environment-neutral) |
-  | `speeq/core` | `@speeq/core` |
-  | `speeq/client` | `@speeq/client` |
-  | `speeq/react` | `@speeq/react` |
-  | `speeq/server` | `@speeq/server` |
-  | `speeq/server/next` | `@speeq/server/next` |
-  | `speeq/testing` | `@speeq/testing` |
-  | `speeq/llm-openai-compatible` | `@speeq/llm-openai-compatible` |
-  | `speeq/llm-gemini` | `@speeq/llm-gemini` |
-  | `speeq/store-memory` | `@speeq/store-memory` |
-  | `speeq/store-mongodb` | `@speeq/store-mongodb` |
+  | Subpath                       | Re-exports                                                         |
+  | ----------------------------- | ------------------------------------------------------------------ |
+  | `speeq` (root)                | `@speeq/core` only (types, schemas, protocol; environment-neutral) |
+  | `speeq/core`                  | `@speeq/core`                                                      |
+  | `speeq/client`                | `@speeq/client`                                                    |
+  | `speeq/react`                 | `@speeq/react`                                                     |
+  | `speeq/server`                | `@speeq/server`                                                    |
+  | `speeq/server/next`           | `@speeq/server/next`                                               |
+  | `speeq/testing`               | `@speeq/testing`                                                   |
+  | `speeq/llm-openai-compatible` | `@speeq/llm-openai-compatible`                                     |
+  | `speeq/llm-gemini`            | `@speeq/llm-gemini`                                                |
+  | `speeq/store-memory`          | `@speeq/store-memory`                                              |
+  | `speeq/store-mongodb`         | `@speeq/store-mongodb`                                             |
 
 - `dependencies`: all nine `@speeq/*` packages as `workspace:*` (pnpm rewrites to exact versions on publish).
 - `peerDependencies`: `zod ^4.0.0` (required), `react >=18` (optional), `mongodb` with the **same range `@speeq/store-mongodb` declares** (optional). Mark the optional ones in `peerDependenciesMeta`. Installing `speeq` must never force MongoDB or React onto a user who does not import those subpaths.

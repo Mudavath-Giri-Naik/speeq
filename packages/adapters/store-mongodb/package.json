@@ -56,6 +56,11 @@
   "peerDependencies": {
     "mongodb": ">=6.0.0"
   },
+  "peerDependenciesMeta": {
+    "mongodb": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@speeq/tsconfig": "workspace:*",
     "@speeq/testing": "workspace:*",

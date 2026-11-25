@@ -16,6 +16,6 @@ const sdk = createSpeeq({
 
 Use `speeq/client` for browser state, `speeq/react` for hooks, and `speeq/server/next` for the Next.js handler. LLM adapters are available at `speeq/llm-openai-compatible` and `speeq/llm-gemini`. Each entry re-exports its corresponding scoped package.
 
-Install React 18 or newer for the hooks. Install `mongodb` 6 or newer and supply your connected database for `speeq/store-mongodb`. Importing the MongoDB entry without the driver produces Node’s standard module-not-found error. Both peers are optional on the umbrella. Installers that automatically satisfy required peers of its scoped dependencies can still install them.
+Install React 18 or newer for the hooks. Install `mongodb` 6 or newer and supply your connected database for `speeq/store-mongodb`. Importing the MongoDB entry without the driver produces Node’s standard module-not-found error. Both peers are optional, so a default install does not add React or the MongoDB driver.
 
 [Next.js guide](https://github.com/Mudavath-Giri-Naik/speeq/blob/main/docs/guides/nextjs.md)
