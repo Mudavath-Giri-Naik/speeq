@@ -14,3 +14,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 008 | Platform: admin login, dashboard pages, stats, seed         | reviewed-accepted | task/008-platform-dashboard |
 | 009 | Docs pass + release verification (combined 11+12)           | reviewed-accepted | task/009-docs-release       |
 | 010 | Umbrella speeq package, release workflow, dev update notice | reviewed-accepted | task/010-umbrella-release   |
+| 011 | Public docs website (apps/docs, Vercel)                     | briefed           | task/011-docs-website       |
