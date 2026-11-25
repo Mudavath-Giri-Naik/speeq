@@ -10,4 +10,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 004 | Demo site: data, pages, demo auth, speeq wiring, mock LLM | reviewed-accepted | task/004-demo-wiring     |
 | 005 | Demo UI: assistant widget, audit page, e2e                | reviewed-accepted | task/005-demo-ui         |
 | 006 | Server telemetry collector + HTTP transport               | reviewed-accepted | task/006-telemetry       |
-| 007 | Platform: DB schema, ingest endpoint, cleanup cron        | briefed           | task/007-platform-ingest |
+| 007 | Platform: DB schema, ingest endpoint, cleanup cron        | reviewed-accepted | task/007-platform-ingest |
