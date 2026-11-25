@@ -1,23 +1,37 @@
-# REPORT 006 — Server telemetry
+﻿# REPORT 006 — Server telemetry
 
-**Status** BLOCKED on the turn-count contract.
+Status: DONE
 
-**Branch** `task/006-telemetry`, implementation based on `a5d57f9`. The implementation is uncommitted.
+Branch / last implementation commit: `task/006-telemetry` / `77879dd`
 
-**Verification** The unchanged privacy suite passed 12 of 14 cases. Server typecheck also found four errors in the draft collector tests. Full verification and bundle acceptance are pending.
+## Verification
 
-**Working files** Five created, one modified, zero deleted.
+```text
+✅ lint       1s
+✅ typecheck  37s
+✅ test       13s
+   tests: 254 passed, 0 failed
+✅ build      19s
+All checks passed (full log: .verify.log)
+```
+
+Ran `scripts/verify.sh` with no overrides. All 69 server tests passed, including the architect's unchanged privacy suite (14/14). Checked guarded environment reads in both server bundles.
+
+## What I did
+
+- Added the anonymous counter collector, schema validation and HTTP transport with a 1.5-second deadline.
+- Applied Amendment A. A confirmation resumes the existing user turn. Its outcomes, tool calls, navigation and errors still contribute to telemetry.
+- Added collector tests and documented the payload, delivery settings and privacy controls.
+
+## Files
+
+Five created and four modified relative to the amendment commit.
 
 - `packages/server/src/telemetry/{collector,http-transport,runtime-info,index}.ts`
+- `packages/server/src/handler/turn.ts`
 - `packages/server/test/telemetry-collector.test.ts`
+- `packages/server/README.md`
+- `docs/reference/telemetry.md`
 - `handoff/reports/006-telemetry.md`
 
-**What I found** The architect's fixture issues five text turns and one approval. Both request paths call `streamTurn` in `packages/server/src/handler/turn.ts` (lines 71 and 134). Line 297 unconditionally calls the same telemetry turn hook, including for the approval. The fixture therefore produces six hook calls.
-
-**Deviations** Two acceptance cases expect five turns and five total latency samples. Section 3 requires an increment and a latency sample on every hook call. The sink receives no request kind. Inferring a confirmation from the preceding event would miscount concurrent requests.
-
-**Decision** Stopped under the brief's acceptance-test conflict rule.
-
-**Risks** The draft implementation, unit tests and user documentation are incomplete.
-
-**Open question** May the task include the turn handler so it can omit the telemetry turn hook on confirmation resumes, while preserving confirmation, tool and error counters?
+Deviations, additional decisions, risks and open questions: none.

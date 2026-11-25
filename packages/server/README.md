@@ -93,5 +93,9 @@ write-tool arguments.
 
 ## Configuration
 
+### Telemetry
+
+Configure a platform endpoint or a custom transport to send anonymous adoption counters. Set `SPEEQ_TELEMETRY=0` or `telemetry.enabled: false` to disable collection. See the [telemetry reference](../../docs/reference/telemetry.md) for the payload and delivery rules.
+
 See [`docs/reference/config.md`](../../docs/reference/config.md) for every option and
 [`docs/reference/protocol.md`](../../docs/reference/protocol.md) for the wire protocol.
