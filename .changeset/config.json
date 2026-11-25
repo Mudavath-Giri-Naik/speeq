@@ -20,5 +20,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@speeq/demo", "@speeq/platform"]
+  "ignore": ["@speeq/demo", "@speeq/platform", "@speeq/docs"]
 }
