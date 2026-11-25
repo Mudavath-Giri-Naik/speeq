@@ -15,6 +15,8 @@ Keep server settings out of client bundles. The demo and platform load root envi
 | MONGODB_DB                   | No     | Demo database name, default speeq_demo.                                                                                    |
 | SPEEQ_PLATFORM_URL           | No     | SDK telemetry destination base URL. No HTTP delivery without a destination.                                                |
 | SPEEQ_PROJECT_KEY            | No     | Public attribution key passed by the demo as config.projectKey.                                                            |
+| SPEEQ_UPDATE_CHECK           | No     | Set to 0 to disable the development npm update check.                                                                      |
+| CI                           | No     | Any defined value disables the npm update check.                                                                           |
 | SPEEQ_TELEMETRY              | No     | Set to 0 to disable SDK collection.                                                                                        |
 | NEXT_RUNTIME                 | No     | Framework-provided runtime hint used in telemetry detection.                                                               |
 | ADMIN_PASSWORD               | Yes    | Platform admin password. Required in production. Development defaults to admin.                                            |

@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { checkPackage, checkRepo, packageNameOf } from "./check-deps-direction.js";
 
+import { RULES } from "./deps-rules.js";
+
 const root = join(fileURLToPath(import.meta.url), "..", "..");
 
 describe("dependency direction", () => {
@@ -15,6 +17,30 @@ describe("dependency direction", () => {
     expect(packageNameOf("zod")).toBe("zod");
     expect(packageNameOf("./x.js")).toBeNull();
     expect(packageNameOf("node:fs")).toBeNull();
+  });
+
+  it("rejects the umbrella as a scoped dependency or import", () => {
+    expect(
+      checkPackage({
+        dir: "x",
+        manifest: { name: "@speeq/core", dependencies: { speeq: "*" } },
+        sources: [{ file: "x.ts", code: 'import "speeq/client";' }],
+      }),
+    ).toHaveLength(2);
+  });
+
+  it("allows the umbrella to re-export all scoped packages", () => {
+    const names = Object.keys(RULES);
+    expect(
+      checkPackage({
+        dir: "x",
+        manifest: {
+          name: "speeq",
+          dependencies: Object.fromEntries(names.map((n) => [n, "workspace:*"])),
+        },
+        sources: names.map((name) => ({ file: "x.ts", code: `export * from "${name}";` })),
+      }),
+    ).toEqual([]);
   });
 
   it("flags core depending on server", () => {

@@ -6,7 +6,19 @@ import type {
   NewConversationEvent,
   TelemetryTransport,
 } from "@speeq/core";
+import { SpeeqError } from "@speeq/core";
+import { z } from "zod";
 import type { RouteDefinition, ToolDefinition } from "./define.js";
+
+const updateCheckSchema = z.boolean().default(true);
+
+/** Resolves the optional development update flag for a host configuration. */
+export function resolveUpdateCheck(value: unknown): boolean {
+  const parsed = updateCheckSchema.safeParse(value);
+  if (!parsed.success)
+    throw new SpeeqError("NOT_CONFIGURED", { message: "speeq: updateCheck must be a boolean" });
+  return parsed.data;
+}
 
 /** Minimal logger. Defaults to `console` with a `[speeq]` prefix. */
 export interface SpeeqLogger {
@@ -94,6 +106,8 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   audit?: AuditConfig;
   guardrails?: GuardrailsConfig;
   telemetry?: TelemetryConfig;
+  /** Check npm once for a newer SDK during development. Default true. */
+  updateCheck?: boolean;
   /** Extra origins allowed to call the API (CORS). Same-origin only by default. */
   allowedOrigins?: string[];
   /** Hand background work to the platform (e.g. Vercel `waitUntil`) so it survives the response. */

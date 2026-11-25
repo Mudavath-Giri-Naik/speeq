@@ -8,6 +8,7 @@ Pass a `SpeeqConfig<TUser>` to `createSpeeq`. The return value exposes `handler(
 | llm            | LLMProvider                                                          | Required. Streams model output and tool calls.                                             |
 | store          | ConversationStore                                                    | Required. Stores audit events, history and confirmations.                                  |
 | secret         | string                                                               | Random process secret in development. Required in production. Signs session tokens.        |
+| updateCheck    | boolean                                                              | True. Set false to disable the development npm version check on first handler creation.    |
 | projectKey     | string                                                               | Absent. Optional public telemetry attribution.                                             |
 | resolveUser    | (request: Request) => TUser or null, synchronously or asynchronously | Absent. Resolves the host identity on each authenticated operation.                        |
 | allowAnonymous | boolean                                                              | True when no resolver is supplied, otherwise false.                                        |

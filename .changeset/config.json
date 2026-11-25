@@ -2,7 +2,20 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@speeq/core",
+      "@speeq/client",
+      "@speeq/react",
+      "@speeq/server",
+      "@speeq/testing",
+      "@speeq/llm-openai-compatible",
+      "@speeq/llm-gemini",
+      "@speeq/store-memory",
+      "@speeq/store-mongodb",
+      "speeq"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

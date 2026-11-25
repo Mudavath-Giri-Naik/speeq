@@ -54,3 +54,7 @@
 - [@speeq/react](packages/react/README.md): Installation and examples for @speeq/react.
 - [@speeq/server](packages/server/README.md): Installation and examples for @speeq/server.
 - [@speeq/testing](packages/testing/README.md): Installation and examples for @speeq/testing.
+
+- [Umbrella SDK](packages/speeq/README.md): Install the SDK and select a runtime entry point.
+- [Releasing](docs/maintainers/releasing.md): Cut, promote or roll back a fixed-group release.
+- [ADR-0010](docs/decisions/0010-dev-update-notice.md): Understand the anonymous development update check.

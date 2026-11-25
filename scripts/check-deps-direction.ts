@@ -34,8 +34,21 @@ export function packageNameOf(specifier: string): string | null {
   return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : (parts[0] ?? null);
 }
 
+const scopedPackages = Object.keys(RULES);
+const packageRules = {
+  ...RULES,
+  speeq: {
+    internalDeps: scopedPackages,
+    internalImports: scopedPackages,
+    externalDeps: ["zod", "react", "mongodb"],
+  },
+};
+
 /** Checks one package against its rule and returns human-readable violations. */
-export function checkPackage(pkg: PackageUnderCheck, rules = RULES): string[] {
+export function checkPackage(
+  pkg: PackageUnderCheck,
+  rules: Readonly<Record<string, PackageRule>> = packageRules,
+): string[] {
   const rule: PackageRule | undefined = rules[pkg.manifest.name];
   if (!rule) return [`${pkg.manifest.name}: no rule in scripts/deps-rules.ts`];
   const problems: string[] = [];

@@ -19,23 +19,29 @@ const read = file => JSON.parse(fs.readFileSync(path.join(root, file), "utf8"));
 const repo = read("package.json");
 const demo = read("apps/demo/package.json");
 const libs = { ...repo.devDependencies, ...demo.dependencies, ...demo.devDependencies };
-const deps = Object.fromEntries(["next","react","react-dom","typescript","zod","mongodb","vitest","@types/node","@types/react","@types/react-dom"].map(key => [key, libs[key]]));
+const deps = Object.fromEntries(["next","react","react-dom","typescript","zod","vitest","@types/node","@types/react","@types/react-dom"].map(key => [key, libs[key]]));
 const overrides = {};
 let imports = "";
+let mongoImports = "";
 for (const parent of ["packages", "packages/adapters"]) {
   for (const dir of fs.readdirSync(path.join(root, parent))) {
     const manifest = path.join(parent, dir, "package.json");
     if (!fs.existsSync(path.join(root, manifest))) continue;
     const pkg = read(manifest);
     if (pkg.private) continue;
-    overrides[pkg.name] = deps[pkg.name] = "file:./packs/" + pkg.name.slice(1).replace("/", "-") + "-" + pkg.version + ".tgz";
+    overrides[pkg.name] = deps[pkg.name] = "file:./packs/" + pkg.name.replace(/^@/, "").replace("/", "-") + "-" + pkg.version + ".tgz";
     for (const key of Object.keys(pkg.exports)) {
-      imports += 'import "' + pkg.name + key.slice(1) + '";\n';
+      const statement = 'import "' + pkg.name + key.slice(1) + '";\n';
+      if ((pkg.name + key.slice(1)).endsWith("store-mongodb")) mongoImports += statement;
+      else imports += statement;
     }
   }
 }
-fs.writeFileSync("package.json", JSON.stringify({name:"speeq-guide-check",private:true,type:"module",packageManager:repo.packageManager,dependencies:deps}));
-fs.writeFileSync("pnpm-workspace.yaml", JSON.stringify({overrides,allowBuilds:{esbuild:true,sharp:true}}));
+// Use the local tarballs for transitive workspace packages in both npm passes.
+fs.writeFileSync("package.json", JSON.stringify({name:"speeq-guide-check",private:true,type:"module",dependencies:deps,overrides}));
+fs.writeFileSync(".npmrc","legacy-peer-deps=true\naudit=false\nfund=false\n");
+fs.writeFileSync("mongo-imports.txt",mongoImports);
+
 fs.writeFileSync("tsconfig.json", JSON.stringify({compilerOptions:{target:"ES2022",module:"esnext",moduleResolution:"bundler",jsx:"react-jsx",strict:true,noEmit:true,skipLibCheck:true,noUncheckedSideEffectImports:true}}));
 fs.writeFileSync("entries.ts", imports);
 const guide = fs.readFileSync(path.join(root,"docs/guides/nextjs.md"),"utf8").replaceAll("\r\n","\n");
@@ -47,14 +53,23 @@ for (const [i, file] of files.entries()) {
   fs.writeFileSync(file,blocks[i][1]);
 }
 JS
-pnpm install
-pnpm exec tsc --noEmit
+npm install
+node --input-type=module -e 'import assert from "node:assert/strict"; assert.throws(()=>import.meta.resolve("mongodb"),{code:"ERR_MODULE_NOT_FOUND"})'
 node --input-type=module <<'JS'
 import assert from "node:assert/strict";
-import {createSpeeq} from "@speeq/server";
-import {createMemoryStore} from "@speeq/store-memory";
-import {FakeLLMProvider, startSession, assistantText} from "@speeq/testing";
-const sdk = createSpeeq({agent:{name:"Test",instructions:"Greet."},store:createMemoryStore({quiet:true}),llm:new FakeLLMProvider([{text:"Hello."}])});
+await assert.rejects(import("speeq/store-mongodb"), {code:"ERR_MODULE_NOT_FOUND",message:/mongodb/});
+JS
+npm exec -- tsc --noEmit
+node --input-type=module <<'JS'
+import assert from "node:assert/strict";
+import {createSpeeq} from "speeq/server";
+import {createMemoryStore} from "speeq/store-memory";
+import {FakeLLMProvider, startSession, assistantText} from "speeq/testing";
+const sdk = createSpeeq({updateCheck:false,agent:{name:"Test",instructions:"Greet."},store:createMemoryStore({quiet:true}),llm:new FakeLLMProvider([{text:"Hello."}])});
 assert.equal(assistantText(await (await startSession(sdk.handler)).turn("hello")),"Hello.");
 console.log("Packed SDK mock turn passed.");
 JS
+npm i mongodb
+cp mongo-imports.txt mongo-entries.ts
+npm exec -- tsc --noEmit
+node --input-type=module -e 'await import("speeq/store-mongodb")'

@@ -4,10 +4,14 @@
  * @packageDocumentation
  */
 import type { AgentUser } from "@speeq/core";
-import type { SpeeqConfig } from "./config.js";
+import { resolveUpdateCheck, type SpeeqConfig } from "./config.js";
 import { createRequestHandler, type SpeeqHandler } from "./handler/index.js";
 import { Runtime } from "./runtime.js";
 import { createTelemetry } from "./telemetry/index.js";
+import { checkForUpdate } from "./update-check.js";
+import { SDK_VERSION } from "./version.js";
+
+let updateChecked = false;
 
 /** A configured speeq instance. */
 export interface Speeq {
@@ -37,8 +41,23 @@ export interface Speeq {
 export function createSpeeq<TUser extends AgentUser = AgentUser>(
   config: SpeeqConfig<TUser>,
 ): Speeq {
+  const updateCheck = resolveUpdateCheck(config.updateCheck);
   const telemetry = createTelemetry(config);
   const runtime = new Runtime(config, telemetry);
+  if (
+    !updateChecked &&
+    typeof process !== "undefined" &&
+    process.versions?.node &&
+    typeof window === "undefined" &&
+    !("EdgeRuntime" in globalThis)
+  ) {
+    updateChecked = true;
+    void checkForUpdate({
+      currentVersion: SDK_VERSION,
+      env: process.env,
+      enabled: updateCheck,
+    }).catch(() => {});
+  }
   return {
     handler: createRequestHandler(runtime),
     purgeExpired: () => runtime.purgeExpired(),

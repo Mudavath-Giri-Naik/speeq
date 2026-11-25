@@ -1,0 +1,192 @@
+{
+  "name": "speeq",
+  "version": "0.1.0",
+  "description": "Headless conversational AI for web applications.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mudavath-Giri-Naik/speeq.git",
+    "directory": "packages/speeq"
+  },
+  "homepage": "https://github.com/Mudavath-Giri-Naik/speeq#readme",
+  "keywords": [
+    "speeq",
+    "voice",
+    "agent",
+    "conversational-ai",
+    "headless",
+    "nextjs",
+    "tools"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@speeq/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./core": {
+      "@speeq/source": "./src/core.ts",
+      "import": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      }
+    },
+    "./client": {
+      "@speeq/source": "./src/client.ts",
+      "import": {
+        "types": "./dist/client.d.ts",
+        "default": "./dist/client.js"
+      },
+      "require": {
+        "types": "./dist/client.d.cts",
+        "default": "./dist/client.cjs"
+      }
+    },
+    "./react": {
+      "@speeq/source": "./src/react.ts",
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./server": {
+      "@speeq/source": "./src/server.ts",
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
+      },
+      "require": {
+        "types": "./dist/server.d.cts",
+        "default": "./dist/server.cjs"
+      }
+    },
+    "./testing": {
+      "@speeq/source": "./src/testing.ts",
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    },
+    "./llm-openai-compatible": {
+      "@speeq/source": "./src/llm-openai-compatible.ts",
+      "import": {
+        "types": "./dist/llm-openai-compatible.d.ts",
+        "default": "./dist/llm-openai-compatible.js"
+      },
+      "require": {
+        "types": "./dist/llm-openai-compatible.d.cts",
+        "default": "./dist/llm-openai-compatible.cjs"
+      }
+    },
+    "./llm-gemini": {
+      "@speeq/source": "./src/llm-gemini.ts",
+      "import": {
+        "types": "./dist/llm-gemini.d.ts",
+        "default": "./dist/llm-gemini.js"
+      },
+      "require": {
+        "types": "./dist/llm-gemini.d.cts",
+        "default": "./dist/llm-gemini.cjs"
+      }
+    },
+    "./store-memory": {
+      "@speeq/source": "./src/store-memory.ts",
+      "import": {
+        "types": "./dist/store-memory.d.ts",
+        "default": "./dist/store-memory.js"
+      },
+      "require": {
+        "types": "./dist/store-memory.d.cts",
+        "default": "./dist/store-memory.cjs"
+      }
+    },
+    "./store-mongodb": {
+      "@speeq/source": "./src/store-mongodb.ts",
+      "import": {
+        "types": "./dist/store-mongodb.d.ts",
+        "default": "./dist/store-mongodb.js"
+      },
+      "require": {
+        "types": "./dist/store-mongodb.d.cts",
+        "default": "./dist/store-mongodb.cjs"
+      }
+    },
+    "./server/next": {
+      "@speeq/source": "./src/server-next.ts",
+      "import": {
+        "types": "./dist/server/next.d.ts",
+        "default": "./dist/server/next.js"
+      },
+      "require": {
+        "types": "./dist/server/next.d.cts",
+        "default": "./dist/server/next.cjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsx tsup.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm run build && vitest run"
+  },
+  "dependencies": {
+    "@speeq/core": "workspace:*",
+    "@speeq/client": "workspace:*",
+    "@speeq/react": "workspace:*",
+    "@speeq/server": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "@speeq/llm-openai-compatible": "workspace:*",
+    "@speeq/llm-gemini": "workspace:*",
+    "@speeq/store-memory": "workspace:*",
+    "@speeq/store-mongodb": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0",
+    "react": ">=18",
+    "mongodb": ">=6.0.0"
+  },
+  "devDependencies": {
+    "@speeq/tsconfig": "workspace:*",
+    "zod": "4.6.7"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "mongodb": {
+      "optional": true
+    }
+  }
+}

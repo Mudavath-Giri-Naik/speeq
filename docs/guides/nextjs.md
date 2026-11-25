@@ -1,16 +1,16 @@
 # Add an assistant to Next.js
 
-Start with an App Router project with TypeScript and an `app` directory at the project root. For published prereleases, install the runtime packages with `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. For a checkout, the pack test installs these same packages from local tarballs. The following files give you a working text assistant with a deterministic mock reply and no provider credentials.
+Start with an App Router project with TypeScript and an `app` directory at the project root. Install `npm i speeq zod` (use `speeq@next` for the pre-1.0 channel). Each `speeq/*` import below also works as its corresponding `@speeq/*` import. For scoped prereleases, install `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. For a checkout, the pack test installs these same packages from local tarballs. The following files give you a working text assistant with a deterministic mock reply and no provider credentials.
 
 ## Mount the server handler
 
 Create `app/api/speeq/[[...speeq]]/route.ts`. Keep the instance at module scope to reuse the local store between requests. Next's `after` keeps background work alive through the end of the request.
 
 ```ts
-import { createSpeeq } from "@speeq/server";
-import { createNextHandler } from "@speeq/server/next";
-import { createMemoryStore } from "@speeq/store-memory";
-import { createMockLLMProvider } from "@speeq/testing";
+import { createSpeeq } from "speeq/server";
+import { createNextHandler } from "speeq/server/next";
+import { createMemoryStore } from "speeq/store-memory";
+import { createMockLLMProvider } from "speeq/testing";
 import { after } from "next/server";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ Create `app/assistant.tsx`. The host router handles navigation events for any ro
 
 ```tsx
 "use client";
-import { SpeeqProvider, useSpeeq, useSpeeqContext } from "@speeq/react";
+import { SpeeqProvider, useSpeeq, useSpeeqContext } from "speeq/react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 

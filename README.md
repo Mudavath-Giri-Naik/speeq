@@ -18,13 +18,13 @@ The SDK is pre-1.0. The release script publishes prereleases under the `next` ta
 
 ## Quickstart
 
-Install `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. In your App Router catch-all route, mount the handler:
+Install `npm i speeq zod`, or use `npm i speeq@next zod@4` for the pre-1.0 channel. The examples use the umbrella package. To use scoped imports instead, install `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. In your App Router catch-all route, mount the handler:
 
 ```ts
-import { createSpeeq } from "@speeq/server";
-import { createNextHandler } from "@speeq/server/next";
-import { createMemoryStore } from "@speeq/store-memory";
-import { createMockLLMProvider } from "@speeq/testing";
+import { createSpeeq } from "speeq/server";
+import { createNextHandler } from "speeq/server/next";
+import { createMemoryStore } from "speeq/store-memory";
+import { createMockLLMProvider } from "speeq/testing";
 const agent = { name: "Helper", instructions: "Help visitors." };
 const llm = createMockLLMProvider({ rules: [], fallback: () => ({ text: "Hello!" }) });
 export const { GET, POST, OPTIONS } = createNextHandler(

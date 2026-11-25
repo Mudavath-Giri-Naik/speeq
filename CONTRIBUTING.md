@@ -58,3 +58,5 @@ the scope.
 - [ ] Docs and package README updated
 - [ ] Changeset added for published packages
 - [ ] Nothing sends conversation content or app data to the speeq platform
+
+See the [release guide](docs/maintainers/releasing.md) for the Version Packages PR, npm setup, promotion and rollback.
