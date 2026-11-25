@@ -32,7 +32,7 @@ export const { GET, POST, OPTIONS } = createNextHandler(
 );
 ```
 
-Wrap your layout children in `<SpeeqProvider endpoint="/api/speeq">`. Inside a client component, call `useSpeeq().sendText` from a button and render `messages` from the same hook. [Complete Next.js example](docs/guides/nextjs.md)
+Wrap your layout children in `<SpeeqProvider endpoint="/api/speeq">`. Inside a client component, call `useSpeeq().sendText` from a button and render `messages` from the same hook. [Complete Next.js example](docs/guides/nextjs.md) · [Integration prompt for AI coding assistants](docs/integration/nextjs-integration-prompt.md)
 
 ## Platform dashboard
 

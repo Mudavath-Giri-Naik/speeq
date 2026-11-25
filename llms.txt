@@ -33,6 +33,7 @@
 - [Deploy the handler](docs/guides/deployment.md): Configure secrets, streaming and background work on replicas.
 - [Connect a model](docs/guides/llm-providers.md): Configure a streaming model adapter or provide your own.
 - [Add an assistant to Next.js](docs/guides/nextjs.md): Build an App Router assistant and verify a mock conversation.
+- [Next.js integration prompt](docs/integration/nextjs-integration-prompt.md): A staged prompt that an AI coding assistant follows to add speeq to a Next.js app.
 - [Register routes](docs/guides/routes-and-navigation.md): Resolve model-selected routes through your host router.
 - [Choose a conversation store](docs/guides/stores.md): Select or implement persistent conversation history.
 - [Test conversations without a model service](docs/guides/testing.md): Drive a handler and speech adapters deterministically.
