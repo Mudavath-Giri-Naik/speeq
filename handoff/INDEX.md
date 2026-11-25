@@ -11,4 +11,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 005 | Demo UI: assistant widget, audit page, e2e                | reviewed-accepted | task/005-demo-ui            |
 | 006 | Server telemetry collector + HTTP transport               | reviewed-accepted | task/006-telemetry          |
 | 007 | Platform: DB schema, ingest endpoint, cleanup cron        | reviewed-accepted | task/007-platform-ingest    |
-| 008 | Platform: admin login, dashboard pages, stats, seed       | briefed           | task/008-platform-dashboard |
+| 008 | Platform: admin login, dashboard pages, stats, seed       | reviewed-accepted | task/008-platform-dashboard |
