@@ -12,3 +12,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 006 | Server telemetry collector + HTTP transport               | reviewed-accepted | task/006-telemetry          |
 | 007 | Platform: DB schema, ingest endpoint, cleanup cron        | reviewed-accepted | task/007-platform-ingest    |
 | 008 | Platform: admin login, dashboard pages, stats, seed       | reviewed-accepted | task/008-platform-dashboard |
+| 009 | Docs pass + release verification (combined 11+12)         | briefed           | task/009-docs-release       |
