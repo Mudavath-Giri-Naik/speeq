@@ -42,12 +42,14 @@ event history. One Playwright test proves the whole loop in mock mode with typed
 ## 4. Scope
 
 Create:
+
 - `apps/demo/components/{assistant,widget,transcript,confirm-dialog,question-context,audit-browser}.tsx` (split as needed)
 - `apps/demo/app/admin/conversations/page.tsx`
 - `apps/demo/e2e/assistant.spec.ts`, `apps/demo/playwright.config.ts`
 - `apps/demo/test/ui.test.tsx` (component tests, see §7) and any vitest config tweaks needed for `.tsx`/jsdom **scoped to that file** (`// @vitest-environment jsdom` docblock; add `jsdom` and `@testing-library/react` as devDependencies of the demo only if you need them — prefer `react-dom/server` + `react-dom/test-utils`-free tests if you can keep it small)
 
 Modify:
+
 - `apps/demo/app/layout.tsx` (mount `<Assistant>`, Admin link)
 - `apps/demo/app/questions/[id]/page.tsx` (render `<QuestionContext questionId={…} />`)
 - `apps/demo/app/globals.css` (widget + admin styles)
@@ -98,6 +100,7 @@ Stable test hooks (use exactly these `data-testid` values; the e2e and unit test
 
 Unit/component (vitest, `apps/demo/test/ui.test.tsx`; mock `@speeq/react` hooks or pass a fake
 `SpeeqClient` via `SpeeqProvider client={…}` — you choose, keep it simple):
+
 - Widget renders closed by default; toggle opens it; `aria-expanded` flips.
 - Send disabled for blank input and while `thinking`; Enter submits; input clears.
 - Mic disabled with hint when `support.speechInput` is false; enabled otherwise; click calls start/stop.
@@ -108,6 +111,7 @@ Unit/component (vitest, `apps/demo/test/ui.test.tsx`; mock `@speeq/react` hooks 
 - Admin page access: unit-test the server logic by extracting a pure `canViewAudit(user)` helper (admin only; `null` and student false) in `lib/audit-access.ts`.
 
 e2e (Playwright, `apps/demo/e2e/assistant.spec.ts`, one `test.describe`, mock mode, typed input only):
+
 1. Open `/`, open widget, type "take me to pricing" → URL becomes `/pricing`, widget still open, assistant reply contains "pricing" (case-insensitive).
 2. Sign in as a student on `/login`, open `/questions/12`, type "bookmark this question" → dialog appears mentioning 12; Decline → declined reply; type again → Approve → bookmarked reply.
 3. Signed-out visit to `/admin/conversations` shows `audit-denied`; student also sees it.
