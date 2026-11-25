@@ -14,6 +14,14 @@ The server keeps anonymous adoption counters in memory. To send them to your pla
 
 All timestamps use ISO UTC. Each counter saturates at one billion. Latency buckets have inclusive upper bounds of 250, 500, 1000, 2000, 4000, 8000 and 16000 milliseconds, followed by an overflow bucket. First-token samples require an observed first token. Turn counts, languages and latency samples count user messages. A confirmation resumes an existing turn, and its outcome, tools, navigation and errors still contribute to their respective counters.
 
+## Platform validation
+
+POST JSON to `/api/v1/ingest`. Other methods receive 405, unsupported media types 415 and bodies exceeding 65,536 bytes 413. The limit applies to declared size and streamed bytes. Empty bodies, malformed JSON and batches outside the strict schema receive 400. A batch may contain at most one event of each type.
+
+Relative to server time, `sentAt` may be at most 24 hours old or five minutes ahead. Event timestamps may be at most seven days old or five minutes ahead. Rollup periods must be ordered, last at most seven days and end no more than five minutes ahead. Voice and text turns must sum to turns. Language totals and each latency histogram total must each be at most turns. Confirmation outcomes can refer to requests from earlier batches.
+
+Valid batches are limited to ten per instance and 1,200 globally per UTC minute. Exceeding either returns 429 with `retry-after`. Storage failure returns 503. Accepted batches receive the same 202 response for active, unknown, revoked or absent public keys. Active keys attribute rollups to a project. The first valid attribution on an instance is preserved.
+
 ## Delivery and privacy
 
 The first recorded activity is eligible to send at the end of a turn. Later sends are at least `telemetry.flushIntervalMs` apart (default 60000 milliseconds). Zero permits a send whenever counters are pending. Each attempt validates a snapshot against the strict batch schema and drops invalid batches. Activity during a send accumulates for the next eligible flush. Failed batches are discarded. A process restart discards unsent counts.

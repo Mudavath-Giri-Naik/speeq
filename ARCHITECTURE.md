@@ -19,6 +19,10 @@ For a write requiring approval, the server saves a pending request and ends the 
 
 After the final event, the SDK can send an aggregate snapshot through a transport with a short deadline. The platform persists instance metadata, counters and error-code counts. The developer's audit log stays in the conversation store. [Telemetry reference](docs/reference/telemetry.md)
 
+## Platform reporting
+
+Ingest validates the shared telemetry schema, charges per-instance and global database buckets, and writes aggregate rows transactionally. The server-rendered dashboard authorizes each page and project action. SQL queries summarize the counters over UTC reporting windows. The platform caches public npm and optional GitHub stats separately from SDK measurements. Local PGlite and deployed Postgres use the same schema. [Platform guide](docs/guides/platform.md)
+
 ## Package boundaries
 
 Core defines the wire schema and interfaces, with Zod as a peer. Server, testing and adapters consume core. Client bundles the dependency-free errors and utilities and imports protocol types at build time. React depends on client. The demo composes the SDK and supplies UI. The independent platform consumes the telemetry schema. Dev dependencies and tests can compose workspace packages across these boundaries. [Dependency checker](scripts/check-deps-direction.ts)

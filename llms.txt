@@ -8,6 +8,8 @@
 
 ## Documentation
 
+- [Platform dashboard](docs/guides/platform.md): Configure admin login, store anonymous counters and explore the dashboard.
+
 - [README.md](README.md): Start here for packages and the local demo.
 - [ARCHITECTURE.md](ARCHITECTURE.md): Trace the runtime and dependency graph.
 - [apps/demo/README.md](apps/demo/README.md): Run the mock study assistant.

@@ -34,6 +34,10 @@ export const { GET, POST, OPTIONS } = createNextHandler(
 
 Wrap your layout children in `<SpeeqProvider endpoint="/api/speeq">`. Inside a client component, call `useSpeeq().sendText` from a button and render `messages` from the same hook. [Complete Next.js example](docs/guides/nextjs.md)
 
+## Platform dashboard
+
+Explore SDK installs, project attribution, feature usage and reliability in the password-protected dashboard. [Platform setup and sample data](docs/guides/platform.md)
+
 ## Try the demo
 
 Run `pnpm install` and `pnpm dev` from the repo root. Open port 3000 and ask Vidya to show pricing. Mock mode needs no keys. The telemetry platform starts on port 3001. [Demo instructions](apps/demo/README.md)
