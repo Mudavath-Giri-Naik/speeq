@@ -8,4 +8,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 002 | Client Web Speech adapters, default wiring, README        | reviewed-accepted | task/002-web-speech  |
 | 003 | React provider/hooks + audit client                       | reviewed-accepted | task/003-react       |
 | 004 | Demo site: data, pages, demo auth, speeq wiring, mock LLM | reviewed-accepted | task/004-demo-wiring |
-| 005 | Demo UI: assistant widget, audit page, e2e                | briefed           | task/005-demo-ui     |
+| 005 | Demo UI: assistant widget, audit page, e2e                | reviewed-accepted | task/005-demo-ui     |
