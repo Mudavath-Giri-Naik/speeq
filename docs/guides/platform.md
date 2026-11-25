@@ -10,7 +10,7 @@ Stop the local platform before running scripts against the same PGlite directory
 
 ## Connect an SDK
 
-On Projects, create a named project and copy its public key. Pass the key as `projectKey` to `createSpeeq` (the demo reads `SPEEQ_PROJECT_KEY`). Set `SPEEQ_PLATFORM_URL` in the SDK server environment to the platform base URL. For the local demo, use `http://localhost:3001`. Send a turn, then check Installs and Overview. A missing, unknown or revoked key still allows anonymous ingestion.
+On Projects, create a named project and copy its public key. Pass the key as `projectKey` to `createSpeeq` (the demo reads `SPEEQ_PROJECT_KEY`). Set `SPEEQ_PLATFORM_URL` in the SDK server environment to the platform base URL. For the local demo, put `SPEEQ_PLATFORM_URL=http://localhost:3001` in `apps/demo/.env.local` before starting `pnpm dev`. Send a turn, then check Installs and Overview. A missing, unknown or revoked key still allows anonymous ingestion.
 
 ## Deploy with Postgres
 
