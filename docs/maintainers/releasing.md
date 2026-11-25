@@ -4,7 +4,9 @@
 
 Require two-factor authentication for the `speeq` npm organization and enable it on the publishing account. Give that account publish access to the unscoped `speeq` package and the nine scoped packages. First publication of a scoped package needs public access. Each publishable manifest and the Changesets configuration specify `public`.
 
-Create a granular npm automation token with package write access covering those names, direct publishing and bypass 2FA for noninteractive publication. Save it as the GitHub Actions repository secret `NPM_TOKEN` and rotate it before expiration. Enable GitHub Actions to create pull requests in the repository settings. npm documents a January 2027 end date for direct publishing with granular tokens. Revisit authentication before then. [npm access tokens](https://docs.npmjs.com/about-access-tokens/)
+Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so the repository holds no npm token. For each of the ten packages, open the package settings on npmjs.com and add a GitHub Actions trusted publisher: owner `Mudavath-Giri-Naik`, repository `speeq`, workflow `release.yml`, no environment. Allow `npm publish`; leave dist-tag management off. Enable GitHub Actions to create pull requests in the repository settings.
+
+A new package needs one first publish with a short-lived granular token (read and write, bypass 2FA) before its trusted publisher can be configured. Delete that token and the `NPM_TOKEN` secret afterwards.
 
 ## Cut a release
 
