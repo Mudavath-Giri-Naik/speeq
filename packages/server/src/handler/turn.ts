@@ -131,36 +131,40 @@ export async function handleConfirm<TUser extends AgentUser>(
   );
   rt.telemetry.confirmation(body.approved ? "approved" : "rejected");
 
-  return streamTurn(setup, async (turn) => {
-    const call = {
-      id: pending.data.callId,
-      name: pending.data.toolName,
-      arguments: pending.data.args,
-    };
-    if (body.approved) {
-      const prepared = prepareToolCall(rt.config, call);
-      const outcome =
-        prepared.status === "rejected"
-          ? prepared.outcome
-          : await runWithEvents(
-              turn,
-              call,
-              () => executeTool(rt.config, call.name, { ...prepared, kind: "custom" }, turn.ctx),
-              "custom",
-            );
-      await recordOutcome(turn, call, pending.data.args, outcome);
-    } else {
-      await recordOutcome(turn, call, pending.data.args, {
-        kind: "custom",
-        ok: false,
-        content: '{"declined":true,"message":"The user declined this action. It was not run."}',
-        truncated: false,
-        durationMs: 0,
-      });
-    }
-    const messages = await loadMessages(turn, null);
-    return runAgentLoop(turn, messages);
-  });
+  return streamTurn(
+    setup,
+    async (turn) => {
+      const call = {
+        id: pending.data.callId,
+        name: pending.data.toolName,
+        arguments: pending.data.args,
+      };
+      if (body.approved) {
+        const prepared = prepareToolCall(rt.config, call);
+        const outcome =
+          prepared.status === "rejected"
+            ? prepared.outcome
+            : await runWithEvents(
+                turn,
+                call,
+                () => executeTool(rt.config, call.name, { ...prepared, kind: "custom" }, turn.ctx),
+                "custom",
+              );
+        await recordOutcome(turn, call, pending.data.args, outcome);
+      } else {
+        await recordOutcome(turn, call, pending.data.args, {
+          kind: "custom",
+          ok: false,
+          content: '{"declined":true,"message":"The user declined this action. It was not run."}',
+          truncated: false,
+          durationMs: 0,
+        });
+      }
+      const messages = await loadMessages(turn, null);
+      return runAgentLoop(turn, messages);
+    },
+    false,
+  );
 }
 
 function isResolved(events: ConversationEvent[], confirmationId: string): boolean {
@@ -237,6 +241,7 @@ async function loadMessages<TUser extends AgentUser>(
 function streamTurn<TUser extends AgentUser>(
   setup: TurnSetup<TUser>,
   body: (turn: TurnRuntime<TUser>) => Promise<LoopResult>,
+  countTurn = true,
 ): Response {
   const { rt } = setup;
   const turnId = createId("turn");
@@ -294,12 +299,13 @@ function streamTurn<TUser extends AgentUser>(
       };
       await turn.recorder.record("turn.finished", { reason, steps, ...timing }, { turnId });
       emit({ type: "turn.finished", reason, ...timing });
-      rt.telemetry.turn({
-        language: setup.language,
-        inputMode: setup.inputMode,
-        latencyMs,
-        ...(firstTokenMs !== undefined ? { firstTokenMs } : {}),
-      });
+      if (countTurn)
+        rt.telemetry.turn({
+          language: setup.language,
+          inputMode: setup.inputMode,
+          latencyMs,
+          ...(firstTokenMs !== undefined ? { firstTokenMs } : {}),
+        });
     },
     {
       turnId,
