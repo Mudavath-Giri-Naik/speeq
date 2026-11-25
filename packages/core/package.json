@@ -1,6 +1,6 @@
 {
   "name": "@speeq/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Types, Zod schemas, protocol, errors and utilities shared by every speeq package.",
   "license": "MIT",
   "type": "module",
