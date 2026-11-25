@@ -9,3 +9,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 003 | React provider/hooks + audit client                       | reviewed-accepted | task/003-react       |
 | 004 | Demo site: data, pages, demo auth, speeq wiring, mock LLM | reviewed-accepted | task/004-demo-wiring |
 | 005 | Demo UI: assistant widget, audit page, e2e                | reviewed-accepted | task/005-demo-ui     |
+| 006 | Server telemetry collector + HTTP transport               | briefed           | task/006-telemetry   |
