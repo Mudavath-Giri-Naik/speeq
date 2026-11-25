@@ -100,3 +100,16 @@ export function createHttpTransport(endpoint: string): TelemetryTransport;
 Commit on the branch (Conventional Commits, no attribution lines of any kind, no Co-Authored-By).
 Write `handoff/reports/006-telemetry.md` from `handoff/REPORT_TEMPLATE.md` and print it. Do not
 merge to main. Do not push. Do not edit `handoff/INDEX.md`.
+
+## Amendment A (architect decision, answers the blocked report)
+
+A confirmation resume continues the same user turn, so it must **not** be counted as a new turn
+(`turns`, `textTurns`/`voiceTurns`, `languages` and both latency histograms count user messages
+only). Scope is extended to **`packages/server/src/handler/turn.ts`**, limited to:
+
+- Add an optional flag to `streamTurn` (for example `countTurn: boolean`, default `true`); `handleConfirm` passes `false`.
+- Call `rt.telemetry.turn(...)` only when the flag is true. Everything else stays as is: confirmation outcomes, tool calls, navigation and errors raised during a resume are still recorded.
+- The `TelemetrySink` interface and the collector stay unchanged: the collector counts every `turn()` call it receives.
+- No other changes in `turn.ts`. Existing server tests must keep passing.
+
+Also fix the four type errors in your draft collector tests before finishing.
