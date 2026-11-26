@@ -4,7 +4,9 @@ import type {
   KnowledgeSource,
   LLMProvider,
   NewConversationEvent,
+  SttProvider,
   TelemetryTransport,
+  TtsProvider,
 } from "@speeq/core";
 import { SpeeqError } from "@speeq/core";
 import { z } from "zod";
@@ -86,12 +88,33 @@ export interface TelemetryConfig {
   flushIntervalMs?: number;
 }
 
+/** Server speech providers, routing policy and resource limits. */
+export interface SpeechConfig {
+  stt?: readonly SttProvider[];
+  tts?: readonly TtsProvider[];
+  /** Ordered provider ids per language tag. `default` is the fallback entry. Unlisted providers never run. */
+  routing?: {
+    stt?: Record<string, readonly string[]>;
+    tts?: Record<string, readonly string[]>;
+  };
+  policy?: { allowRemote?: boolean; allowPaid?: boolean }; // both default false
+  limits?: {
+    maxAudioBytes?: number; // default 5_000_000
+    maxAudioSeconds?: number; // default 60
+    maxTtsChars?: number; // default 1000
+    transcribePerMinute?: number; // default 30
+    synthesizePerMinute?: number; // default 60
+    providerTimeoutMs?: number; // default 15_000
+  };
+}
+
 /** Everything `createSpeeq` accepts. */
 export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   /** Public project key (`pk_…`) from the speeq platform. Used only for telemetry. */
   projectKey?: string;
   /** Signs session tokens. Required when `NODE_ENV=production`. Use 32+ random characters. */
   secret?: string;
+  speech?: SpeechConfig;
   agent: AgentConfig;
   llm: LLMProvider;
   store: ConversationStore;

@@ -7,6 +7,7 @@ import {
 } from "@speeq/core";
 import type { Runtime } from "../runtime.js";
 import { checkOrigin } from "../security/origin.js";
+import { speechRoutes } from "../speech/handlers.js";
 import { SDK_VERSION } from "../version.js";
 import { handleGetSession, handleListSessions } from "./audit.js";
 import { errorResponse, json } from "./http.js";
@@ -18,7 +19,7 @@ export type SpeeqHandler = (request: Request) => Promise<Response>;
 
 // Matches the speeq route at the end of the path, wherever the handler is mounted.
 const ROUTE_RE =
-  /\/(health|session|session\/([^/]+)\/(turn|confirm)|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
+  /\/(health|session|session\/([^/]+)\/(turn|confirm|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
 
 /**
  * Creates the request handler. It only uses `Request`/`Response`, so it runs on Next.js route
@@ -27,6 +28,7 @@ const ROUTE_RE =
  */
 export function createRequestHandler<TUser extends AgentUser>(rt: Runtime<TUser>): SpeeqHandler {
   const runtime = rt as unknown as Runtime<AgentUser>;
+  const speech = speechRoutes(runtime);
   return async (request) => {
     const origin = checkOrigin(request, rt.config.allowedOrigins);
     const headers = origin.headers;
@@ -47,8 +49,20 @@ export function createRequestHandler<TUser extends AgentUser>(rt: Runtime<TUser>
         };
         return json(body, 200, headers);
       }
-      if (route === "session" && method === "POST")
-        return await handleCreateSession(rt, request, headers);
+      if (route === "session" && method === "POST") {
+        const response = await handleCreateSession(rt, request, headers);
+        if (!speech) return response;
+        const session = await response.json();
+        session.config.speech = speech.features;
+        return json(session, 200, headers);
+      }
+      if (sessionId && action?.startsWith("speech/") && speech)
+        return await speech.handle(
+          action.slice(7),
+          request,
+          decodeURIComponent(sessionId),
+          headers,
+        );
       if (sessionId && action === "turn" && method === "POST")
         return await handleTurn(rt, request, decodeURIComponent(sessionId), headers);
       if (sessionId && action === "confirm" && method === "POST")
