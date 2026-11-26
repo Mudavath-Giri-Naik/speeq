@@ -53,7 +53,7 @@ const file = (p: string) => readFile(p, "utf8");
 async function main() {
   if (values.help) {
     console.log(
-      "bench score --results hypotheses.json --manifest corpus.json [--out reports/] [--strip-zwj]\nbench stt --provider openai-compatible --base-url URL --model NAME --manifest FILE\nbench tts --provider openai-compatible --base-url URL --model NAME --voice ID --sentences FILE\nbench manifest --from-tsv FILE --audio-dir DIR --language TAG --license LICENSE\nbench fetch fleurs --language te_in --count 50",
+      "bench intent --cases FILE --server URL --llm gemini|groq|openai-compatible\nbench stt also accepts --tag-filter TAG\nbench score --results hypotheses.json --manifest corpus.json [--out reports/] [--strip-zwj]\nbench stt --provider openai-compatible --base-url URL --model NAME --manifest FILE\nbench tts --provider openai-compatible --base-url URL --model NAME --voice ID --sentences FILE\nbench manifest --from-tsv FILE --audio-dir DIR --language TAG --license LICENSE\nbench fetch fleurs --language te_in --count 50",
     );
     return;
   }

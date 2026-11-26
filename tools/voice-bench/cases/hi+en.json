@@ -51,7 +51,7 @@
     {
       "id": "hi+en-5",
       "language": "hi+en",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "₹2,000 के अंदर headphones चाहिए।",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "hi+en-10",
       "language": "hi+en",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "PK42 की tracking देखना ज़रा।",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "hi+en-15",
       "language": "hi+en",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "आज का revenue कितना है?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "hi+en-20",
       "language": "hi+en",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "वो order cancel करना, ID याद नहीं।",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "hi+en-25",
       "language": "hi+en",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "AB15 cancel करना... wait, शायद AB50 था।",
       "expected": {
         "action": "clarify"

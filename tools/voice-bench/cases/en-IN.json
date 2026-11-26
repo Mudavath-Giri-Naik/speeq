@@ -51,7 +51,7 @@
     {
       "id": "en-IN-5",
       "language": "en-IN",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Headphones within two thousand rupees, please.",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "en-IN-10",
       "language": "en-IN",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Check where PK42 has reached.",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "en-IN-15",
       "language": "en-IN",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "What's today's revenue so far?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "en-IN-20",
       "language": "en-IN",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Cancel that order... which one was it?",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "en-IN-25",
       "language": "en-IN",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Cancel AB15... actually maybe AB50.",
       "expected": {
         "action": "clarify"

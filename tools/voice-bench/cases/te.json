@@ -51,7 +51,7 @@
     {
       "id": "te-5",
       "language": "te",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "రెండు వేల లోపు హెడ్‌ఫోన్లు ఉన్నాయా?",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "te-10",
       "language": "te",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "PK42 పార్సెల్ ఎక్కడికి వచ్చిందో చూడు.",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "te-15",
       "language": "te",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "ఈ రోజు ఆదాయం ఎంత?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "te-20",
       "language": "te",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "అది రద్దు చెయ్యి... ఏ ఆర్డరో గుర్తులేదు.",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "te-25",
       "language": "te",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "AB15 రద్దు చెయ్యి, ఆగు AB50 అనుకుంటా.",
       "expected": {
         "action": "clarify"

@@ -51,7 +51,7 @@
     {
       "id": "en-5",
       "language": "en",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Find headphones under ₹2,000.",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "en-10",
       "language": "en",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Track parcel PK42.",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "en-15",
       "language": "en",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "How much revenue came in today?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "en-20",
       "language": "en",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Cancel that one. Which one did I say?",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "en-25",
       "language": "en",
-      "replyLanguage": "en-IN",
+      "replyLanguage": "hi-IN",
       "text": "Cancel AB15, or was it AB50?",
       "expected": {
         "action": "clarify"

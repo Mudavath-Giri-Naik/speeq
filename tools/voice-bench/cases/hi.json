@@ -51,7 +51,7 @@
     {
       "id": "hi-5",
       "language": "hi",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "दो हज़ार के अंदर हेडफ़ोन दिखाना।",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "hi-10",
       "language": "hi",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "PK42 वाला पार्सल कहाँ पहुँचा?",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "hi-15",
       "language": "hi",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "आज कितनी कमाई हुई?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "hi-20",
       "language": "hi",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "वो वाला रद्द कर दो... कौन सा था पता नहीं।",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "hi-25",
       "language": "hi",
-      "replyLanguage": "hi-IN",
+      "replyLanguage": "en-IN",
       "text": "AB15 रद्द कर दो, या शायद AB50 था।",
       "expected": {
         "action": "clarify"

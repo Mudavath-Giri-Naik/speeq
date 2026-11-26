@@ -561,7 +561,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       clearCommit();
       commitTimer = setTimeout(() => {
         commitTimer = undefined;
-        if (callActive && snapshot.interimTranscript === text) onCallFinal(text, true);
+        if (callActive && snapshot.interimTranscript === text) onCallFinal(raw, true);
       }, commitAfterMs);
     }
   }

@@ -51,7 +51,7 @@
     {
       "id": "te+en-5",
       "language": "te+en",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "₹2,000 లోపు headphones చూపించు",
       "expected": {
         "tool": "products",
@@ -111,7 +111,7 @@
     {
       "id": "te+en-10",
       "language": "te+en",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "PK42 parcel tracking చూడు.",
       "expected": {
         "tool": "track",
@@ -159,7 +159,7 @@
     {
       "id": "te+en-15",
       "language": "te+en",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "Today's revenue ఎంత వచ్చింది?",
       "expected": {
         "tool": "revenue",
@@ -223,7 +223,7 @@
     {
       "id": "te+en-20",
       "language": "te+en",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "ఆ order cancel చెయ్యి, ఏదో గుర్తులేదు.",
       "expected": {
         "action": "clarify"
@@ -278,7 +278,7 @@
     {
       "id": "te+en-25",
       "language": "te+en",
-      "replyLanguage": "te-IN",
+      "replyLanguage": "en-IN",
       "text": "AB15 cancel చెయ్యి, wait AB50 ఏమో.",
       "expected": {
         "action": "clarify"

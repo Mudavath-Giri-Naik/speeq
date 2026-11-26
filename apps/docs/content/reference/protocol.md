@@ -60,3 +60,5 @@ When speech is configured, session creation includes `config.speech` with `stt` 
 | GET    | `speech/voices?language=te-IN`                     | Returns `{ voices: [...] }` with voice metadata.                                                                                                                           |
 
 Transcription replay by utterance ID is per session and per server instance, for two minutes and up to 500 entries. Provider failures can advance to the next approved provider. Invalid input stops the request.
+
+A turn can include optional `inputLanguage` and `transcript` (raw text, confidence, provider, corrected flag and ambiguous spans). The existing `language` is the reply language. The optional `turn.started.inputLanguage` identifies the speech language. Transcription responses can include `raw`, `corrected` and `ambiguous`. These fields only tighten write restrictions.

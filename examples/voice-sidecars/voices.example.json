@@ -1,23 +1,17 @@
 {
   "default": {
     "speaker": "Lalitha",
-    "languages": [
-      "te"
-    ],
+    "languages": ["te"],
     "style": "Clear conversational speech at a moderate pace."
   },
   "hindi": {
     "speaker": "Divya",
-    "languages": [
-      "hi"
-    ],
+    "languages": ["hi"],
     "style": "Conversational delivery with clear articulation."
   },
   "english": {
     "speaker": "Mary",
-    "languages": [
-      "en"
-    ],
+    "languages": ["en"],
     "style": "Clear conversational delivery."
   }
 }

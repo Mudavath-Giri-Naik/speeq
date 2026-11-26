@@ -11,6 +11,6 @@ These reference services were **not verified against real weights by the author 
 Measure with `bench` on the target hardware.
 
 | Hardware | Model revision | Memory | Latency |
-| --- | --- | --- | --- |
-| CPU | | | |
-| GPU | | | |
+| -------- | -------------- | ------ | ------- |
+| CPU      |                |        |         |
+| GPU      |                |        |         |

@@ -49,7 +49,7 @@ export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): s
   ];
 
   const terms = vocabularyHints(domainVocabulary(config.raw), 50);
-  if (terms.length) sections.push("## Domain terms\n" + JSON.stringify(terms));
+  if (terms.length) sections.push(`## Domain terms\n${JSON.stringify(terms)}`);
   sections.push(
     "The user's words may contain recognition mistakes. If a request depends on an unclear word, ask a short question instead of guessing.",
   );
