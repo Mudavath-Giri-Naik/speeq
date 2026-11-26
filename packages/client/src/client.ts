@@ -1,7 +1,15 @@
 import type { ProtocolEvent, SpeechInput } from "@speeq/core";
 import { type PublicError, SpeeqError, toPublicError } from "@speeq/core/errors";
-import { createId, SentenceChunker, TypedEmitter } from "@speeq/core/utils";
+import {
+  baseLanguage,
+  correctWithVocabulary,
+  createId,
+  guessLanguageFromScript,
+  SentenceChunker,
+  TypedEmitter,
+} from "@speeq/core/utils";
 import { pageContext } from "./context.js";
+import { LanguageMode } from "./language-mode.js";
 import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
 import { ServerSpeechInput, type SpeechRequest } from "./server-speech-input.js";
 import { ServerSpeechOutput } from "./server-speech-output.js";
@@ -69,7 +77,13 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         : new WebSpeechOutput()
       : options.speech.output;
   const language = options.language ?? options.languages?.[0] ?? "en-IN";
+  const mode = new LanguageMode(options.languageMode === "auto");
+  if (input instanceof ServerSpeechInput) {
+    input.autoLanguage = mode.auto;
+    input.keepLastUtterance = options.voice?.keepLastUtterance === true;
+  }
   let snapshot: SpeeqSnapshot = freeze({
+    inputLanguage: null,
     voice: {
       input: input instanceof ServerSpeechInput ? "server" : "browser",
       output: output instanceof ServerSpeechOutput ? "server" : "browser",
@@ -112,7 +126,14 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let spoken = "";
   let lastAudioEnd = 0;
   let restarts: number[] = [];
-  const correct = options.call?.correct;
+  const correct =
+    options.call?.correct ??
+    (options.vocabulary
+      ? (t: string) =>
+          correctWithVocabulary(t, options.vocabulary!, {
+            language: mode.input ?? snapshot.language,
+          }).text
+      : undefined);
   const voiceDetection = options.call?.voiceDetection !== false;
   let monitor: MicMonitor | undefined;
   /** Fixes recognition mistakes, if the app gave a fixer. Never lets a bad fixer break a call. */
@@ -244,8 +265,55 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     };
   }
 
+  type VoiceMeta = {
+    raw: string;
+    corrected: boolean;
+    ambiguous: string[];
+    confidence?: number;
+    provider?: string;
+  };
+  function voiceTurn(heard: string, text: string) {
+    const server = input instanceof ServerSpeechInput ? input.result : undefined;
+    const raw = server?.raw ?? heard;
+    const candidates = options.preferredLanguages ??
+      snapshot.config?.languages ??
+      options.languages ?? [snapshot.language];
+    const preferred = mode.input ?? snapshot.language;
+    const detected =
+      input instanceof ServerSpeechInput
+        ? mode.observe(raw, candidates, preferred, server?.language, server?.languageConfidence)
+        : preferred;
+    if (!(input instanceof ServerSpeechInput)) {
+      const guess = guessLanguageFromScript(raw, candidates);
+      if (guess.language && baseLanguage(guess.language) !== baseLanguage(preferred))
+        emitter.emit("languageSuggestion", {
+          suggested: guess.language,
+          confidence: guess.confidence,
+        });
+    }
+    update({ inputLanguage: detected });
+    const local = options.vocabulary
+      ? correctWithVocabulary(heard, options.vocabulary, { language: detected })
+      : undefined;
+    const ambiguous = [
+      ...new Set([...(server?.ambiguous ?? []), ...(local?.ambiguous.map((a) => a.span) ?? [])]),
+    ];
+    const transcript: VoiceMeta = {
+      raw,
+      corrected: text !== raw,
+      ambiguous,
+      confidence: server?.confidence,
+      provider: server?.providerId,
+    };
+    return run({ text, inputMode: "voice", inputLanguage: detected, transcript });
+  }
   async function run(
-    user: { text: string; inputMode: "voice" | "text" } | null,
+    user: {
+      text: string;
+      inputMode: "voice" | "text";
+      inputLanguage?: string;
+      transcript?: VoiceMeta;
+    } | null,
     confirmation?: { confirmationId: string; approved: boolean },
   ) {
     interrupt();
@@ -256,7 +324,15 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     const messages: ChatMessage[] = user
       ? [
           ...cleared.messages,
-          { id: createId("msg"), role: "user", status: "done", text: user.text },
+          {
+            id: createId("msg"),
+            role: "user",
+            status: "done",
+            text: user.text,
+            ...(user.transcript && user.transcript.raw !== user.text
+              ? { rawText: user.transcript.raw }
+              : {}),
+          },
         ]
       : cleared.messages;
     let language = snapshot.language;
@@ -336,7 +412,19 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         user ? "turn" : "confirm",
         language,
         () => {
-          if (!snapshot.languages.includes(language))
+          if (
+            user?.inputLanguage &&
+            (options.replyLanguage === "same-as-input" ||
+              (mode.auto && options.replyLanguage !== "fixed"))
+          ) {
+            const enabled = snapshot.config?.languages ?? snapshot.languages;
+            language =
+              enabled.find((l) => l === user.inputLanguage) ??
+              enabled.find((l) => baseLanguage(l) === baseLanguage(user.inputLanguage ?? "")) ??
+              snapshot.config?.defaultLanguage ??
+              language;
+          }
+          if (!(snapshot.config?.languages ?? snapshot.languages).includes(language))
             language = snapshot.config?.defaultLanguage ?? language;
           return user
             ? { ...user, language, context: pageContext(options.getContext) }
@@ -394,7 +482,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     update({ ...clearActivity(), state: "listening" });
     if (!listening()) return;
     input.start(
-      { language: snapshot.language, interimResults: true },
+      { language: mode.input ?? snapshot.language, interimResults: true },
       {
         onInterim(text) {
           if (listening()) update({ interimTranscript: fix(text) });
@@ -407,7 +495,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
               interimTranscript: options.autoSendOnFinal === false ? text : "",
               state: "idle",
             });
-          else void sendText(text, { inputMode: "voice" });
+          else void voiceTurn(raw, text);
         },
         onError({ code }) {
           if (!listening()) return;
@@ -495,13 +583,13 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     }
     clearGrace();
     committed = early ? key : null;
-    void sendText(trimmed, { inputMode: "voice" });
+    void voiceTurn(raw, trimmed);
   }
 
   function callListen(id: number) {
     if (!callActive || id !== callId || !input) return;
     input.start(
-      { language: snapshot.language, interimResults: true, continuous: true },
+      { language: mode.input ?? snapshot.language, interimResults: true, continuous: true },
       {
         onInterim: (t) => id === callId && onCallInterim(t),
         onFinal: (t) => id === callId && onCallFinal(t),
@@ -578,6 +666,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   }
 
   function endCall(error?: PublicError) {
+    if (input instanceof ServerSpeechInput) input.clearLast();
     if (!callActive) return;
     callActive = false;
     callId++;
@@ -598,6 +687,22 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   }
 
   return {
+    setInputLanguage(tag) {
+      if (destroyed) return;
+      mode.set(tag);
+      update({ inputLanguage: mode.input });
+      if (input instanceof ServerSpeechInput) input.autoLanguage = mode.auto;
+      if (callActive || snapshot.state === "listening") input?.abort();
+    },
+    async retranscribeLast(language) {
+      if (!(input instanceof ServerSpeechInput) || destroyed) throw new SpeeqError("NOT_FOUND");
+      const result = await input.retranscribeLast(language);
+      if (!destroyed) {
+        mode.set(language);
+        input.autoLanguage = false;
+        update({ inputLanguage: language, interimTranscript: fix(result.text) });
+      }
+    },
     getSnapshot: () => snapshot,
     subscribe: (cb) => (destroyed ? () => {} : emitter.on("change", cb)),
     on: (event, cb) => (destroyed ? () => {} : emitter.on(event, cb)),
@@ -643,6 +748,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     },
     destroy() {
       if (destroyed) return;
+      if (input instanceof ServerSpeechInput) input.clearLast();
       destroyed = true;
       callActive = false;
       callId++;
