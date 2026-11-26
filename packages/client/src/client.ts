@@ -1,11 +1,13 @@
-import type { ProtocolEvent } from "@speeq/core";
+import type { ProtocolEvent, SpeechInput } from "@speeq/core";
 import { type PublicError, SpeeqError, toPublicError } from "@speeq/core/errors";
 import { createId, SentenceChunker, TypedEmitter } from "@speeq/core/utils";
 import { pageContext } from "./context.js";
 import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
+import { ServerSpeechInput, type SpeechRequest } from "./server-speech-input.js";
+import { ServerSpeechOutput } from "./server-speech-output.js";
 import { sessions } from "./session.js";
 import { SpeechQueue } from "./speech-queue.js";
-import { readEvents } from "./stream.js";
+import { RequestError, readEvents } from "./stream.js";
 import type {
   CallState,
   ChatMessage,
@@ -28,9 +30,52 @@ function freeze<T>(value: T): T {
 
 /** Creates a headless client. The first turn or confirmation establishes the session. */
 export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
-  const { input = new WebSpeechInput(), output = new WebSpeechOutput() } = options.speech ?? {};
+  const audioRequest: SpeechRequest = (path, language, init, signal) =>
+    request(
+      async (base, token) => {
+        const headers = new Headers(init.headers);
+        headers.set("authorization", `Bearer ${token}`);
+        const response = await (options.fetch ?? fetch)(`${base}/speech/${path}`, {
+          ...init,
+          headers,
+          signal,
+        });
+        if (!response.ok) {
+          const error = (await response.json().catch(() => null))?.error;
+          if (error?.code === "SESSION_EXPIRED" || error?.code === "UNAUTHENTICATED")
+            throw new RequestError(response.status, error);
+          throw new SpeeqError("SPEECH_UNAVAILABLE");
+        }
+        return response;
+      },
+      language || snapshot.language,
+      () => undefined,
+      signal,
+    );
+  const browser = new WebSpeechInput();
+  let input: SpeechInput | null =
+    options.speech?.input === undefined
+      ? options.voice?.input === "server"
+        ? new ServerSpeechInput(audioRequest, options.voice.endpointMs)
+        : browser
+      : options.speech.input;
+  const output =
+    options.speech?.output === undefined
+      ? options.voice?.output === "server"
+        ? new ServerSpeechOutput(
+            audioRequest,
+            options.voice.fallbackToBrowserVoice === false ? null : undefined,
+          )
+        : new WebSpeechOutput()
+      : options.speech.output;
   const language = options.language ?? options.languages?.[0] ?? "en-IN";
   let snapshot: SpeeqSnapshot = freeze({
+    voice: {
+      input: input instanceof ServerSpeechInput ? "server" : "browser",
+      output: output instanceof ServerSpeechOutput ? "server" : "browser",
+      streaming: input?.capabilities?.streaming ?? "native",
+      processing: input?.capabilities?.processing ?? "remote",
+    },
     state: "idle",
     language,
     languages: [...(options.languages ?? [language])],
@@ -145,6 +190,24 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     const language = languages.includes(snapshot.language)
       ? snapshot.language
       : config.defaultLanguage;
+    if (
+      options.speech?.input === undefined &&
+      input instanceof ServerSpeechInput &&
+      config.speech?.stt === false
+    ) {
+      input.abort();
+      input = browser;
+      update({
+        voice: {
+          ...snapshot.voice,
+          input: "browser",
+          streaming: "native",
+          processing: "remote",
+          note: "Server recognition is unavailable. Using browser recognition.",
+        },
+        support: { ...snapshot.support, speechInput: input.supported },
+      });
+    }
     update({
       sessionId,
       config,

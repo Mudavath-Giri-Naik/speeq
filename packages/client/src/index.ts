@@ -18,6 +18,8 @@ export type {
   MicMonitorOptions,
 } from "./mic-monitor.js";
 export { createMicMonitor } from "./mic-monitor.js";
+export { ServerSpeechInput } from "./server-speech-input.js";
+export { ServerSpeechOutput } from "./server-speech-output.js";
 export type {
   CallOptions,
   CallState,

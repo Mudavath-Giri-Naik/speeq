@@ -77,7 +77,7 @@ export class ServerSpeechInput implements SpeechInput {
             utteranceId: crypto.randomUUID(),
           });
           const response = await this.request(
-            "transcribe?" + query,
+            `transcribe?${query}`,
             options.language,
             { method: "POST", body, headers: { "content-type": "audio/wav" } },
             network.signal,

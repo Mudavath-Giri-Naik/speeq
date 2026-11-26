@@ -1,4 +1,10 @@
-import type { ClientConfig, ProtocolEvent, SpeechInput, SpeechOutput } from "@speeq/core";
+import type {
+  ClientConfig,
+  ProtocolEvent,
+  SpeechInput,
+  SpeechOutput,
+  StreamingMode,
+} from "@speeq/core";
 import type { PublicError } from "@speeq/core/errors";
 import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
 
@@ -79,6 +85,13 @@ export interface CallOptions {
 
 /** Current view of the conversation and device capabilities. */
 export interface SpeeqSnapshot {
+  voice: {
+    input: "browser" | "server";
+    output: "browser" | "server";
+    streaming: StreamingMode;
+    processing: "local" | "remote";
+    note?: string;
+  };
   state: SpeeqState;
   language: string;
   languages: string[];
@@ -103,6 +116,12 @@ export interface SpeeqClientOptions {
   onNavigate?: (action: NavigateAction) => void;
   getContext?: () => PageContextInput | undefined;
   /** Omitted or undefined input/output use Web Speech defaults. Pass null to disable either adapter. */
+  voice?: {
+    input?: "browser" | "server";
+    output?: "browser" | "server";
+    endpointMs?: number;
+    fallbackToBrowserVoice?: boolean;
+  };
   speech?: { input?: SpeechInput | null; output?: SpeechOutput | null };
   /** Speak assistant replies when possible. Default true. */
   speakReplies?: boolean;

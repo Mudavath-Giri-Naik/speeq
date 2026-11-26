@@ -71,7 +71,7 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
   }
 
   return async (
-    path: "turn" | "confirm",
+    path: "turn" | "confirm" | ((base: string, token: string) => Promise<Response>),
     language: string,
     makeBody: () => unknown,
     signal: AbortSignal,
@@ -80,13 +80,15 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
     signal.throwIfAborted();
     const body = makeBody();
     const send = () =>
-      post(
-        fetcher,
-        `${endpoint}/session/${encodeURIComponent(session.sessionId)}/${path}`,
-        body,
-        signal,
-        session.sessionToken,
-      );
+      typeof path === "function"
+        ? path(`${endpoint}/session/${encodeURIComponent(session.sessionId)}`, session.sessionToken)
+        : post(
+            fetcher,
+            `${endpoint}/session/${encodeURIComponent(session.sessionId)}/${path}`,
+            body,
+            signal,
+            session.sessionToken,
+          );
     try {
       return await send();
     } catch (error) {

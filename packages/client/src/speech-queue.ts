@@ -45,6 +45,7 @@ export class SpeechQueue {
     if (!text || !this.enabled || !this.output?.supported) return Promise.resolve();
     const generation = this.generation;
     const output = this.output;
+    output.prepare?.(text, { language });
     this.pending++;
     this.tail = this.tail
       .then(async () => {
