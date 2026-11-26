@@ -15,6 +15,6 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 009 | Docs pass + release verification (combined 11+12)                                            | reviewed-accepted | task/009-docs-release       |
 | 010 | Umbrella speeq package, release workflow, dev update notice                                  | reviewed-accepted | task/010-umbrella-release   |
 | 011 | Public docs website (apps/docs, Vercel)                                                      | reviewed-accepted | task/011-docs-website       |
-| 012 | Voice foundation: pluggable speech providers, server audio, benchmark harness                | briefed           | task/012-voice-foundation   |
+| 012 | Voice foundation: pluggable speech providers, server audio, benchmark harness                | accepted          | task/012-voice-foundation   |
 | 013 | Indian-language accuracy: vocabulary, language detection, Telugu/Hindi providers, evaluation | briefed           | task/013-indic-accuracy     |
 | 014 | Natural conversation: endpointing, voices, reliability, analytics, latency, docs             | briefed           | task/014-natural-voice      |

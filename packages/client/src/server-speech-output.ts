@@ -105,7 +105,7 @@ export class ServerSpeechOutput implements SpeechOutput {
       o.signal?.removeEventListener("abort", abort);
     }
   }
-  async listVoices(language = "") {
+  async listVoices(language = ""): Promise<readonly VoiceInfo[]> {
     const controller = new AbortController();
     this.controllers.add(controller);
     try {
