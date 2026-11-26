@@ -121,11 +121,8 @@ export default async function Home() {
       </script>
 
       {/* Hero */}
-      <section className="relative isolate min-h-[max(40rem,calc(100svh-4rem))] overflow-hidden pt-8 pb-[clamp(8rem,24vw,23rem)] sm:pt-12">
+      <section className="relative isolate flex min-h-[max(34rem,calc(100svh-4rem))] flex-col overflow-hidden pt-[clamp(1.25rem,4svh,3rem)]">
         <div className="aurora" aria-hidden="true" />
-        <div className="absolute inset-x-0 bottom-0" aria-hidden="true">
-          <HeroFan />
-        </div>
         <div className="container-x relative z-10 text-center">
           <Reveal immediate y={12}>
             <Link
@@ -144,24 +141,31 @@ export default async function Home() {
             accent={["voice."]}
             accentClass="hero-accent"
             delay={0.1}
-            className="hero-title mx-auto mt-6 max-w-5xl text-[clamp(2.6rem,7.6vw,5.4rem)] leading-[0.98] font-extrabold text-fg"
+            className="hero-title mx-auto mt-[clamp(0.6rem,2svh,1.5rem)] max-w-5xl text-[clamp(2.2rem,min(7vw,9svh),4.8rem)] leading-[0.98] font-extrabold text-fg"
           />
           <Reveal immediate delay={0.55} y={16}>
-            <p className="mx-auto mt-6 max-w-xl text-[clamp(1rem,1.9vw,1.2rem)] leading-relaxed text-muted">
+            <p className="mx-auto mt-[clamp(0.6rem,2svh,1.5rem)] max-w-2xl text-[clamp(0.9rem,min(1.9vw,2.5svh),1.15rem)] leading-relaxed text-muted">
               speeq is a voice and text assistant that you add to your own app. It talks, opens
               pages, and answers using your data, with your model and your design.
             </p>
           </Reveal>
           <Reveal immediate delay={0.7} y={16}>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-[clamp(0.9rem,3svh,2rem)] flex flex-col items-center justify-center gap-3 sm:flex-row">
               <PrimaryCta href="/docs/quickstart">Get started</PrimaryCta>
               <CopyCommand command={INSTALL_COMMAND} />
             </div>
-            <p className="mt-5 text-sm text-muted">
+            <p className="mt-[clamp(0.5rem,2svh,1.25rem)] text-sm text-muted">
               Want to hear it first?{" "}
               <AskAssistantButton>Talk to the speeq guide</AskAssistantButton>
             </p>
           </Reveal>
+        </div>
+        {/* The connection animation fills the space under the text, so it never covers it. */}
+        <div
+          className="relative mt-4 aspect-[4/3] w-full [mask-image:linear-gradient(to_bottom,transparent,black_28%)] sm:mt-auto sm:aspect-auto sm:max-h-[26rem] sm:min-h-[12rem] sm:flex-1"
+          aria-hidden="true"
+        >
+          <HeroFan />
         </div>
       </section>
 

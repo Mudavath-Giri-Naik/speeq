@@ -1,4 +1,5 @@
 ---
+
 "@speeq/client": patch
 "@speeq/server": patch
 "@speeq/llm-openai-compatible": minor

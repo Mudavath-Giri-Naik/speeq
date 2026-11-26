@@ -213,7 +213,7 @@ export function HeroFan() {
       ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="hero-fan fan-in relative mx-auto aspect-[4/3] w-full max-w-[1600px] sm:aspect-[16/7] lg:aspect-[8/3]"
+      className="hero-fan fan-in absolute inset-x-0 top-0 bottom-0 mx-auto w-full max-w-[1600px]"
       style={{ "--px": 0, "--py": 0 } as CSSProperties}
     >
       <svg
