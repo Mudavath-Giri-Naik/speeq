@@ -1,5 +1,13 @@
 # @speeq/llm-gemini
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [744cdac]
+- Updated dependencies [7db8074]
+  - @speeq/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

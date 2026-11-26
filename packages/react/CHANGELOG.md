@@ -1,5 +1,20 @@
 # @speeq/react
 
+## 0.4.0
+
+### Minor Changes
+
+- 744cdac: Add configurable multilingual voice recognition, conservative vocabulary correction, clarification guards, and explicit Indic speech profiles.
+- 7db8074: Add configurable server speech providers and buffered browser audio.
+
+### Patch Changes
+
+- Updated dependencies [744cdac]
+- Updated dependencies [48ab917]
+- Updated dependencies [7db8074]
+- Updated dependencies [f98baa6]
+  - @speeq/client@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

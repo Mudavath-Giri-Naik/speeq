@@ -1,5 +1,31 @@
 # speeq
 
+## 0.4.0
+
+### Minor Changes
+
+- 744cdac: Add configurable multilingual voice recognition, conservative vocabulary correction, clarification guards, and explicit Indic speech profiles.
+- 48ab917: Voice calls ignore short sounds such as coughs, clicks and filler words, and only a longer or clearly meant phrase interrupts the assistant. Replies stay in the visitor's language, and the OpenAI-compatible adapter can send `reasoningEffort` so reasoning models answer sooner.
+- 7db8074: Add configurable server speech providers and buffered browser audio.
+- f98baa6: Add `listVoices`, `setVoice` and `previewVoice` to the client, a `voice.voiceId` option, and a recording cap of 25 seconds so long speech is sent instead of rejected. Fix the Sarvam text-to-speech request field and add every `bulbul:v3` voice as `SARVAM_VOICES`.
+
+### Patch Changes
+
+- Updated dependencies [744cdac]
+- Updated dependencies [48ab917]
+- Updated dependencies [7db8074]
+- Updated dependencies [f98baa6]
+  - @speeq/core@0.4.0
+  - @speeq/server@0.4.0
+  - @speeq/client@0.4.0
+  - @speeq/react@0.4.0
+  - @speeq/speech@0.4.0
+  - @speeq/testing@0.4.0
+  - @speeq/llm-openai-compatible@0.4.0
+  - @speeq/llm-gemini@0.4.0
+  - @speeq/store-memory@0.4.0
+  - @speeq/store-mongodb@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
