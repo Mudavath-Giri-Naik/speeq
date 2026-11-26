@@ -1,3 +1,4 @@
+import { VoiceDetector } from "./voice-detector.js";
 /**
  * Listens to the microphone level, apart from speech recognition. It notices that the visitor is
  * talking within about 100 ms, even when the voice is quiet, so the assistant can stop talking at
@@ -56,15 +57,8 @@ export interface AudioContextLike {
 }
 
 const TICK_MS = 40;
-/** While the assistant talks, the first moments are used to learn how loud its own voice is. */
-const CALIBRATE_MS = 350;
-const HEARTBEAT_MS = 200;
-
 export function createMicMonitor(options: MicMonitorOptions): MicMonitor {
-  const minLevel = options.minLevel ?? 0.012;
-  const ratio = options.ratio ?? 2.4;
-  const holdMs = options.holdMs ?? 90;
-  const quietMs = options.quietMs ?? 650;
+  const detector = new VoiceDetector(options);
   const now = options.now ?? (() => Date.now());
 
   let stream: MediaStream | undefined;
@@ -75,73 +69,16 @@ export function createMicMonitor(options: MicMonitorOptions): MicMonitor {
   let starting: Promise<boolean> | undefined;
   let stopped = false;
 
-  let smooth = 0;
-  /** Background loudness while nobody talks. */
-  let floor = 0.004;
-  /** How loud the assistant's own voice is in the signal, learned while it talks. */
-  let echo = 0;
-  let wasPlaying = false;
-  let playingSince = 0;
-  let loudSince = 0;
-  let quietSince = 0;
-  let talking = false;
-  let lastBeat = 0;
-
   function tick() {
     if (!analyser || !buffer) return;
     analyser.getFloatTimeDomainData(buffer);
     let sum = 0;
     for (let i = 0; i < buffer.length; i++) sum += (buffer[i] ?? 0) * (buffer[i] ?? 0);
     const rms = Math.sqrt(sum / buffer.length);
-    const t = now();
-    smooth = smooth * 0.6 + rms * 0.4;
-
-    const playing = options.isPlaying?.() === true;
-    if (playing && !wasPlaying) {
-      playingSince = t;
-      echo = 0;
-    }
-    wasPlaying = playing;
-
-    if (playing && t - playingSince < CALIBRATE_MS) {
-      // Learn how loud the assistant's own voice is, and do not react to it.
-      echo = Math.max(echo, rms);
-      return;
-    }
-
-    const background = playing ? Math.max(floor, echo) : floor;
-    const threshold = Math.max(minLevel, background * ratio);
-    const loud = rms > threshold;
-
-    if (!loud && !talking)
-      floor = rms < floor ? rms * 0.6 + floor * 0.4 : floor * 0.98 + rms * 0.02;
-
-    if (loud) {
-      quietSince = 0;
-      if (!loudSince) loudSince = t;
-      if (t - loudSince >= holdMs) {
-        if (!talking) {
-          talking = true;
-          lastBeat = t;
-          options.onVoice();
-        } else if (t - lastBeat >= HEARTBEAT_MS) {
-          lastBeat = t;
-          options.onVoice();
-        }
-      }
-    } else {
-      loudSince = 0;
-      if (talking) {
-        if (!quietSince) quietSince = t;
-        else if (t - quietSince >= quietMs) {
-          talking = false;
-          quietSince = 0;
-          options.onQuiet?.();
-        }
-      }
-    }
+    const event = detector.push(rms, now(), options.isPlaying?.() === true);
+    if (event === "voice") options.onVoice();
+    else if (event === "quiet") options.onQuiet?.();
   }
-
   async function open(): Promise<boolean> {
     try {
       const getUserMedia =
@@ -198,13 +135,10 @@ export function createMicMonitor(options: MicMonitorOptions): MicMonitor {
       void Promise.resolve(context?.close()).catch(() => {});
       context = undefined;
       analyser = undefined;
-      smooth = 0;
-      talking = false;
-      loudSince = 0;
-      quietSince = 0;
+      detector.reset();
     },
     level() {
-      return analyser ? Math.min(1, smooth * 9) : 0;
+      return analyser ? detector.level : 0;
     },
   };
 }
