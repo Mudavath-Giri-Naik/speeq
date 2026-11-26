@@ -28,7 +28,8 @@ export function createDetectThenTranscribe(o: {
     },
     async transcribe(req) {
       const start = performance.now();
-      const detected = req.language ?? (await detector.transcribe(req)).language;
+      const detection = req.language ? undefined : await detector.transcribe(req);
+      const detected = req.language ?? detection?.language;
       req.signal?.throwIfAborted();
       const language =
         candidates.find((c) => baseLanguage(c) === baseLanguage(detected ?? "")) ?? candidates[0];
@@ -36,6 +37,7 @@ export function createDetectThenTranscribe(o: {
       return {
         ...result,
         language: baseLanguage(language ?? ""),
+        languageConfidence: detection?.languageConfidence,
         providerMs: performance.now() - start,
       };
     },

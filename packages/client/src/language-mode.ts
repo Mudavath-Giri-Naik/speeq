@@ -17,7 +17,10 @@ export class LanguageMode {
     confidence?: number,
   ) {
     if (!this.auto) return this.input ?? preferred;
-    const matching = provider && candidates.find((c) => baseLanguage(c) === baseLanguage(provider));
+    const matching =
+      provider &&
+      (candidates.find((c) => c.toLowerCase() === provider.toLowerCase()) ??
+        candidates.find((c) => baseLanguage(c) === baseLanguage(provider)));
     const guess = matching
       ? { language: matching, confidence: confidence ?? 1 }
       : guessLanguageFromScript(text, candidates);

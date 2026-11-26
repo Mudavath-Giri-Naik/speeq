@@ -205,22 +205,23 @@ export function correctWithVocabulary(
       kind: CorrectionChange["kind"] = "fuzzy",
       names: string[] = [];
     let exact = false;
-    for (const match of matches(i).reverse()) {
-      if (blocked.subarray(i, match.end).includes(1)) continue;
-      const forms = match.entries.filter(
-        (e) =>
-          e.kind !== "regional" ||
-          (options.regionalToCanonical !== false &&
-            (!options.language || baseLanguage(options.language) === e.language)),
-      );
-      if (!forms.length) continue;
-      end = match.end;
-      exact = true;
-      if (forms.some((e) => e.kind === "canonical")) break;
-      const aliases = forms.filter((e) => e.kind === "alias");
-      kind = aliases.length ? "alias" : "regional";
-      names = [...new Set((aliases.length ? aliases : forms).map((e) => e.term.term))].sort();
-      break;
+    const matchesHere = matches(i)
+      .reverse()
+      .filter((m) => !blocked.subarray(i, m.end).includes(1));
+    // Exact spellings outrank regional equivalents, then prefer the longest whole phrase.
+    for (const regional of [false, true]) {
+      if (regional && options.regionalToCanonical === false) break;
+      for (const match of matchesHere) {
+        const forms = match.entries.filter((e) => (e.kind === "regional") === regional);
+        if (!forms.length) continue;
+        end = match.end;
+        exact = true;
+        kind = regional ? "regional" : "alias";
+        names = [...new Set(forms.map((e) => e.term.term))].sort();
+        if (names.length === 1 && forms.some((e) => e.kind === "canonical")) names = [];
+        break;
+      }
+      if (exact) break;
     }
     if (!exact && options.fuzzy !== false && latin.test(keys[i] ?? ""))
       names = nearest(keys[i] ?? "", index);
