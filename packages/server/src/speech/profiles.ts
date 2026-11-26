@@ -83,15 +83,24 @@ export function createSpeechConfig(o: Options): SpeechConfig | undefined {
     model: "indic-tts",
     apiKey: o.token,
     format: "wav",
-    voices: [
-      {
-        id: "default",
-        name: "Configured sidecar voice",
-        languages: ["te", "hi", "en"],
-        supports: { rate: false, pitch: false, volume: false, style: false },
-      },
-    ],
+    voices: Object.entries({ default: "te", hindi: "hi", english: "en" }).map(([id, lang]) => ({
+      id,
+      name: id,
+      languages: [lang],
+      supports: { rate: false, pitch: false, volume: false, style: false },
+    })),
   });
+  const synthesize = tts.synthesize.bind(tts);
+  tts.synthesize = (req) =>
+    synthesize({
+      ...req,
+      voiceId:
+        req.voiceId ??
+        ({ hi: "hindi", en: "english" } as Record<string, string>)[
+          req.language.split("-")[0] ?? ""
+        ] ??
+        "default",
+    });
   return {
     stt: [stt],
     tts: [tts],

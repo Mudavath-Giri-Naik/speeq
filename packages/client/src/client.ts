@@ -273,7 +273,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     confidence?: number;
     provider?: string;
   };
-  function voiceTurn(heard: string, text: string) {
+  function voiceTurn(heard: string, text: string, submit = true) {
     const server = input instanceof ServerSpeechInput ? input.result : undefined;
     const raw = server?.raw ?? heard;
     const candidates = options.preferredLanguages ??
@@ -306,7 +306,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       confidence: server?.confidence,
       provider: server?.providerId,
     };
-    return run({ text, inputMode: "voice", inputLanguage: detected, transcript });
+    if (submit) return run({ text, inputMode: "voice", inputLanguage: detected, transcript });
   }
   async function run(
     user: {
@@ -491,6 +491,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         onFinal(raw) {
           if (!listening()) return;
           const text = fix(raw);
+          if (options.autoSendOnFinal === false && text.trim()) voiceTurn(raw, text, false);
           if (options.autoSendOnFinal === false || !text.trim())
             update({
               interimTranscript: options.autoSendOnFinal === false ? text : "",
@@ -749,7 +750,10 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     },
     destroy() {
       if (destroyed) return;
-      if (input instanceof ServerSpeechInput) input.clearLast();
+      if (input instanceof ServerSpeechInput) {
+        input.abort();
+        input.clearLast();
+      }
       destroyed = true;
       callActive = false;
       callId++;
