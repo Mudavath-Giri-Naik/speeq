@@ -9,6 +9,8 @@ import { WebSpeechOutput } from "./web-speech-output.js";
 /** Buffered sentence playback with up to three speculative decodes. */
 export class ServerSpeechOutput implements SpeechOutput {
   private context?: AudioContext;
+  private tail = Promise.resolve();
+  private paused = false;
   private cache = new Map<string, Promise<AudioBuffer>>();
   private controllers = new Set<AbortController>();
   private stop?: () => void;
@@ -57,7 +59,15 @@ export class ServerSpeechOutput implements SpeechOutput {
     this.cache.set(key, promise);
     void promise.catch(() => {});
   }
-  async speak(text: string, o: SpeakOptions) {
+  speak(text: string, o: SpeakOptions) {
+    const generation = this.generation;
+    const next = this.tail.then(() => {
+      if (this.generation === generation) return this.play(text, o);
+    });
+    this.tail = next.catch(() => {});
+    return next;
+  }
+  private async play(text: string, o: SpeakOptions) {
     const key = this.key(text, o),
       generation = this.generation;
     const abort = () => this.cancel();
@@ -68,6 +78,8 @@ export class ServerSpeechOutput implements SpeechOutput {
       this.cache.delete(key);
       const audio = await pending;
       if (this.generation !== generation || !this.context) return;
+      if (!this.paused && this.context.state === "suspended") await this.context.resume();
+      if (this.generation !== generation) return;
       const source = this.context.createBufferSource();
       source.buffer = audio;
       source.connect(this.context.destination);
@@ -124,16 +136,20 @@ export class ServerSpeechOutput implements SpeechOutput {
   }
   cancel() {
     this.generation++;
+    this.tail = Promise.resolve();
+    this.paused = false;
     for (const c of this.controllers) c.abort();
     this.cache.clear();
     this.stop?.();
     this.fallback?.cancel();
   }
   pause() {
+    this.paused = true;
     void this.context?.suspend();
     this.fallback?.pause?.();
   }
   resume() {
+    this.paused = false;
     void this.context?.resume();
     this.fallback?.resume?.();
   }

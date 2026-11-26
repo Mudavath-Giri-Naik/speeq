@@ -22,13 +22,11 @@ export const Manifest = z
   .refine((m) => new Set(m.items.map((i) => i.id)).size === m.items.length);
 /** Normalize references and hypotheses identically while preserving Indic marks. */
 export function normalize(s: string, strip = false) {
-  return s
+  const normalized = s
     .normalize("NFC")
     .replace(/\p{Script=Latin}/gu, (c) => c.toLowerCase())
-    .replace(/\p{P}/gu, " ")
-    .replace(strip ? /\u200d/gu : /(?!)/gu, "")
-    .trim()
-    .replace(/\s+/gu, " ");
+    .replace(/\p{P}/gu, " ");
+  return (strip ? normalized.replaceAll("\u200d", "") : normalized).trim().replace(/\s+/gu, " ");
 }
 function distance(a: string[], b: string[]) {
   let row = Array.from({ length: b.length + 1 }, (_, i) => i);

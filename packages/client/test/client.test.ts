@@ -455,3 +455,20 @@ it.each(["listen", "send", "cancel", "destroy"])(
     }
   },
 );
+
+it("reports browser recognition without an error when server STT is unavailable", async () => {
+  const { client } = setup({
+    voice: { input: "server" },
+    fetch: async (url) =>
+      String(url).endsWith("/session")
+        ? Response.json({ ...session(), config: { ...config, speech: { stt: false, tts: false } } })
+        : stream(finished),
+  });
+  expect(client.getSnapshot().voice.input).toBe("server");
+  await client.sendText("hello");
+  expect(client.getSnapshot()).toMatchObject({
+    voice: { input: "browser", streaming: "native", note: expect.any(String) },
+    error: null,
+  });
+  client.destroy();
+});
