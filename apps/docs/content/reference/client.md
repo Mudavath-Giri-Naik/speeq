@@ -50,3 +50,7 @@ Each message has an `id`, a `role` (`user` or `assistant`), `text`, and a `statu
 ## See also
 
 [React hooks](/docs/reference/react) · [Voice and languages](/docs/guides/voice)
+
+## Voice selection
+
+The optional `voice` object accepts `input` and `output` (each `"browser"` or `"server"`), `endpointMs` (700 by default) and `fallbackToBrowserVoice` (true by default). Explicit `speech.input` and `speech.output` take precedence. Read `snapshot.voice` for active input, output, input streaming mode and processing location. An informational note accompanies browser input fallback.

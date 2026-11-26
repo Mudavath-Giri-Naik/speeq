@@ -70,3 +70,7 @@ const { startCall, endCall, call, interimTranscript } = useSpeeq();
 - **Tuning.** Pass `call={{ interruptGraceMs: 1000, commitAfterMs: 700, echoGuard: true, voiceDetection: true, correct }}` to the provider. `commitAfterMs` sends a phrase after that long without new words, instead of waiting for the browser to finish it. Lower is faster but may cut people off.
 
 `startCall()` must run from a click or tap, because browsers ask for microphone permission. A call keeps going while the visitor moves between pages, as long as the provider stays mounted.
+
+## Server speech
+
+For buffered recognition or synthesis through your own backend, see [Voice providers](/guides/voice-providers). Browser Web Speech remains the default.

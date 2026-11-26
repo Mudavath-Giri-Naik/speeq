@@ -48,3 +48,15 @@ A turn answers with Server-Sent Events. Each event carries JSON with `type`, `pr
 curl -s http://localhost:3000/api/speeq/health
 curl -s -X POST http://localhost:3000/api/speeq/session -H 'Content-Type: application/json' -d '{}'
 ```
+
+## Session speech routes
+
+When speech is configured, session creation includes `config.speech` with `stt` and `tts` availability. Each speech route requires the session bearer token.
+
+| Method | Session-relative path                              | Payload and response                                                                                                                                                       |
+| ------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `speech/transcribe?language=te-IN&utteranceId=abc` | Raw audio bytes with their MIME type. Returns final text and optional language, confidence and timing. Silent WAV returns empty text and `silent: true`.                   |
+| POST   | `speech/synthesize`                                | JSON text and language, optional voiceId, rate, pitch, volume, style and format. Returns provider audio with its content type. `X-Speeq-Ignored` lists unapplied controls. |
+| GET    | `speech/voices?language=te-IN`                     | Returns `{ voices: [...] }` with voice metadata.                                                                                                                           |
+
+Transcription replay by utterance ID is per session and per server instance, for two minutes and up to 500 entries. Provider failures can advance to the next approved provider. Invalid input stops the request.

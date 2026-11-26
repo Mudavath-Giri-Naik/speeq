@@ -75,3 +75,7 @@ Rate limits count inside one running server.
 ## See also
 
 [Tools](/docs/guides/tools) · [Telemetry fields](/docs/reference/telemetry) · [Environment variables](/docs/reference/environment)
+
+## Speech
+
+Register recognizers under `speech.stt` and synthesizers under `speech.tts`. The respective `speech.routing` maps associate language tags with ordered provider IDs. Both remote and paid access default off. Defaults for `speech.limits` are 5,000,000 upload bytes, 60 seconds, 1,000 synthesis characters, 30 transcriptions and 60 syntheses per minute, and a 15,000 ms provider timeout. Voice listing uses its own rate bucket. See [Voice providers](/guides/voice-providers).

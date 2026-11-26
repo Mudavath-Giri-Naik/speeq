@@ -1,4 +1,5 @@
 ---
+
 "@speeq/core": minor
 "@speeq/client": minor
 "@speeq/react": minor
