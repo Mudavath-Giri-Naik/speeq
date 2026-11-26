@@ -1,6 +1,7 @@
-import { type PageContext, safeJsonStringify, truncate } from "@speeq/core";
+import { type PageContext, safeJsonStringify, truncate, vocabularyHints } from "@speeq/core";
 import { z } from "zod";
 import type { ResolvedConfig } from "../resolve.js";
+import { domainVocabulary } from "../speech/vocabulary.js";
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
@@ -23,6 +24,8 @@ export function languageName(tag: string): string {
 
 /** Inputs for {@link buildSystemPrompt}. */
 export interface PromptInput {
+  inputLanguage?: string;
+  clarify?: boolean;
   language: string;
   pageContext: PageContext | undefined;
   hasKnowledge: boolean;
@@ -45,6 +48,16 @@ export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): s
     ].join("\n"),
   ];
 
+  const terms = vocabularyHints(domainVocabulary(config.raw), 50);
+  if (terms.length) sections.push("## Domain terms\n" + JSON.stringify(terms));
+  sections.push(
+    "The user's words may contain recognition mistakes. If a request depends on an unclear word, ask a short question instead of guessing.",
+  );
+  if (input.inputLanguage)
+    sections.push(
+      `The visitor spoke ${input.inputLanguage}. Understand the request in any language. Never translate tool names, route ids, parameters or identifiers. Keep English technical terms as spoken. Answer in ${input.language}.`,
+    );
+  if (input.clarify) sections.push("Ask one short confirming question before changing data.");
   if (config.routes.size > 0) {
     const lines = [...config.routes.values()].map((r) => {
       const params = r.params ? ` params: ${describeParams(r.params)}` : "";

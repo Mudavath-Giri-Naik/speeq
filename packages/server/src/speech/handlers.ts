@@ -1,11 +1,14 @@
 import {
   type AgentUser,
+  correctWithVocabulary,
   SpeeqError,
   SynthesizeRequestSchema,
+  sttPromptFromVocabulary,
   TranscribeQuerySchema,
   type TranscribeResponse,
   TranscribeResponseSchema,
   VoicesResponseSchema,
+  vocabularyHints,
 } from "@speeq/core";
 import { json, readJson } from "../handler/http.js";
 import type { Runtime } from "../runtime.js";
@@ -13,10 +16,12 @@ import { clientKey, RateLimiter } from "../security/rate-limit.js";
 import { readAudio } from "./limits.js";
 import { selectProviders, validateSpeech } from "./policy.js";
 import { runChain } from "./router.js";
+import { domainVocabulary } from "./vocabulary.js";
 import { measureWav } from "./wav.js";
 
 /** Create route-local rate buckets and the bounded per-instance replay cache. */
 export function speechRoutes(rt: Runtime<AgentUser>) {
+  const vocab = domainVocabulary(rt.config.raw);
   const config = rt.config.raw.speech;
   if (!config) return;
   validateSpeech(config);
@@ -97,8 +102,29 @@ export function speechRoutes(rt: Runtime<AgentUser>) {
           if (rms < 0.003) return { text: "", silent: true };
         }
         return runChain(chain, req.signal, timeout, async (p, signal) => {
+          const hints =
+            p.capabilities.vocabulary === "none"
+              ? undefined
+              : {
+                  vocabulary: vocabularyHints(vocab),
+                  prompt: sttPromptFromVocabulary(vocab, { language }),
+                };
+          const transcript = await p.transcribe({
+            audio,
+            mimeType,
+            language,
+            signal,
+            ...(hints ? { hints } : {}),
+          });
+          const correction = correctWithVocabulary(transcript.text, vocab, {
+            language: transcript.language ?? language,
+          });
           const result = TranscribeResponseSchema.safeParse({
-            ...(await p.transcribe({ audio, mimeType, language, signal })),
+            ...transcript,
+            text: correction.text,
+            raw: correction.raw,
+            corrected: correction.changes.length > 0,
+            ambiguous: correction.ambiguous.map((a) => a.span),
             providerId: p.id,
           });
           if (!result.success) throw new SpeeqError("PROVIDER_ERROR");

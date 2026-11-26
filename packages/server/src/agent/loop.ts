@@ -16,6 +16,8 @@ import { executeTool, prepareToolCall, type ToolOutcome } from "./tools.js";
 
 /** Everything one turn needs. Created per request; nothing survives the request. */
 export interface TurnRuntime<TUser extends AgentUser = AgentUser> {
+  inputLanguage?: string;
+  clarify?: boolean;
   config: ResolvedConfig<TUser>;
   toolDefs: LLMToolDefinition[];
   recorder: AuditRecorder;
@@ -79,6 +81,20 @@ export async function runAgentLoop<TUser extends AgentUser>(
 
     for (let i = 0; i < calls.length; i++) {
       const call = calls[i] as LLMToolCall;
+      if (rt.clarify && config.tools.get(call.name)?.def.risk === "write") {
+        const content = JSON.stringify({ error: "needs_clarification" });
+        const outcome: ToolOutcome = {
+          kind: "custom",
+          ok: false,
+          content,
+          durationMs: 0,
+          truncated: false,
+        };
+        emitRejected(rt, call, outcome);
+        await recordOutcome(rt, call, call.arguments, outcome);
+        messages.push({ role: "tool", toolCallId: call.id, name: call.name, content });
+        continue;
+      }
       const prepared = prepareToolCall(config, call);
       if (prepared.status === "needs-confirmation") {
         await requestConfirmation(rt, call, prepared.input, prepared.summary);

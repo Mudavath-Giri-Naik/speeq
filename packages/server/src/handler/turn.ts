@@ -25,6 +25,7 @@ import {
 } from "../agent/loop.js";
 import { buildSystemPrompt } from "../agent/prompt.js";
 import { executeTool, prepareToolCall } from "../agent/tools.js";
+import { needsClarification } from "../agent/voice-guard.js";
 import { AuditRecorder } from "../audit/recorder.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
@@ -38,6 +39,8 @@ interface TurnSetup<TUser extends AgentUser> {
   sessionId: string;
   user: TUser | null;
   language: string;
+  inputLanguage?: string;
+  clarify?: boolean;
   pageContext: PageContext | undefined;
   inputMode: "voice" | "text";
   headers: Record<string, string>;
@@ -65,6 +68,8 @@ export async function handleTurn<TUser extends AgentUser>(
     user,
     headers,
     language: body.language,
+    inputLanguage: body.inputLanguage,
+    clarify: needsClarification(body, rt.config.raw.speech?.clarifyBelow),
     pageContext: body.context,
     inputMode: body.inputMode ?? "text",
   };
@@ -231,6 +236,8 @@ async function loadMessages<TUser extends AgentUser>(
   }
   const system = buildSystemPrompt(config as never, {
     language: ctx.language,
+    inputLanguage: turn.inputLanguage,
+    clarify: turn.clarify,
     pageContext: ctx.pageContext,
     hasKnowledge: config.knowledge.length > 0,
   });
@@ -258,6 +265,8 @@ function streamTurn<TUser extends AgentUser>(
         pageContext: setup.pageContext,
       };
       const turn: TurnRuntime<TUser> = {
+        inputLanguage: setup.inputLanguage,
+        clarify: setup.clarify,
         config: rt.config,
         toolDefs: rt.toolDefs,
         recorder: new AuditRecorder(
@@ -273,7 +282,12 @@ function streamTurn<TUser extends AgentUser>(
         startedAt: performance.now(),
         usage: {},
       };
-      emit({ type: "turn.started", sessionId: setup.sessionId, language: setup.language });
+      emit({
+        type: "turn.started",
+        inputLanguage: setup.inputLanguage,
+        sessionId: setup.sessionId,
+        language: setup.language,
+      });
       let reason: TurnEndReason = "completed";
       let steps = 0;
       try {
