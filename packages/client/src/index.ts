@@ -24,6 +24,7 @@ export type {
   CallOptions,
   CallState,
   ChatMessage,
+  ClientVoice,
   NavigateAction,
   PageContextInput,
   PendingConfirmation,

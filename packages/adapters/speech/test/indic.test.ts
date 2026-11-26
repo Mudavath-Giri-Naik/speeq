@@ -71,7 +71,7 @@ it("uses paid Sarvam contracts and decodes WAV bytes", async () => {
   const res = await tts.synthesize({ text: "hi", language: "hi-IN", voiceId: "v" });
   expect([...new Uint8Array(await new Response(res.audio).arrayBuffer())]).toEqual([1, 2, 3]);
   expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toMatchObject({
-    language_code: "hi-IN",
+    target_language_code: "hi-IN",
     speaker: "v",
   });
 });

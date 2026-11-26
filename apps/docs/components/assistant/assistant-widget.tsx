@@ -2,8 +2,9 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type * as React from "react";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import type { ClientVoice } from "speeq/client";
 import { useSpeeq } from "speeq/react";
-import { CALL_GREETING, LISTENING_AGAIN, SUGGESTIONS } from "../../lib/assistant/intro";
+import { greetingFor, SUGGESTIONS } from "../../lib/assistant/intro";
 import { MicIcon } from "../icons";
 import { useVoiceMode, type VoiceMode } from "./voice-mode";
 
@@ -142,6 +143,12 @@ function Orb({
   );
 }
 
+const SAMPLE: Record<string, string> = {
+  en: "Hello! I'm the speeq guide. How can I help?",
+  te: "నమస్కారం! నేను స్పీక్ గైడ్‌ను. మీకు ఎలా సహాయం చేయగలను?",
+  hi: "नमस्ते! मैं स्पीक गाइड हूँ। मैं आपकी कैसे मदद कर सकता हूँ?",
+};
+
 export function AssistantWidget() {
   const {
     client,
@@ -158,15 +165,43 @@ export function AssistantWidget() {
     cancel,
     speak,
     config,
+    language,
   } = useSpeeq();
   const { mode: voiceMode, setMode: setVoiceMode } = useVoiceMode();
   const serverVoice = !!config?.speech?.stt;
+  const serverTts = serverVoice && voiceMode !== "browser" && !!config?.speech?.tts;
+  const [voices, setVoices] = useState<readonly ClientVoice[]>([]);
+  const [voiceId, setVoiceId] = useState("");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const introduced = useRef(false);
   const log = useRef<HTMLDivElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   const reduce = useReducedMotion();
+
+  // Offer the server's voices for the current language (all of them, whatever the provider has).
+  useEffect(() => {
+    if (!serverTts) return setVoices([]);
+    let live = true;
+    void client
+      .listVoices(language)
+      .then((list) => live && setVoices(list))
+      .catch(() => live && setVoices([]));
+    return () => {
+      live = false;
+    };
+  }, [client, serverTts, language]);
+  useEffect(() => {
+    const saved = window.localStorage.getItem("speeq-voice-id") ?? "";
+    setVoiceId(voices.some((v) => v.id === saved) ? saved : "");
+  }, [voices]);
+  const chooseVoice = (id: string) => {
+    setVoiceId(id);
+    if (id) window.localStorage.setItem("speeq-voice-id", id);
+    else window.localStorage.removeItem("speeq-voice-id");
+    client.setVoice(id || null);
+    if (id) void client.previewVoice(id, language, SAMPLE[language.split("-")[0] ?? "en"]);
+  };
 
   const getLevel = useCallback(() => client.getMicLevel(), [client]);
 
@@ -202,10 +237,10 @@ export function AssistantWidget() {
     startCall();
     // The call starts by telling the visitor what they can do. It is short, and the visitor can
     // talk over it at any time.
-    const line = introduced.current ? LISTENING_AGAIN : CALL_GREETING;
+    const line = greetingFor(language, introduced.current);
     introduced.current = true;
     void speak(line);
-  }, [speak, startCall]);
+  }, [language, speak, startCall]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -302,6 +337,25 @@ export function AssistantWidget() {
                 <ChevronIcon />
               </button>
             </header>
+
+            {serverTts && voices.length > 0 && (
+              <div className="flex items-center gap-2 px-5 pb-1 text-[0.72rem] text-muted">
+                <label htmlFor="speeq-voice">Voice</label>
+                <select
+                  id="speeq-voice"
+                  value={voiceId}
+                  onChange={(e) => chooseVoice(e.target.value)}
+                  className="h-7 min-w-0 flex-1 cursor-pointer rounded-full border border-line bg-surface px-2 text-[0.72rem] text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <option value="">Default</option>
+                  {voices.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* The orb */}
             <div className="flex flex-col items-center px-5 pt-1 pb-2">

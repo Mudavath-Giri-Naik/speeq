@@ -16,6 +16,8 @@ export class ServerSpeechOutput implements SpeechOutput {
   private stop?: () => void;
   private generation = 0;
   private voices = new Map<string, Promise<readonly VoiceInfo[]>>();
+  /** Voice used when a request does not name one. */
+  voiceId?: string;
   constructor(
     private request: SpeechRequest,
     private fallback: SpeechOutput | null = new WebSpeechOutput(),
@@ -52,14 +54,19 @@ export class ServerSpeechOutput implements SpeechOutput {
       this.controllers.delete(controller);
     }
   }
-  prepare(text: string, o: SpeakOptions) {
+  private withVoice(o: SpeakOptions): SpeakOptions {
+    return o.voiceId || !this.voiceId ? o : { ...o, voiceId: this.voiceId };
+  }
+  prepare(text: string, options: SpeakOptions) {
+    const o = this.withVoice(options);
     const key = this.key(text, o);
     if (this.cache.has(key) || this.cache.size >= 3) return;
     const promise = this.load(text, o);
     this.cache.set(key, promise);
     void promise.catch(() => {});
   }
-  speak(text: string, o: SpeakOptions) {
+  speak(text: string, options: SpeakOptions) {
+    const o = this.withVoice(options);
     const generation = this.generation;
     const next = this.tail.then(() => {
       if (this.generation === generation) return this.play(text, o);

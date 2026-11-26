@@ -7,7 +7,22 @@ import {
 } from "@speeq/core";
 import { audioJson } from "@speeq/core/speech-http";
 
-type Options = { id?: string; apiKey: string; model: string; fetch?: typeof fetch };
+type Options = { id?: string; apiKey: string; model?: string; fetch?: typeof fetch };
+/** Speakers accepted by `bulbul:v3`, as listed by the Sarvam API. */
+const SPEAKERS =
+  "aditya ritu ashutosh priya neha rahul pooja rohan simran kavya amit dev ishita shreya ratan varun manan sumit roopa kabir aayan shubh advait anand tanya tarun sunny mani gokul vijay shruti suhani mohit kavitha rehan soham rupali".split(
+    " ",
+  );
+/** @experimental Every `bulbul:v3` voice. Only pace is adjustable. */
+export const SARVAM_VOICES: readonly VoiceInfo[] = SPEAKERS.map((id) => ({
+  id,
+  name: id[0]?.toUpperCase() + id.slice(1),
+  languages: ["te", "hi", "en", "ta", "kn", "ml", "bn", "gu", "mr", "pa", "od"],
+  provider: "sarvam-tts",
+  processing: "remote",
+  streaming: false,
+  supports: { rate: true, pitch: false, volume: false, style: false },
+}));
 function language(tag: string) {
   const base = baseLanguage(tag);
   return `${base === "or" ? "od" : base}-IN`;
@@ -31,7 +46,7 @@ export function createSarvamStt(o: Options): SttProvider {
         new Blob([new Uint8Array(req.audio)], { type: req.mimeType }),
         `speech.${req.mimeType.split("/")[1] ?? "wav"}`,
       );
-      body.set("model", o.model);
+      body.set("model", o.model ?? "saaras:v3");
       body.set("mode", "codemix");
       body.set("language_code", req.language ? language(req.language) : "unknown");
       const start = performance.now();
@@ -60,7 +75,7 @@ export function createSarvamTts(
     kind: "remote-paid",
     capabilities: { streamingAudio: false, languages: "any", formats: ["wav"] },
     async listVoices() {
-      return o.voices ?? [];
+      return o.voices ?? SARVAM_VOICES;
     },
     async synthesize(req) {
       if (req.format && req.format !== "wav") throw new SpeeqError("INVALID_INPUT");
@@ -70,8 +85,8 @@ export function createSarvamTts(
         signal: req.signal,
         body: JSON.stringify({
           text: req.text,
-          language_code: language(req.language),
-          model: o.model,
+          target_language_code: language(req.language),
+          model: o.model ?? "bulbul:v3",
           speaker: req.voiceId ?? o.defaultVoice,
           pace: req.rate,
           output_audio_codec: "wav",

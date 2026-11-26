@@ -62,6 +62,9 @@ function plain(markdown: string): string {
   return markdown
     .replace(/````[\s\S]*?````/g, " ")
     .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[\[[^\]]*\]\]/g, " ")
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/^\s*(?:[-*+]|\d+\.)\s+/gm, "")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/^>\s?/gm, "")

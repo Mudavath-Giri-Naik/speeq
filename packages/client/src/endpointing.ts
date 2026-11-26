@@ -27,7 +27,7 @@ export class Endpointing {
     else this.quiet ??= now;
     const duration = now - this.start;
     if (
-      duration >= (this.options.maxUtteranceMs ?? 30000) ||
+      duration >= (this.options.maxUtteranceMs ?? 25000) ||
       (this.quiet !== undefined &&
         now - this.quiet >= (this.options.endpointMs ?? 700) &&
         duration >= (this.options.minUtteranceMs ?? 250))

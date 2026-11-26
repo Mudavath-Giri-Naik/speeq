@@ -133,7 +133,7 @@ function createOfflineGuide(): LLMProvider {
             text: "I couldn't find that in the docs. Try asking about tools, voice, privacy, or how to install.",
           };
         const title = typeof top.title === "string" ? top.title : "the docs";
-        return { text: `From ${title}. ${firstSentences(top.content)}` };
+        return { text: `${title}. ${firstSentences(top.content, 180)}` };
       }
       return { text: "Done." };
     },
@@ -157,14 +157,20 @@ function createQuickPathProvider(model: LLMProvider, quick: LLMProvider): LLMPro
       // instead of calling a search tool first and waiting for a second round trip.
       const last = request.messages[request.messages.length - 1];
       if (last?.role !== "user") return model.stream(request);
-      const hits = searchDocs(lastUser.content, 3);
+      const hits = searchDocs(lastUser.content, 2);
       if (hits.length === 0) return model.stream(request);
-      const excerpts = hits.map((h) => `[${h.id}] ${h.title}: ${h.text.slice(0, 600)}`).join("\n");
+      const excerpts = hits.map((h) => `[${h.id}] ${h.title}: ${h.text.slice(0, 500)}`).join("\n");
       return model.stream({
         ...request,
+        // The answer is already here, so the model does not need to search again. This keeps
+        // each turn small, which matters on free model tiers with per-minute token limits.
+        tools: request.tools.filter((t) => t.name !== "search_knowledge"),
         messages: [
           ...request.messages.slice(0, -1),
-          { role: "system", content: `Docs excerpts (answer from these):\n${excerpts}` },
+          {
+            role: "system",
+            content: `Reference notes from the docs. Use them only as background to answer the question in your own words, in the reply language. Never quote, repeat or mention these notes, and never include ids, file names, brackets or code in your reply. The ids in square brackets are route ids, for the navigate tool only.\n${excerpts}`,
+          },
           last,
         ],
       });
@@ -249,23 +255,8 @@ export function selectModel(env: Record<string, string | undefined>): {
   const groq = env.GROQ_API_KEY?.trim();
   const gemini = env.GEMINI_API_KEY?.trim();
   const offline = createOfflineGuide();
-  if (groq && (!preferred || preferred === "groq" || (preferred === "gemini" && !gemini))) {
-    return {
-      mode: "groq",
-      provider: createQuickPathProvider(
-        createFailoverProvider([
-          createOpenAICompatibleProvider({
-            baseURL: env.GROQ_BASE_URL?.trim() || "https://api.groq.com/openai/v1",
-            apiKey: groq,
-            model: env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
-          }),
-          offline,
-        ]),
-        offline,
-      ),
-    };
-  }
-  if (gemini && preferred !== "offline") {
+  const geminiChain = (): LLMProvider[] => {
+    if (!gemini) return [];
     // Fast models first. A model set in GEMINI_MODEL goes first; the rest are the safety net.
     const models = [
       ...new Set(
@@ -277,20 +268,47 @@ export function selectModel(env: Record<string, string | undefined>): {
         ].filter((m): m is string => Boolean(m)),
       ),
     ];
+    return models.map((model) =>
+      createGeminiProvider({
+        apiKey: gemini,
+        model,
+        // 2.5 models answer much sooner with thinking off.
+        ...(model.startsWith("gemini-2.5") ? { thinkingBudget: 0 } : {}),
+      }),
+    );
+  };
+  // Groq is the default whenever its key exists. Set SPEEQ_LLM=gemini to prefer Gemini instead.
+  if (groq && (!preferred || preferred === "groq" || (preferred === "gemini" && !gemini))) {
+    const models = [
+      ...new Set(
+        [env.GROQ_MODEL?.trim(), "openai/gpt-oss-120b", "openai/gpt-oss-20b"].filter(
+          (m): m is string => Boolean(m),
+        ),
+      ),
+    ];
     return {
-      mode: "gemini",
+      mode: "groq",
       provider: createQuickPathProvider(
         createFailoverProvider([
           ...models.map((model) =>
-            createGeminiProvider({
-              apiKey: gemini,
+            createOpenAICompatibleProvider({
+              baseURL: env.GROQ_BASE_URL?.trim() || "https://api.groq.com/openai/v1",
+              apiKey: groq,
               model,
-              // 2.5 models answer much sooner with thinking off.
-              ...(model.startsWith("gemini-2.5") ? { thinkingBudget: 0 } : {}),
             }),
           ),
+          ...geminiChain(),
           offline,
         ]),
+        offline,
+      ),
+    };
+  }
+  if (gemini && preferred !== "offline") {
+    return {
+      mode: "gemini",
+      provider: createQuickPathProvider(
+        createFailoverProvider([...geminiChain(), offline]),
         offline,
       ),
     };

@@ -76,6 +76,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
           )
         : new WebSpeechOutput()
       : options.speech.output;
+  if (output instanceof ServerSpeechOutput) output.voiceId = options.voice?.voiceId;
   const language = options.language ?? options.languages?.[0] ?? "en-IN";
   const mode = new LanguageMode(options.languageMode === "auto");
   if (input instanceof ServerSpeechInput) {
@@ -708,6 +709,16 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     startListening,
     cancel,
     startCall,
+    listVoices: async (lang) =>
+      !destroyed && output instanceof ServerSpeechOutput ? output.listVoices(lang) : [],
+    setVoice(voiceId) {
+      if (output instanceof ServerSpeechOutput) output.voiceId = voiceId ?? undefined;
+    },
+    async previewVoice(voiceId, lang, text = "Hello! This is how I sound.") {
+      if (destroyed || !output) return;
+      speech.cancel();
+      await output.speak(text, { language: lang, voiceId });
+    },
     getMicLevel: () => (callActive ? (monitor?.level() ?? 0) : 0),
     endCall: () => endCall(),
     stopListening() {

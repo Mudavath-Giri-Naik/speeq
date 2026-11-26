@@ -3,6 +3,9 @@ import type { PublicError } from "@speeq/core/errors";
 import type { Vocabulary } from "@speeq/core/utils";
 import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
 
+/** One selectable voice, as reported by the speech output. */
+export type ClientVoice = Awaited<ReturnType<NonNullable<SpeechOutput["listVoices"]>>>[number];
+
 /** Current activity of the client. */
 export type SpeeqState = "idle" | "listening" | "thinking" | "speaking" | "error";
 
@@ -123,6 +126,8 @@ export interface SpeeqClientOptions {
     output?: "browser" | "server";
     endpointMs?: number;
     fallbackToBrowserVoice?: boolean;
+    /** Voice id from the server's voice list, used for spoken replies. */
+    voiceId?: string;
   };
   speech?: { input?: SpeechInput | null; output?: SpeechOutput | null };
   /** Speak assistant replies when possible. Default true. */
@@ -165,6 +170,12 @@ export interface SpeeqClient {
    * from a user gesture so the browser allows the microphone.
    */
   startCall(): void;
+  /** Voices the active speech output offers for `language`. Empty when it cannot list any. */
+  listVoices(language?: string): Promise<readonly ClientVoice[]>;
+  /** Chooses the voice for spoken replies, or `null` for the provider default. */
+  setVoice(voiceId: string | null): void;
+  /** Speaks a short sample in `voiceId` without touching the conversation. */
+  previewVoice(voiceId: string, language: string, text?: string): Promise<void>;
   /** Loudness of the visitor's voice from 0 to 1 during a call, for drawing a level meter. 0 otherwise. */
   getMicLevel(): number;
   /** Ends the call, stops listening and stops speaking. */

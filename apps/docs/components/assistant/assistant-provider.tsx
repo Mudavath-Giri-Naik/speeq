@@ -17,6 +17,11 @@ export function toLocalHref(href: string): string {
 }
 
 const KEY = "speeq-voice-mode";
+const VOICE_KEY = "speeq-voice-id";
+
+function readSaved(key: string): string | null {
+  return typeof window === "undefined" ? null : window.localStorage.getItem(key);
+}
 
 /**
  * Puts the speeq assistant on every page. The provider lives in the root layout, so a call keeps
@@ -44,7 +49,12 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         languages={server ? ["en-US", "te-IN", "hi-IN"] : ["en-US"]}
         {...(server
           ? {
-              voice: { input: "server" as const, output: "browser" as const },
+              voice: {
+                input: "server" as const,
+                output: "server" as const,
+                fallbackToBrowserVoice: true,
+                voiceId: readSaved(VOICE_KEY) ?? undefined,
+              },
               languageMode: mode === "auto" ? ("auto" as const) : ("fixed" as const),
               preferredLanguages: ["en-US", "te-IN", "hi-IN"],
               vocabulary: siteVocabulary,
