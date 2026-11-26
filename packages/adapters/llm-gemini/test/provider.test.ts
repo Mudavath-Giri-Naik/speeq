@@ -179,6 +179,27 @@ describe("Gemini provider", () => {
     ]);
   });
 
+  it("sends thinkingBudget only when it is set", async () => {
+    const run = async (thinkingBudget?: number) => {
+      const bodies: unknown[] = [];
+      const p = createGeminiProvider({
+        apiKey: "AIza-test",
+        model: "gemini-2.5-flash",
+        ...(thinkingBudget === undefined ? {} : { thinkingBudget }),
+        fetch: async (_url, init) => {
+          bodies.push(JSON.parse(String(init?.body)));
+          return sseResponse([
+            { candidates: [{ content: { parts: [{ text: "ok" }] }, finishReason: "STOP" }] },
+          ]);
+        },
+      });
+      await collect(p.stream({ messages: [{ role: "user", content: "hi" }], tools: [] }));
+      return (bodies[0] as { generationConfig: Record<string, unknown> }).generationConfig;
+    };
+    expect((await run(0)).thinkingConfig).toEqual({ thinkingBudget: 0 });
+    expect((await run()).thinkingConfig).toBeUndefined();
+  });
+
   it("maps RESOURCE_EXHAUSTED, bad keys and server errors", async () => {
     const quota = new Response(
       '{"error":{"code":429,"status":"RESOURCE_EXHAUSTED","message":"Quota exceeded"}}',

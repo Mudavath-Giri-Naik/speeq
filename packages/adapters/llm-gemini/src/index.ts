@@ -30,6 +30,12 @@ export interface GeminiOptions {
   /** Default 1024. */
   maxOutputTokens?: number;
   /**
+   * How many tokens the model may spend "thinking" before it answers. `0` turns thinking off,
+   * which makes replies start much sooner (supported by `gemini-2.5-*` models; leave it unset for
+   * models that must think). Unset by default.
+   */
+  thinkingBudget?: number;
+  /**
    * `parametersJsonSchema` (default) accepts full JSON Schema. Use `parameters` for older
    * models that only accept the OpenAPI subset.
    */
@@ -182,6 +188,9 @@ export function createGeminiProvider(options: GeminiOptions): LLMProvider {
           maxOutputTokens: request.maxOutputTokens ?? options.maxOutputTokens ?? 1024,
           ...((request.temperature ?? options.temperature) !== undefined
             ? { temperature: request.temperature ?? options.temperature }
+            : {}),
+          ...(options.thinkingBudget !== undefined
+            ? { thinkingConfig: { thinkingBudget: options.thinkingBudget } }
             : {}),
         },
       };

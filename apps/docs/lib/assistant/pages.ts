@@ -97,6 +97,21 @@ const STOP = new Set([
   "up",
   "that",
   "this",
+  // Command words, so "open the privacy page" matches "privacy" and not a page titled "Open pages".
+  "open",
+  "go",
+  "goto",
+  "take",
+  "show",
+  "bring",
+  "jump",
+  "head",
+  "switch",
+  "scroll",
+  "navigate",
+  "visit",
+  "see",
+  "read",
 ]);
 
 function words(text: string): string[] {
