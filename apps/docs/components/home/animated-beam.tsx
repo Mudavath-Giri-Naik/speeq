@@ -1,5 +1,5 @@
 "use client";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { type RefObject, useEffect, useId, useState } from "react";
 
 export interface AnimatedBeamProps {
@@ -45,6 +45,8 @@ export function AnimatedBeam({
 }: AnimatedBeamProps) {
   const id = useId();
   const reduce = useReducedMotion();
+  // The pulse only runs while the diagram is on screen.
+  const visible = useInView(containerRef as RefObject<Element>, { margin: "120px" });
   const [path, setPath] = useState("");
   const [size, setSize] = useState({ width: 0, height: 0 });
 
@@ -105,7 +107,7 @@ export function AnimatedBeam({
           gradientUnits="userSpaceOnUse"
           initial={{ x1: "0%", x2: "0%", y1: "0%", y2: "0%" }}
           animate={
-            reduce
+            reduce || !visible
               ? { x1: from.x1, x2: from.x2 }
               : { x1: to.x1, x2: to.x2, y1: ["0%", "0%"], y2: ["0%", "0%"] }
           }

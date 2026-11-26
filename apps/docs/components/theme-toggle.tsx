@@ -1,6 +1,27 @@
 "use client";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { MoonIcon, SunIcon } from "./icons";
+
+function MonitorIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M8 20h8M12 16v4" />
+    </svg>
+  );
+}
 
 type Mode = "system" | "light" | "dark";
 const KEY = "speeq-theme";
@@ -25,6 +46,7 @@ function read(): Mode {
 export function ThemeToggle() {
   const [mode, setMode] = useState<Mode>("dark");
   const [ready, setReady] = useState(false);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     setMode(read());
@@ -53,17 +75,28 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={cycle}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-soft transition hover:border-line-strong hover:text-fg"
+      className="relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-line text-soft transition hover:border-line-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-accent"
       aria-label={`${label}. Press to change.`}
       title={label}
     >
-      {ready && mode === "light" ? <SunIcon /> : <MoonIcon />}
-      {ready && mode === "system" && (
-        <span
-          className="absolute -mt-6 ml-6 h-1.5 w-1.5 rounded-full bg-accent"
-          aria-hidden="true"
-        />
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={ready ? mode : "dark"}
+          initial={reduce ? false : { opacity: 0, rotate: -70, scale: 0.6 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={reduce ? undefined : { opacity: 0, rotate: 70, scale: 0.6 }}
+          transition={{ duration: 0.18 }}
+          className="flex"
+        >
+          {ready && mode === "light" ? (
+            <SunIcon />
+          ) : ready && mode === "system" ? (
+            <MonitorIcon />
+          ) : (
+            <MoonIcon />
+          )}
+        </motion.span>
+      </AnimatePresence>
     </button>
   );
 }

@@ -30,67 +30,113 @@ export function buildMenu(): MenuGroup[] {
   });
   const list = (slugs: string[]) => slugs.map(link);
 
+  const page = (href: string, title: string, description: string): MenuLink => ({
+    href,
+    title,
+    description,
+  });
+
   return [
     {
-      id: "docs",
-      label: "Docs",
+      id: "product",
+      label: "Product",
+      featured: {
+        ...page(
+          "/#demo",
+          "See intent become action",
+          "Watch a request go from words to your own interface.",
+        ),
+        cta: "Watch the demo",
+      },
+      columns: [
+        {
+          heading: "The layer",
+          links: [
+            page(
+              "/#architecture",
+              "Interaction engine",
+              "How a request moves through speeq and your app.",
+            ),
+            link("guides/voice"),
+            link("guides/tools"),
+          ],
+        },
+        {
+          heading: "Around it",
+          links: [
+            link("concepts/how-it-works"),
+            page(
+              "/#intelligence",
+              "Business intelligence",
+              "Audit data today, richer insight next.",
+            ),
+            page(
+              "/#security",
+              "Security and ownership",
+              "Your data, your permissions, your infrastructure.",
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      id: "developers",
+      label: "Developers",
       featured: {
         ...link("quickstart"),
         description: "Install it, mount one route and say hello in five minutes.",
         cta: "Start building",
       },
       columns: [
-        { heading: "Start here", links: list(["introduction", "install", "ai-setup", "faq"]) },
-        {
-          heading: "Concepts",
-          links: list([
-            "concepts/how-it-works",
-            "concepts/confirmations",
-            "concepts/security",
-            "concepts/privacy",
-          ]),
-        },
-      ],
-    },
-    {
-      id: "guides",
-      label: "Guides",
-      featured: { ...link("guides/nextjs"), title: "Add speeq to Next.js", cta: "Read the guide" },
-      columns: [
         {
           heading: "Build",
-          links: list([
-            "guides/tools",
-            "guides/knowledge",
-            "guides/routes",
-            "guides/voice",
-            "guides/models",
-          ]),
+          links: [
+            link("guides/nextjs"),
+            link("guides/models"),
+            link("guides/knowledge"),
+            link("ai-setup"),
+            page("/#roadmap", "Roadmap", "What is available and what is planned."),
+          ],
         },
         {
-          heading: "Ship",
+          heading: "Reference",
           links: list([
-            "guides/stores",
-            "guides/testing",
+            "reference/server-config",
+            "reference/react",
+            "reference/protocol",
+            "reference/errors",
             "guides/deployment",
-            "guides/audit-viewer",
-            "guides/dashboard",
           ]),
         },
       ],
     },
     {
-      id: "reference",
-      label: "Reference",
-      featured: { ...link("reference/client"), cta: "Open the reference" },
+      id: "usecases",
+      label: "Use cases",
+      featured: {
+        ...page(
+          "/#use-cases",
+          "One layer, many industries",
+          "Connect functionality you already approved.",
+        ),
+        cta: "Explore use cases",
+      },
       columns: [
         {
-          heading: "APIs",
-          links: list(["reference/server-config", "reference/react", "reference/protocol"]),
+          heading: "Customer facing",
+          links: [
+            page("/#use-cases", "E-commerce", "Discover products and move through checkout."),
+            page("/#use-cases", "Education", "Question banks, courses and admissions."),
+            page("/#use-cases", "Healthcare", "Departments, doctors and appointments."),
+          ],
         },
         {
-          heading: "Details",
-          links: list(["reference/errors", "reference/environment", "reference/telemetry"]),
+          heading: "Operations",
+          links: [
+            page("/#use-cases", "Financial services", "Authorized account information."),
+            page("/#use-cases", "Logistics", "Shipments, tracking and bookings."),
+            page("/#use-cases", "SaaS and enterprise", "Reports, dashboards and workflows."),
+          ],
         },
       ],
     },

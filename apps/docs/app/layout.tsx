@@ -36,12 +36,21 @@ const instrument = Instrument_Serif({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
-  title: { default: "speeq: give your website a voice", template: "%s · speeq" },
+  title: {
+    default: "speeq: the intelligent interaction layer for the web",
+    template: "%s · speeq",
+  },
   description:
-    "speeq is a headless voice and text assistant for web apps. It talks, opens pages and answers from your own data, with your model and your design.",
+    "Build intelligent web application experiences with speeq, an open-source, headless SDK for voice, text, application actions and context-aware interactions. Your infrastructure, your models, your control.",
   applicationName: "speeq",
   keywords: ["speeq", "voice assistant", "conversational AI", "Next.js", "React", "SDK"],
-  openGraph: { type: "website", siteName: "speeq", title: "speeq: give your website a voice" },
+  openGraph: {
+    type: "website",
+    siteName: "speeq",
+    title: "speeq: the intelligent interaction layer for the web",
+    description:
+      "An open-source, headless SDK for voice, text, application actions and context-aware interactions.",
+  },
   twitter: { card: "summary_large_image" },
   alternates: { canonical: "/" },
 };

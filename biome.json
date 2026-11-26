@@ -11,6 +11,7 @@
       "!**/next-env.d.ts",
       "!**/dist-packs",
       "!apps/docs/components/animate-ui",
+      "!apps/docs/components/ui",
       "!**/.pglite"
     ]
   },

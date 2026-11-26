@@ -51,13 +51,13 @@ export function SearchButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-10 items-center xl:min-w-48 gap-2 rounded-full border border-line bg-surface/60 pr-2 pl-3.5 text-sm text-muted transition hover:border-line-strong hover:text-fg sm:inline-flex"
+        className="hidden h-10 items-center gap-2 rounded-full border border-line bg-surface/60 px-3 text-sm text-muted transition hover:border-line-strong hover:text-fg sm:inline-flex 2xl:min-w-48 2xl:pr-2 2xl:pl-3.5"
         aria-label="Search the docs"
         aria-haspopup="dialog"
       >
         <SearchIcon width={17} height={17} />
-        <span className="flex-1 text-left">Search docs</span>
-        <kbd className="rounded-md border border-line bg-elev px-1.5 py-0.5 font-mono text-[11px]">
+        <span className="hidden flex-1 text-left 2xl:inline">Search docs</span>
+        <kbd className="hidden rounded-md border border-line bg-elev px-1.5 py-0.5 font-mono text-[11px] xl:inline">
           Ctrl K
         </kbd>
       </button>

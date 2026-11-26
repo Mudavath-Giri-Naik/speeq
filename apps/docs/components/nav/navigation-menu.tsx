@@ -45,7 +45,7 @@ function NavigationMenuItem({ className, ...props }: P<typeof Primitive.Item>) {
 }
 
 const triggerClass =
-  "group/trigger relative z-10 inline-flex h-10 items-center justify-center gap-1 rounded-full px-3.5 text-[0.9rem] font-medium text-soft outline-none transition-colors hover:text-fg focus-visible:text-fg data-[popup-open]:text-fg";
+  "group/trigger relative z-10 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full px-3.5 text-[0.9rem] font-medium text-soft outline-none transition-colors hover:text-fg focus-visible:text-fg data-[popup-open]:text-fg";
 
 function NavigationMenuTrigger({ className, children, ...props }: P<typeof Primitive.Trigger>) {
   return (

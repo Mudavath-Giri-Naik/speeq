@@ -3,6 +3,7 @@ import { LayoutGroup, motion, useMotionValueEvent, useScroll } from "motion/reac
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { MenuGroup, MenuLink } from "../../lib/menu";
 import { REPO_URL } from "../../lib/site";
 import { ArrowIcon, GithubIcon, StarIcon } from "../icons";
@@ -20,16 +21,14 @@ import {
 } from "./navigation-menu";
 
 const PLAIN_LINKS = [
-  { id: "adoption", href: "/stats", label: "Adoption" },
-  { id: "releases", href: "/docs/releases", label: "Releases" },
+  { id: "docs", href: "/docs/introduction", label: "Documentation" },
+  { id: "releases", href: "/docs/releases", label: "Changelog" },
 ];
 
 function activeId(pathname: string): string | null {
-  if (pathname.startsWith("/docs/guides")) return "guides";
-  if (pathname.startsWith("/docs/reference")) return "reference";
   if (pathname.startsWith("/docs/releases")) return "releases";
   if (pathname.startsWith("/docs")) return "docs";
-  if (pathname.startsWith("/stats")) return "adoption";
+  if (pathname.startsWith("/stats")) return "developers";
   return null;
 }
 
@@ -220,11 +219,16 @@ export function HeaderBar({ groups, stars }: { groups: MenuGroup[]; stars: strin
               )}
             </a>
             <ThemeToggle />
-            <Link href="/docs/quickstart" className="nav-cta hidden h-10 sm:inline-flex">
-              <span className="relative z-10">Get started</span>
-              <ArrowIcon width={15} height={15} className="relative z-10" />
-            </Link>
-            <MobileMenu />
+            <Button
+              asChild
+              className="hidden h-10 rounded-full px-4 whitespace-nowrap shadow-[0_8px_24px_-10px_var(--glow)] sm:inline-flex"
+            >
+              <Link href="/docs/quickstart">
+                Get started
+                <ArrowIcon width={15} height={15} />
+              </Link>
+            </Button>
+            <MobileMenu groups={groups} />
           </div>
         </div>
       </div>

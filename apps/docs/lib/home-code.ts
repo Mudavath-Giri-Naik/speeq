@@ -1,5 +1,4 @@
 import { codeToHtml } from "shiki";
-import type { CodeTab } from "../components/home/code-tabs";
 
 const server = `import { createSpeeq } from "speeq/server";
 import { createNextHandler } from "speeq/server/next";
@@ -68,12 +67,113 @@ async function highlight(code: string): Promise<string> {
   });
 }
 
-/** Highlighted at build time, so the home page ships no highlighter to the browser. */
-export async function getHomeCodeTabs(): Promise<CodeTab[]> {
-  const [a, b, c] = await Promise.all([highlight(server), highlight(browser), highlight(tool)]);
-  return [
-    { id: "server", label: "Server", file: "app/api/speeq/[[...speeq]]/route.ts", html: a },
-    { id: "browser", label: "Browser", file: "app/assistant.tsx", html: b },
-    { id: "tool", label: "A tool", file: "lib/tools.ts", html: c },
+const voice = `<SpeeqProvider
+  endpoint="/api/speeq"
+  language="te-IN"
+  languages={["en-US", "te-IN", "hi-IN"]}
+  voice={{ input: "server", output: "server", fallbackToBrowserVoice: true }}
+  onNavigate={({ href }) => router.push(href)}
+>
+  {children}
+</SpeeqProvider>`;
+
+const models = `import { createOpenAICompatibleProvider } from "speeq/llm-openai-compatible";
+
+// Groq, or any service that speaks the OpenAI chat format.
+const llm = createOpenAICompatibleProvider({
+  baseURL: process.env.LLM_BASE_URL!, // https://api.groq.com/openai/v1
+  apiKey: process.env.LLM_API_KEY!,
+  model: process.env.LLM_MODEL!,
+});
+
+// Pass it to createSpeeq({ llm, ... }) in place of the mock model.`;
+
+export interface QuickstartTab {
+  id: string;
+  label: string;
+  file: string;
+  code: string;
+  html: string;
+  title: string;
+  points: string[];
+  href: string;
+  cta: string;
+}
+
+/** Quickstart tabs, highlighted at build time. Every snippet is taken from the real docs or this site. */
+export async function getQuickstartTabs(): Promise<QuickstartTab[]> {
+  const items = [
+    {
+      id: "server",
+      label: "Server",
+      file: "app/api/speeq/[[...speeq]]/route.ts",
+      code: server,
+      title: "One route runs the assistant",
+      points: [
+        "Start with a mock model. No account, no keys.",
+        "The store keeps conversations in your own database.",
+        "A standard handler, with a ready Next.js adapter.",
+      ],
+      href: "/docs/guides/nextjs",
+      cta: "Next.js guide",
+    },
+    {
+      id: "react",
+      label: "React",
+      file: "app/assistant.tsx",
+      code: browser,
+      title: "A provider and a hook",
+      points: [
+        "SpeeqProvider wraps your app once.",
+        "onNavigate opens pages through your router.",
+        "useSpeeq gives you messages and send. You build the UI.",
+      ],
+      href: "/docs/reference/react",
+      cta: "React reference",
+    },
+    {
+      id: "tools",
+      label: "Tools",
+      file: "lib/tools.ts",
+      code: tool,
+      title: "Expose what you approve",
+      points: [
+        "Inputs are validated with Zod.",
+        "A write tool needs a visitor’s Yes before it runs.",
+        "Your handler repeats your own permission checks.",
+      ],
+      href: "/docs/guides/tools",
+      cta: "Tools guide",
+    },
+    {
+      id: "voice",
+      label: "Voice",
+      file: "app/assistant.tsx",
+      code: voice,
+      title: "Voice and languages",
+      points: [
+        "Browser voice by default, server voice when you configure it.",
+        "Pick the languages your visitors use.",
+        "Falls back to browser voice if the server is unavailable.",
+      ],
+      href: "/docs/guides/voice",
+      cta: "Voice guide",
+    },
+    {
+      id: "models",
+      label: "Models",
+      file: "lib/model.ts",
+      code: models,
+      title: "Bring your own model",
+      points: [
+        "Groq or any OpenAI-style service through one adapter.",
+        "Google Gemini has its own adapter.",
+        "Model names come from your environment, never from the code.",
+      ],
+      href: "/docs/guides/models",
+      cta: "Connect a model",
+    },
   ];
+  const html = await Promise.all(items.map((i) => highlight(i.code)));
+  return items.map((item, n) => ({ ...item, html: html[n] ?? "" }));
 }

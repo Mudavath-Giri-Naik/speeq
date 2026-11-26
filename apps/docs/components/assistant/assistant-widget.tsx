@@ -219,6 +219,17 @@ export function AssistantWidget() {
     return () => window.removeEventListener("speeq:open-assistant", openPanel);
   }, []);
 
+  // A suggested prompt elsewhere on the site can open the panel and send that question.
+  useEffect(() => {
+    const ask = (event: Event) => {
+      const text = (event as CustomEvent<unknown>).detail;
+      setOpen(true);
+      if (typeof text === "string" && text.trim()) void sendText(text.trim().slice(0, 300));
+    };
+    window.addEventListener("speeq:ask", ask);
+    return () => window.removeEventListener("speeq:ask", ask);
+  }, [sendText]);
+
   // When the panel is minimized, the launcher comes back: give it focus again.
   const wasOpen = useRef(false);
   useEffect(() => {
