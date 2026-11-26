@@ -106,14 +106,20 @@ export class ServerSpeechOutput implements SpeechOutput {
     }
   }
   async listVoices(language = "") {
-    const response = await this.request(
-      `voices${language ? `?${new URLSearchParams({ language })}` : ""}`,
-      language,
-      { method: "GET" },
-      new AbortController().signal,
-    );
-    if (!response.ok) throw new SpeeqError("SPEECH_UNAVAILABLE");
-    return (await response.json()).voices as readonly VoiceInfo[];
+    const controller = new AbortController();
+    this.controllers.add(controller);
+    try {
+      const response = await this.request(
+        `voices${language ? `?${new URLSearchParams({ language })}` : ""}`,
+        language,
+        { method: "GET" },
+        controller.signal,
+      );
+      if (!response.ok) throw new SpeeqError("SPEECH_UNAVAILABLE");
+      return (await response.json()).voices as readonly VoiceInfo[];
+    } finally {
+      this.controllers.delete(controller);
+    }
   }
   async hasVoiceFor(language: string) {
     let result = this.voices.get(language);

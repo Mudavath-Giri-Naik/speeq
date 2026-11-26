@@ -3,6 +3,7 @@ import { Endpointing } from "../src/endpointing.js";
 import { PreRoll } from "../src/pcm-capture.js";
 import { ServerSpeechInput } from "../src/server-speech-input.js";
 import { ServerSpeechOutput } from "../src/server-speech-output.js";
+import { sessions } from "../src/session.js";
 import { SpeechQueue } from "../src/speech-queue.js";
 import { encodeWav, resample } from "../src/wav.js";
 
@@ -145,4 +146,28 @@ it("prepares each enqueued sentence immediately and speaks in order", async () =
   expect(output.prepare.mock.calls.map((c) => c[0])).toEqual(["first", "second"]);
   await q.drain();
   expect(output.speak.mock.calls.map((c) => c[0])).toEqual(["first", "second"]);
+});
+
+it("shares session establishment across overlapping speech requests", async () => {
+  const fetch = vi.fn(async () =>
+    Response.json({
+      sessionId: "one",
+      sessionToken: "token",
+      expiresAt: new Date(Date.now() + 600000).toISOString(),
+      config: {
+        agentName: "Test",
+        languages: ["en"],
+        defaultLanguage: "en",
+        features: { tools: false, navigation: false, knowledge: false, audit: false },
+        routes: [],
+      },
+    }),
+  );
+  const request = sessions({ fetch, endpoint: "/speeq" }, () => {});
+  const send = vi.fn(async () => new Response());
+  await Promise.all(
+    [1, 2, 3].map(() => request(send, "en", () => undefined, new AbortController().signal)),
+  );
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(send).toHaveBeenCalledTimes(3);
 });

@@ -73,6 +73,7 @@ export class SpeechQueue {
     this.generation++;
     this.pending = 0;
     this.tail = Promise.resolve();
+    this.voices.clear();
     this.output?.cancel();
   }
 }

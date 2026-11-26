@@ -46,21 +46,37 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
     }
     return undefined;
   }
-  async function ensure(language: string, signal: AbortSignal, refresh: boolean) {
+  let opening: { signal: AbortSignal; result: Promise<Session> } | undefined;
+  async function create(language: string, signal: AbortSignal): Promise<Session> {
+    const response = await post(
+      fetcher,
+      `${endpoint}/session`,
+      { language, context: pageContext(options.getContext) },
+      signal,
+    );
+    const data: Session = await response.json();
+    signal.throwIfAborted();
+    if (!valid(data)) throw new SpeeqError("INTERNAL", { retryable: true });
+    const { sessionId, sessionToken, expiresAt, config } = data;
+    return { sessionId, sessionToken, expiresAt, config };
+  }
+  async function ensure(language: string, signal: AbortSignal, refresh: boolean): Promise<Session> {
+    signal.throwIfAborted();
     let session =
       current ?? (refresh ? null : storage((s) => JSON.parse(s.getItem(key) ?? "null")));
-    if (!valid(session) || Date.parse(session.expiresAt) <= Date.now() + 30_000) {
-      const response = await post(
-        fetcher,
-        `${endpoint}/session`,
-        { language, context: pageContext(options.getContext) },
-        signal,
-      );
-      const data: Session = await response.json();
+    if (!valid(session) || Date.parse(session.expiresAt) <= Date.now() + 30000) {
+      if (!opening || opening.signal.aborted)
+        opening = { signal, result: create(language, signal) };
+      const pending = opening;
+      try {
+        session = await pending.result;
+      } catch (error) {
+        if (!signal.aborted && pending.signal.aborted) return ensure(language, signal, refresh);
+        throw error;
+      } finally {
+        if (opening === pending) opening = undefined;
+      }
       signal.throwIfAborted();
-      if (!valid(data)) throw new SpeeqError("INTERNAL", { retryable: true });
-      const { sessionId, sessionToken, expiresAt, config } = data;
-      session = { sessionId, sessionToken, expiresAt, config };
       storage((s) => s.setItem(key, JSON.stringify(session)));
     }
     if (session !== current) {
@@ -99,8 +115,10 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
         !["SESSION_EXPIRED", "UNAUTHENTICATED"].includes(error.code)
       )
         throw error;
-      current = null;
-      storage((s) => s.removeItem(key));
+      if (current === session) {
+        current = null;
+        storage((s) => s.removeItem(key));
+      }
       session = await ensure(language, signal, true);
       return send();
     }
