@@ -1,5 +1,16 @@
 # @speeq/llm-gemini
 
+## 0.3.0
+
+### Minor Changes
+
+- bd5a5ea: Add a `thinkingBudget` option to the Gemini adapter. Setting it to `0` turns thinking off on models that allow it, so replies start sooner.
+
+### Patch Changes
+
+- Updated dependencies [04991ca]
+  - @speeq/core@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

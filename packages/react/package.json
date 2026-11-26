@@ -1,6 +1,6 @@
 {
   "name": "@speeq/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Headless React bindings for speeq",
   "license": "MIT",
   "type": "module",
