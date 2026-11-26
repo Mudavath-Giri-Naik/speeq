@@ -1,0 +1,288 @@
+{
+  "review": "Needs review by native Telugu and Hindi speakers.",
+  "cases": [
+    {
+      "id": "en-1",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Show me the deadlock questions for Operating Systems.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "deadlock"
+        }
+      }
+    },
+    {
+      "id": "en-2",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Can I see last month's report?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_month"
+        }
+      }
+    },
+    {
+      "id": "en-3",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "How's my latest order coming along?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {}
+      }
+    },
+    {
+      "id": "en-4",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Open my dashboard and show the revenue report.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "current"
+        },
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "en-5",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Find headphones under ₹2,000.",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "headphones",
+          "maxPrice": 2000
+        }
+      }
+    },
+    {
+      "id": "en-6",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Where's my package now?",
+      "expected": {
+        "tool": "track",
+        "args": {}
+      }
+    },
+    {
+      "id": "en-7",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Got any SQL practice questions?",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "SQL"
+        }
+      }
+    },
+    {
+      "id": "en-8",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Show the Linux exercises.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "Linux"
+        }
+      }
+    },
+    {
+      "id": "en-9",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Any keyboards under ₹900?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "keyboard",
+          "maxPrice": 900
+        }
+      }
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Track parcel PK42.",
+      "expected": {
+        "tool": "track",
+        "args": {
+          "id": "PK42"
+        }
+      }
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Take me to my orders.",
+      "expected": {
+        "route": "orders"
+      }
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Open the practice page.",
+      "expected": {
+        "route": "practice"
+      }
+    },
+    {
+      "id": "en-13",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Where's the tracking page?",
+      "expected": {
+        "route": "tracking"
+      }
+    },
+    {
+      "id": "en-14",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Bring up my dashboard.",
+      "expected": {
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "en-15",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "How much revenue came in today?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "today"
+        }
+      }
+    },
+    {
+      "id": "en-16",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Show last week's revenue.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_week"
+        }
+      }
+    },
+    {
+      "id": "en-17",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Cancel order AB1234.",
+      "expected": {
+        "tool": "cancelOrder",
+        "args": {
+          "id": "AB1234"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-18",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Save Q17 for later.",
+      "expected": {
+        "tool": "saveQuestion",
+        "args": {
+          "id": "Q17"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-19",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Move delivery PK42 to 2026-12-03.",
+      "expected": {
+        "tool": "reschedule",
+        "args": {
+          "id": "PK42",
+          "date": "2026-12-03"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-20",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Cancel that one. Which one did I say?",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "en-21",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Open that thing from earlier.",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "en-22",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Find a mouse under ₹1,500.",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "mouse",
+          "maxPrice": 1500
+        }
+      }
+    },
+    {
+      "id": "en-23",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Check order BX51.",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {
+          "id": "BX51"
+        }
+      }
+    },
+    {
+      "id": "en-24",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "When should TT77 arrive?",
+      "expected": {
+        "tool": "eta",
+        "args": {
+          "id": "TT77"
+        }
+      }
+    },
+    {
+      "id": "en-25",
+      "language": "en",
+      "replyLanguage": "en-IN",
+      "text": "Cancel AB15, or was it AB50?",
+      "expected": {
+        "action": "clarify"
+      }
+    }
+  ]
+}

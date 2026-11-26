@@ -1,0 +1,288 @@
+{
+  "review": "Needs review by native Telugu and Hindi speakers.",
+  "cases": [
+    {
+      "id": "hi-1",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "ऑपरेटिंग सिस्टम में डेडलॉक वाले सवाल दिखाओ।",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "deadlock"
+        }
+      }
+    },
+    {
+      "id": "hi-2",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "पिछले महीने की आमदनी दिखाना।",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_month"
+        }
+      }
+    },
+    {
+      "id": "hi-3",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "मेरे सबसे हाल वाले ऑर्डर का क्या हुआ?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {}
+      }
+    },
+    {
+      "id": "hi-4",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "डैशबोर्ड खोलकर कमाई की रिपोर्ट दिखाओ।",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "current"
+        },
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "hi-5",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "दो हज़ार के अंदर हेडफ़ोन दिखाना।",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "headphones",
+          "maxPrice": 2000
+        }
+      }
+    },
+    {
+      "id": "hi-6",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "मेरा पार्सल अभी कहाँ है?",
+      "expected": {
+        "tool": "track",
+        "args": {}
+      }
+    },
+    {
+      "id": "hi-7",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "एसक्यूएल के अभ्यास वाले सवाल दिखाओ।",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "SQL"
+        }
+      }
+    },
+    {
+      "id": "hi-8",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "लिनक्स वाले सवाल मिलेंगे?",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "Linux"
+        }
+      }
+    },
+    {
+      "id": "hi-9",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "नौ सौ रुपये के अंदर कीबोर्ड चाहिए।",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "keyboard",
+          "maxPrice": 900
+        }
+      }
+    },
+    {
+      "id": "hi-10",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "PK42 वाला पार्सल कहाँ पहुँचा?",
+      "expected": {
+        "tool": "track",
+        "args": {
+          "id": "PK42"
+        }
+      }
+    },
+    {
+      "id": "hi-11",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "मेरे ऑर्डर वाला पन्ना खोलना।",
+      "expected": {
+        "route": "orders"
+      }
+    },
+    {
+      "id": "hi-12",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "अभ्यास वाला पन्ना खोल दो।",
+      "expected": {
+        "route": "practice"
+      }
+    },
+    {
+      "id": "hi-13",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "पार्सल का पता लगाने वाला पन्ना खोलो।",
+      "expected": {
+        "route": "tracking"
+      }
+    },
+    {
+      "id": "hi-14",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "डैशबोर्ड खोलना।",
+      "expected": {
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "hi-15",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "आज कितनी कमाई हुई?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "today"
+        }
+      }
+    },
+    {
+      "id": "hi-16",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "पिछले हफ़्ते की आमदनी दिखाना।",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_week"
+        }
+      }
+    },
+    {
+      "id": "hi-17",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "AB1234 वाला ऑर्डर रद्द कर दो।",
+      "expected": {
+        "tool": "cancelOrder",
+        "args": {
+          "id": "AB1234"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "hi-18",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "Q17 को बाद के लिए सहेज लो।",
+      "expected": {
+        "tool": "saveQuestion",
+        "args": {
+          "id": "Q17"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "hi-19",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "PK42 की डिलीवरी तीन दिसंबर 2026 को कर दो।",
+      "expected": {
+        "tool": "reschedule",
+        "args": {
+          "id": "PK42",
+          "date": "2026-12-03"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "hi-20",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "वो वाला रद्द कर दो... कौन सा था पता नहीं।",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "hi-21",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "वही पेज खोलो, नाम याद नहीं आ रहा।",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "hi-22",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "पंद्रह सौ रुपये के अंदर माउस दिखाओ।",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "mouse",
+          "maxPrice": 1500
+        }
+      }
+    },
+    {
+      "id": "hi-23",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "BX51 वाले ऑर्डर का क्या हुआ?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {
+          "id": "BX51"
+        }
+      }
+    },
+    {
+      "id": "hi-24",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "TT77 पार्सल कब तक मिलेगा?",
+      "expected": {
+        "tool": "eta",
+        "args": {
+          "id": "TT77"
+        }
+      }
+    },
+    {
+      "id": "hi-25",
+      "language": "hi",
+      "replyLanguage": "hi-IN",
+      "text": "AB15 रद्द कर दो, या शायद AB50 था।",
+      "expected": {
+        "action": "clarify"
+      }
+    }
+  ]
+}

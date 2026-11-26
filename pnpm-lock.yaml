@@ -670,9 +670,21 @@ importers:
       '@speeq/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@speeq/llm-gemini':
+        specifier: workspace:*
+        version: link:../../packages/adapters/llm-gemini
+      '@speeq/llm-openai-compatible':
+        specifier: workspace:*
+        version: link:../../packages/adapters/llm-openai-compatible
+      '@speeq/server':
+        specifier: workspace:*
+        version: link:../../packages/server
       '@speeq/speech':
         specifier: workspace:*
         version: link:../../packages/adapters/speech
+      '@speeq/store-memory':
+        specifier: workspace:*
+        version: link:../../packages/adapters/store-memory
       '@speeq/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig

@@ -1,0 +1,288 @@
+{
+  "review": "Needs review by native Telugu and Hindi speakers.",
+  "cases": [
+    {
+      "id": "te+en-1",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Operating Systems లో deadlock questions చూపించు",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "deadlock"
+        }
+      }
+    },
+    {
+      "id": "te+en-2",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Last month revenue report చూపించు.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_month"
+        }
+      }
+    },
+    {
+      "id": "te+en-3",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "నా order status ఏంటి?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {}
+      }
+    },
+    {
+      "id": "te+en-4",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Dashboard open చేసి revenue report చూపించు",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "current"
+        },
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "te+en-5",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "₹2,000 లోపు headphones చూపించు",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "headphones",
+          "maxPrice": 2000
+        }
+      }
+    },
+    {
+      "id": "te+en-6",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "నా parcel ఇప్పుడు ఎక్కడుంది?",
+      "expected": {
+        "tool": "track",
+        "args": {}
+      }
+    },
+    {
+      "id": "te+en-7",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "SQL practice questions ఉన్నాయా?",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "SQL"
+        }
+      }
+    },
+    {
+      "id": "te+en-8",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Linux questions కావాలి.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "Linux"
+        }
+      }
+    },
+    {
+      "id": "te+en-9",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "₹900 లోపు keyboard ఉందా?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "keyboard",
+          "maxPrice": 900
+        }
+      }
+    },
+    {
+      "id": "te+en-10",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "PK42 parcel tracking చూడు.",
+      "expected": {
+        "tool": "track",
+        "args": {
+          "id": "PK42"
+        }
+      }
+    },
+    {
+      "id": "te+en-11",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "My orders page కి తీసుకెళ్లు.",
+      "expected": {
+        "route": "orders"
+      }
+    },
+    {
+      "id": "te+en-12",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Practice page open చెయ్యి.",
+      "expected": {
+        "route": "practice"
+      }
+    },
+    {
+      "id": "te+en-13",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Tracking page తెరువు.",
+      "expected": {
+        "route": "tracking"
+      }
+    },
+    {
+      "id": "te+en-14",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Dashboard కి వెళ్దాం.",
+      "expected": {
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "te+en-15",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Today's revenue ఎంత వచ్చింది?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "today"
+        }
+      }
+    },
+    {
+      "id": "te+en-16",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Last week revenue మాత్రమే చూపించు.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_week"
+        }
+      }
+    },
+    {
+      "id": "te+en-17",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "AB1234 order cancel చెయ్యి.",
+      "expected": {
+        "tool": "cancelOrder",
+        "args": {
+          "id": "AB1234"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te+en-18",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "Q17 question bookmark చెయ్యి.",
+      "expected": {
+        "tool": "saveQuestion",
+        "args": {
+          "id": "Q17"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te+en-19",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "PK42 delivery date 2026-12-03 కి మార్చు.",
+      "expected": {
+        "tool": "reschedule",
+        "args": {
+          "id": "PK42",
+          "date": "2026-12-03"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te+en-20",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "ఆ order cancel చెయ్యి, ఏదో గుర్తులేదు.",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "te+en-21",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "ఆ section open చెయ్యి, name మర్చిపోయా.",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "te+en-22",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "₹1,500 budget లో mouse చూపించు.",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "mouse",
+          "maxPrice": 1500
+        }
+      }
+    },
+    {
+      "id": "te+en-23",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "BX51 order update చెప్పు.",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {
+          "id": "BX51"
+        }
+      }
+    },
+    {
+      "id": "te+en-24",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "TT77 parcel ETA ఎప్పుడు?",
+      "expected": {
+        "tool": "eta",
+        "args": {
+          "id": "TT77"
+        }
+      }
+    },
+    {
+      "id": "te+en-25",
+      "language": "te+en",
+      "replyLanguage": "te-IN",
+      "text": "AB15 cancel చెయ్యి, wait AB50 ఏమో.",
+      "expected": {
+        "action": "clarify"
+      }
+    }
+  ]
+}

@@ -11,6 +11,10 @@
     "@speeq/core": "workspace:*",
     "@speeq/tsconfig": "workspace:*",
     "zod": "4.6.7",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "@speeq/server": "workspace:*",
+    "@speeq/store-memory": "workspace:*",
+    "@speeq/llm-gemini": "workspace:*",
+    "@speeq/llm-openai-compatible": "workspace:*"
   }
 }
