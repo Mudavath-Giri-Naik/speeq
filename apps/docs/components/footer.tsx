@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { NPM_URL, REPO_URL } from "../lib/site";
-import { Logo } from "./icons";
 
 const columns = [
   {
@@ -37,10 +36,9 @@ export function Footer() {
     <footer className="mt-24 border-t border-line">
       <div className="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <div className="flex items-center gap-2.5 font-semibold text-fg">
-            <Logo />
-            <span className="text-lg">speeq</span>
-          </div>
+          <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold tracking-[-0.06em] text-fg">
+            speeq
+          </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
             A headless voice and text assistant for web apps. Your data, your model, your design.
           </p>

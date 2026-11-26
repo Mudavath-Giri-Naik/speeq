@@ -16,17 +16,32 @@ export function Reveal({
   y = 28,
   className,
   as = "div",
+  immediate = false,
 }: {
   children: ReactNode;
   delay?: number;
   y?: number;
   className?: string;
   as?: "div" | "li" | "section" | "p" | "span";
+  /** Animate on page load with CSS, so the content is visible before any script runs. */
+  immediate?: boolean;
 }) {
   const reduce = useReducedMotion();
   const Tag = motion[as] as ElementType;
+  if (immediate) {
+    const Plain = as as ElementType;
+    return (
+      <Plain
+        className={`load-in ${className ?? ""}`}
+        style={{ ["--d" as string]: `${delay}s`, ["--y" as string]: `${y}px` }}
+      >
+        {children}
+      </Plain>
+    );
+  }
   return (
     <Tag
+      data-reveal=""
       className={className}
       initial={reduce ? false : { opacity: 0, y, filter: "blur(8px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -42,18 +57,19 @@ export function Reveal({
 export function SplitHeading({
   text,
   accent = [],
+  accentClass = "gradient-text",
   className,
   as = "h1",
   delay = 0,
 }: {
   text: string;
   accent?: string[];
+  accentClass?: string;
   className?: string;
   as?: "h1" | "h2";
   delay?: number;
 }) {
-  const reduce = useReducedMotion();
-  const Tag = motion[as] as ElementType;
+  const Tag = as as ElementType;
   // A "|" marks a line break that only applies on wider screens.
   const parts = text.split("|").map((part) => part.trim());
   const words = parts.flatMap((part, p) => [
@@ -73,16 +89,12 @@ export function SplitHeading({
               aria-hidden="true"
               className="inline-block overflow-hidden pb-[0.12em] align-bottom"
             >
-              <motion.span
-                className={`inline-block ${accent.includes(word) ? "gradient-text" : ""}`}
-                initial={
-                  reduce ? false : { y: "110%", opacity: 0, rotate: 4, filter: "blur(10px)" }
-                }
-                animate={{ y: 0, opacity: 1, rotate: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.9, delay: delay + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
+              <span
+                className={`word-in ${accent.includes(word) ? accentClass : ""}`}
+                style={{ ["--d" as string]: `${delay + i * 0.09}s` }}
               >
                 {word}
-              </motion.span>
+              </span>
             </span>
             {i < words.length - 1 ? " " : null}
           </Fragment>

@@ -32,7 +32,7 @@ export function CtaPanel({ command }: { command: string }) {
               asChild
               fillHeight="3px"
               delay="0.35s"
-              className="h-[3.1rem] rounded-full px-7 text-[0.95rem] font-semibold text-[#12121c] [--liquid-button-background-color:#fff] [--liquid-button-color:#7c5cff] hover:text-white"
+              className="h-[3.1rem] rounded-full px-7 text-[0.95rem] font-semibold text-[#12121c] [--liquid-button-background-color:#fff] [--liquid-button-color:#ff5a1f] hover:text-white"
             >
               <Link href="/docs/quickstart">
                 Get started

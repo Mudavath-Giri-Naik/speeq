@@ -18,6 +18,7 @@ export function SmoothScroll() {
       lerp: 0.085,
       wheelMultiplier: 0.95,
       smoothWheel: true,
+      autoRaf: true,
       allowNestedScroll: true,
       anchors: { offset: -88 },
     });
@@ -32,7 +33,7 @@ export function SmoothScroll() {
     <motion.div
       aria-hidden="true"
       style={{ scaleX: progress }}
-      className="pointer-events-none fixed inset-x-0 top-0 z-[120] h-[2px] origin-left bg-gradient-to-r from-accent via-accent-2 to-[#f472b6]"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[120] h-[2px] origin-left bg-gradient-to-r from-accent via-accent-2 to-[#ffb02e]"
     />
   );
 }

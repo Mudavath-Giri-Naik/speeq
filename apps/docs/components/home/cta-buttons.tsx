@@ -10,7 +10,7 @@ export function PrimaryCta({ href, children }: { href: string; children: string 
       asChild
       fillHeight="3px"
       delay="0.35s"
-      className="h-[3.1rem] rounded-full bg-[#6d4aff] px-7 text-[0.95rem] font-semibold text-white shadow-[0_14px_40px_-12px_var(--glow)] [--liquid-button-background-color:#6d4aff] [--liquid-button-color:#14142a] hover:text-white"
+      className="h-[3.1rem] rounded-full bg-[#ff5a1f] px-7 text-[0.95rem] font-semibold text-white shadow-[0_14px_40px_-12px_var(--glow)] [--liquid-button-background-color:#ff5a1f] [--liquid-button-color:#0a0a0a] hover:text-white"
     >
       <Link href={href}>
         {children}

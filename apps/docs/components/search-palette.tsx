@@ -51,7 +51,7 @@ export function SearchButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-10 min-w-52 items-center gap-2 rounded-full border border-line bg-surface/60 pr-2 pl-3.5 text-sm text-muted transition hover:border-line-strong hover:text-fg sm:inline-flex"
+        className="hidden h-10 items-center xl:min-w-48 gap-2 rounded-full border border-line bg-surface/60 pr-2 pl-3.5 text-sm text-muted transition hover:border-line-strong hover:text-fg sm:inline-flex"
         aria-label="Search the docs"
         aria-haspopup="dialog"
       >

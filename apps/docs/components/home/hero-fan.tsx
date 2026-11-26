@@ -1,5 +1,5 @@
 "use client";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { type CSSProperties, type ReactNode, useRef } from "react";
 
 /** Where each line starts on the left edge (y in a 1600 by 600 box). The right side mirrors it. */
@@ -36,7 +36,7 @@ const Glyph = {
         <linearGradient id="g-gem" x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#4285f4" />
           <stop offset=".55" stopColor="#9b72ff" />
-          <stop offset="1" stopColor="#f472b6" />
+          <stop offset="1" stopColor="#ff2e3b" />
         </linearGradient>
       </defs>
       <path
@@ -97,7 +97,7 @@ const TILES: Tile[] = [
     glyph: Glyph.react,
     bg: "#0b1d2a",
     x: 10,
-    y: 26,
+    y: 36,
     size: 4.7,
     depth: 22,
     delay: 0,
@@ -144,6 +144,7 @@ const TILES: Tile[] = [
     depth: -24,
     delay: 0.4,
     label: "Groq",
+    hideOnMobile: true,
   },
   {
     glyph: Glyph.ts,
@@ -168,7 +169,7 @@ const TILES: Tile[] = [
   },
   {
     glyph: Glyph.mic,
-    bg: "linear-gradient(135deg,#a855f7,#6d4aff)",
+    bg: "linear-gradient(135deg,#ff8a3d,#ff2e3b)",
     x: 96,
     y: 58,
     size: 3.2,
@@ -181,15 +182,11 @@ const TILES: Tile[] = [
 
 function CenterLogo() {
   return (
-    <div className="hero-core absolute top-[55%] left-1/2 z-10 flex aspect-square w-[clamp(64px,7.4vw,120px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[26%] bg-gradient-to-br from-[#8b6bff] via-[#6d4aff] to-[#22b8d6] shadow-[0_24px_60px_-10px_var(--glow)]">
+    <div className="hero-core absolute top-[55%] left-1/2 z-10 flex aspect-square w-[clamp(64px,7.4vw,120px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[26%] bg-gradient-to-br from-[#ff8a3d] via-[#ff5a1f] to-[#ff2e3b] shadow-[0_24px_60px_-10px_var(--glow)]">
       <span className="absolute inset-0 rounded-[inherit] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.45),transparent_55%)]" />
-      <svg viewBox="0 0 24 24" className="relative size-[55%]" fill="#fff" aria-hidden="true">
-        <rect x="2" y="9" width="2.6" height="6" rx="1.3" />
-        <rect x="6.6" y="5" width="2.6" height="14" rx="1.3" />
-        <rect x="11.2" y="2" width="2.6" height="20" rx="1.3" />
-        <rect x="15.8" y="6.5" width="2.6" height="11" rx="1.3" />
-        <rect x="20.4" y="9.5" width="2.6" height="5" rx="1.3" />
-      </svg>
+      <span className="relative font-[family-name:var(--font-display)] text-[clamp(0.95rem,1.9vw,1.9rem)] font-extrabold tracking-[-0.06em] text-white">
+        speeq
+      </span>
     </div>
   );
 }
@@ -212,14 +209,11 @@ export function HeroFan() {
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="hero-fan relative mx-auto aspect-[4/3] w-full max-w-[1600px] sm:aspect-[16/7] lg:aspect-[8/3]"
+      className="hero-fan fan-in relative mx-auto aspect-[4/3] w-full max-w-[1600px] sm:aspect-[16/7] lg:aspect-[8/3]"
       style={{ "--px": 0, "--py": 0 } as CSSProperties}
     >
       <svg
@@ -293,6 +287,6 @@ export function HeroFan() {
         </div>
       ))}
       <CenterLogo />
-    </motion.div>
+    </div>
   );
 }

@@ -121,10 +121,13 @@ export default async function Home() {
       </script>
 
       {/* Hero */}
-      <section className="relative isolate overflow-hidden pt-14 sm:pt-20">
+      <section className="relative isolate min-h-[max(40rem,calc(100svh-4rem))] overflow-hidden pt-8 pb-[clamp(8rem,24vw,23rem)] sm:pt-12">
         <div className="aurora" aria-hidden="true" />
-        <div className="container-x relative text-center">
-          <Reveal y={12}>
+        <div className="absolute inset-x-0 bottom-0" aria-hidden="true">
+          <HeroFan />
+        </div>
+        <div className="container-x relative z-10 text-center">
+          <Reveal immediate y={12}>
             <Link
               href="/docs/releases"
               className="mx-auto inline-flex items-center gap-2 rounded-full border border-line-strong bg-elev/70 py-1.5 pr-3 pl-1.5 text-xs text-soft backdrop-blur transition hover:border-accent"
@@ -139,28 +142,26 @@ export default async function Home() {
           <SplitHeading
             text="Give your website| a voice."
             accent={["voice."]}
+            accentClass="hero-accent"
             delay={0.1}
-            className="hero-title mx-auto mt-7 max-w-5xl text-[clamp(2.7rem,8.4vw,6rem)] leading-[0.98] font-extrabold text-fg"
+            className="hero-title mx-auto mt-6 max-w-5xl text-[clamp(2.6rem,7.6vw,5.4rem)] leading-[0.98] font-extrabold text-fg"
           />
-          <Reveal delay={0.55} y={16}>
-            <p className="mx-auto mt-7 max-w-2xl text-[clamp(1.05rem,2.2vw,1.3rem)] leading-relaxed text-muted">
+          <Reveal immediate delay={0.55} y={16}>
+            <p className="mx-auto mt-6 max-w-xl text-[clamp(1rem,1.9vw,1.2rem)] leading-relaxed text-muted">
               speeq is a voice and text assistant that you add to your own app. It talks, opens
               pages, and answers using your data, with your model and your design.
             </p>
           </Reveal>
-          <Reveal delay={0.7} y={16}>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Reveal immediate delay={0.7} y={16}>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <PrimaryCta href="/docs/quickstart">Get started</PrimaryCta>
               <CopyCommand command={INSTALL_COMMAND} />
             </div>
-            <p className="mt-6 text-sm text-muted">
+            <p className="mt-5 text-sm text-muted">
               Want to hear it first?{" "}
               <AskAssistantButton>Talk to the speeq guide</AskAssistantButton>
             </p>
           </Reveal>
-        </div>
-        <div className="relative -mt-4 sm:-mt-10">
-          <HeroFan />
         </div>
       </section>
 

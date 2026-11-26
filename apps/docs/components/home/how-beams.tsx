@@ -54,18 +54,14 @@ const Node = forwardRef<HTMLDivElement, { children: ReactNode; label: string; bi
         ref={ref}
         className={`relative z-10 flex items-center justify-center rounded-2xl border border-line-strong bg-elev p-3 text-accent shadow-[0_14px_34px_-14px_rgba(0,0,0,0.45)] ${
           big
-            ? "size-[4.5rem] border-0 bg-gradient-to-br from-[#8b6bff] via-[#6d4aff] to-[#22b8d6] p-0 text-white shadow-[0_20px_50px_-10px_var(--glow)] sm:size-24"
+            ? "size-[4.5rem] border-0 bg-gradient-to-br from-[#ff8a3d] via-[#ff5a1f] to-[#ff2e3b] p-0 text-white shadow-[0_20px_50px_-10px_var(--glow)] sm:size-24"
             : "size-12 sm:size-14"
         }`}
       >
         {big ? (
-          <svg viewBox="0 0 24 24" className="size-[52%]" fill="#fff" aria-hidden="true">
-            <rect x="2" y="9" width="2.6" height="6" rx="1.3" />
-            <rect x="6.6" y="5" width="2.6" height="14" rx="1.3" />
-            <rect x="11.2" y="2" width="2.6" height="20" rx="1.3" />
-            <rect x="15.8" y="6.5" width="2.6" height="11" rx="1.3" />
-            <rect x="20.4" y="9.5" width="2.6" height="5" rx="1.3" />
-          </svg>
+          <span className="font-[family-name:var(--font-display)] text-lg font-extrabold tracking-[-0.06em] text-white sm:text-2xl">
+            speeq
+          </span>
         ) : (
           <span className="block size-full">{children}</span>
         )}

@@ -119,25 +119,3 @@ export const StarIcon = (p: P) => (
 );
 
 /** The speeq mark: a chat bubble that holds a sound wave. */
-export function Logo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="speeq-g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8b6cff" />
-          <stop offset="1" stopColor="#22c7e6" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M16 2.5c7.4 0 13.5 5.2 13.5 11.9S23.4 26.3 16 26.3c-1.6 0-3.1-.2-4.5-.7L5 29l1.6-5.4C4 21.6 2.5 18.4 2.5 14.4 2.5 7.7 8.6 2.5 16 2.5Z"
-        fill="url(#speeq-g)"
-      />
-      <path
-        d="M9.5 14.4v1.2M13 11.8v6.4M16.5 9.5v10.9M20 12.2v5.8M23 13.8v2.6"
-        stroke="#fff"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
