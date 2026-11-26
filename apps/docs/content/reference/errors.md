@@ -16,6 +16,8 @@ Errors have a stable `code`, a `message`, and a `retryable` flag. Before a strea
 | `NOT_FOUND`             | 404  | No     | Check the path. Audit routes need an `authorize` function.        |
 | `CONFLICT`              | 409  | No     | Already handled, for example an approval answered twice. Refresh. |
 | `RATE_LIMITED`          | 429  | Yes    | Wait, then try again.                                             |
+| `SPEECH_UNAVAILABLE` | 503 | No | Voice is not available right now. You can type instead. |
+| `PAYLOAD_TOO_LARGE` | 413 | No | That audio is too long. |
 | `PROVIDER_ERROR`        | 502  | Yes    | The model service failed. Retry with a short wait.                |
 | `TOOL_ERROR`            | 500  | No     | A tool failed. Read the server logs.                              |
 | `TOOL_TIMEOUT`          | 504  | Yes    | A tool took too long. Check for side effects before retrying.     |

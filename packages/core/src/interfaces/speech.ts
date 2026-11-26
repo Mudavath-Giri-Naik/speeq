@@ -1,3 +1,13 @@
+import type { StreamingMode, VoiceInfo } from "./speech-provider.js";
+
+/** Recognition features exposed by a client input. */
+export interface SpeechInputCapabilities {
+  streaming: StreamingMode;
+  detectsLanguage: boolean;
+  processing: "local" | "remote";
+  providerId?: string;
+}
+
 /** Callbacks for a {@link SpeechInput} recognition session. */
 export interface SpeechInputHandlers {
   /** Partial transcript while the user is speaking. */
@@ -34,6 +44,7 @@ export interface SpeechInputOptions {
 
 /** Speech-to-text. The default implementation uses the browser Web Speech API. */
 export interface SpeechInput {
+  readonly capabilities?: SpeechInputCapabilities;
   /** Whether speech recognition can work in this environment. */
   readonly supported: boolean;
   start(options: SpeechInputOptions, handlers: SpeechInputHandlers): void;
@@ -45,12 +56,19 @@ export interface SpeechInput {
 
 /** Options for {@link SpeechOutput.speak}. */
 export interface SpeakOptions {
+  voiceId?: string;
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+  style?: string;
   language: string;
   signal?: AbortSignal;
 }
 
 /** Text-to-speech. The default implementation uses the browser `speechSynthesis` API. */
 export interface SpeechOutput {
+  prepare?(text: string, options: SpeakOptions): void;
+  listVoices?(language?: string): Promise<readonly VoiceInfo[]>;
   /** Whether speech synthesis exists in this environment. */
   readonly supported: boolean;
   /** Whether a voice exists for `language` on this device. */

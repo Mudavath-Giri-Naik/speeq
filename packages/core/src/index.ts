@@ -27,10 +27,12 @@ export type {
 export type {
   SpeakOptions,
   SpeechInput,
+  SpeechInputCapabilities,
   SpeechInputHandlers,
   SpeechInputOptions,
   SpeechOutput,
 } from "./interfaces/speech.js";
+export type * from "./interfaces/speech-provider.js";
 export type {
   ConversationStore,
   ListEventsOptions,
@@ -42,6 +44,7 @@ export * from "./schemas/audit.js";
 export * from "./schemas/common.js";
 export * from "./schemas/http.js";
 export * from "./schemas/protocol.js";
+export * from "./schemas/speech.js";
 export * from "./schemas/telemetry.js";
 export {
   applyEventToSummary,
