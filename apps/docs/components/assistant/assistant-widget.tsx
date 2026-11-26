@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useSpeeq } from "speeq/react";
 import { CALL_GREETING, LISTENING_AGAIN, SUGGESTIONS } from "../../lib/assistant/intro";
 import { MicIcon } from "../icons";
+import { useVoiceMode, type VoiceMode } from "./voice-mode";
 
 const TOOL_LABELS: Record<string, string> = {
   search_knowledge: "Searching the docs",
@@ -156,7 +157,10 @@ export function AssistantWidget() {
     endCall,
     cancel,
     speak,
+    config,
   } = useSpeeq();
+  const { mode: voiceMode, setMode: setVoiceMode } = useVoiceMode();
+  const serverVoice = !!config?.speech?.stt;
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const introduced = useRef(false);
@@ -259,6 +263,21 @@ export function AssistantWidget() {
               <h2 className="flex-1 truncate text-[0.95rem] font-semibold tracking-tight text-fg">
                 Speeq guide
               </h2>
+              {(serverVoice || voiceMode !== "browser") && (
+                <select
+                  aria-label="Voice language"
+                  value={voiceMode}
+                  disabled={call.active}
+                  onChange={(e) => setVoiceMode(e.target.value as VoiceMode)}
+                  className="h-8 max-w-[7.5rem] cursor-pointer rounded-full border border-line bg-surface px-2 text-[0.72rem] text-muted outline-none transition hover:text-fg focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+                >
+                  <option value="browser">English · live</option>
+                  <option value="auto">Auto language</option>
+                  <option value="en-US">English</option>
+                  <option value="te-IN">తెలుగు</option>
+                  <option value="hi-IN">हिन्दी</option>
+                </select>
+              )}
               <button
                 type="button"
                 onClick={call.active ? endCall : begin}
