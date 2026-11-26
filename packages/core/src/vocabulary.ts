@@ -130,7 +130,7 @@ function build(v: Vocabulary) {
       if (bucket) bucket.push(form);
       else buckets.set(key, [form]);
     }
-  return { root, fuzzy, buckets, memo: new Map<string, string[]>() };
+  return { root, fuzzy, buckets };
 }
 const indexes = new WeakMap<Vocabulary, ReturnType<typeof build>>();
 function indexFor(v: Vocabulary) {
@@ -162,8 +162,6 @@ function distance(a: string, b: string, limit: number) {
   return prev[b.length] ?? limit + 1;
 }
 function nearest(word: string, index: ReturnType<typeof build>) {
-  const cached = index.memo.get(word);
-  if (cached) return cached;
   let best = word.length < 9 ? 1 : 2;
   const hits = new Set<string>();
   const candidates = new Set<string>();
@@ -180,8 +178,6 @@ function nearest(word: string, index: ReturnType<typeof build>) {
     for (const t of terms) hits.add(t.term);
   }
   const result = [...hits].sort();
-  if (index.memo.size >= 2048) index.memo.clear();
-  index.memo.set(word, result);
   return result;
 }
 const protectedPattern =

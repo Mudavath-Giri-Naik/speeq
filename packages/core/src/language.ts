@@ -32,7 +32,10 @@ export function baseLanguage(tag: string) {
 export function toIso639_1(tag: string) {
   try {
     const base = new Intl.Locale(baseLanguage(tag)).language;
-    return /^[a-z]{2}$/.test(base) ? base : undefined;
+    return /^[a-z]{2}$/.test(base) &&
+      new Intl.DisplayNames("en", { type: "language", fallback: "none" }).of(base)
+      ? base
+      : undefined;
   } catch {
     return undefined;
   }

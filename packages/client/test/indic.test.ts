@@ -62,15 +62,15 @@ it("keeps local raw text and suggests a browser language without changing it", a
   const suggest = vi.fn();
   client.on("languageSuggestion", suggest);
   client.startListening();
-  input.say("తెలుగు brant");
+  input.say("తెలుగులో మాట్లాడండి brant");
   await vi.waitFor(() => expect(turns).toHaveLength(1));
   expect(turns[0]).toMatchObject({
     inputLanguage: "en-IN",
     language: "en-IN",
-    text: "తెలుగు Brand",
-    transcript: { raw: "తెలుగు brant", corrected: true },
+    text: "తెలుగులో మాట్లాడండి Brand",
+    transcript: { raw: "తెలుగులో మాట్లాడండి brant", corrected: true },
   });
-  expect(client.getSnapshot().messages[0]?.rawText).toBe("తెలుగు brant");
+  expect(client.getSnapshot().messages[0]?.rawText).toBe("తెలుగులో మాట్లాడండి brant");
   expect(suggest).toHaveBeenCalledWith(expect.objectContaining({ suggested: "te-IN" }));
   client.destroy();
 });
