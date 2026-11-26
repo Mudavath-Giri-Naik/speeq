@@ -78,14 +78,15 @@ function build(v: Vocabulary) {
       fuzzy.set(key, set);
     }
   }
-  for (const term of v.terms) {
+  for (const source of v.terms) {
+    const term = /\p{N}|[@$₹€£]|:\/\//u.test(source.term) ? { ...source, protected: true } : source;
     add(term.term, { term, kind: "canonical" });
     for (const a of term.aliases ?? []) add(a, { term, kind: "alias" });
     for (const [language, forms] of Object.entries(term.regional ?? {}))
       for (const f of forms) add(f, { term, kind: "regional", language });
   }
   for (const term of v.terms)
-    if (term.protected) {
+    if (term.protected || /\p{N}|[@$₹€£]|:\/\//u.test(term.term)) {
       for (const name of [
         term.term,
         ...(term.aliases ?? []),

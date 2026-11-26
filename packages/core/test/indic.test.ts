@@ -136,3 +136,13 @@ it("accepts optional wire metadata and refuses invalid confidences", () => {
     }).inputLanguage,
   ).toBe("te");
 });
+
+it("protects identifiers even when an ordinary-word alias is supplied", () => {
+  const v = {
+    terms: [
+      { term: "AB1234", aliases: ["parcel"] },
+      { term: "Other", aliases: ["sample"] },
+    ],
+  };
+  expect(correctWithVocabulary("parcell sample.example/path AB1234", v).changes).toEqual([]);
+});

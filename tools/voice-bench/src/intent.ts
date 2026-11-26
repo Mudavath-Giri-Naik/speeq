@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { SessionDetailResponseSchema } from "@speeq/core";
+import { LanguageSchema, SessionDetailResponseSchema } from "@speeq/core";
 import { z } from "zod";
 /** Reference intents, arguments and safe outcomes for a language corpus. */
 export const IntentCases = z.object({
@@ -7,19 +7,24 @@ export const IntentCases = z.object({
   cases: z
     .array(
       z.object({
-        id: z.string(),
-        language: z.string(),
-        replyLanguage: z.string(),
-        text: z.string(),
-        expected: z.object({
-          tool: z.string().optional(),
-          args: z.record(z.string(), z.unknown()).optional(),
-          route: z.string().optional(),
-          action: z.enum(["clarify", "confirm"]).optional(),
-        }),
+        id: z.string().min(1),
+        language: z
+          .string()
+          .refine((s) => s.split("+").every((tag) => LanguageSchema.safeParse(tag).success)),
+        replyLanguage: LanguageSchema,
+        text: z.string().trim().min(1),
+        expected: z
+          .object({
+            tool: z.string().optional(),
+            args: z.record(z.string(), z.unknown()).optional(),
+            route: z.string().optional(),
+            action: z.enum(["clarify", "confirm"]).optional(),
+          })
+          .refine((e) => !!(e.tool || e.route || e.action)),
       }),
     )
-    .min(1),
+    .min(1)
+    .refine((cases) => new Set(cases.map((c) => c.id)).size === cases.length),
 });
 type Case = z.infer<typeof IntentCases>["cases"][number];
 /** Score a fresh session from its authenticated audit evidence. Never approve a write. */
