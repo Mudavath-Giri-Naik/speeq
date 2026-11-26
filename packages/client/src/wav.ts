@@ -27,8 +27,8 @@ export function encodeWav(samples: Float32Array) {
   view.setUint16(34, 16, true);
   tag("data", 36);
   view.setUint32(40, bytes.length - 44, true);
-  samples.forEach((s, i) =>
-    view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s)) * (s < 0 ? 32768 : 32767), true),
-  );
+  for (const [i, s] of samples.entries()) {
+    view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s)) * (s < 0 ? 32768 : 32767), true);
+  }
   return bytes;
 }

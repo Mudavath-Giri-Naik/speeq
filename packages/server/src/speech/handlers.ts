@@ -42,7 +42,7 @@ export function speechRoutes(rt: Runtime<AgentUser>) {
       const { user } = await rt.authenticate(req, id);
       const bucket = buckets[action];
       const wait =
-        bucket.hit(user ? "u:" + user.id : "ip:" + clientKey(req)) ?? bucket.hit("s:" + id);
+        bucket.hit(user ? `u:${user.id}` : `ip:${clientKey(req)}`) ?? bucket.hit(`s:${id}`);
       if (wait !== null) throw new SpeeqError("RATE_LIMITED", { retryAfterMs: wait });
       if (action === "synthesize") {
         const body = await readJson(req, SynthesizeRequestSchema, rt.config.maxRequestBytes);
