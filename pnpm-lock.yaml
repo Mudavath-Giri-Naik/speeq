@@ -470,6 +470,19 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
 
+  packages/adapters/speech:
+    dependencies:
+      '@speeq/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@speeq/tsconfig':
+        specifier: workspace:*
+        version: link:../../../tooling/tsconfig
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+
   packages/adapters/store-memory:
     dependencies:
       '@speeq/core':
@@ -608,6 +621,9 @@ importers:
       '@speeq/server':
         specifier: workspace:*
         version: link:../server
+      '@speeq/speech':
+        specifier: workspace:*
+        version: link:../adapters/speech
       '@speeq/store-memory':
         specifier: workspace:*
         version: link:../adapters/store-memory
@@ -648,6 +664,24 @@ importers:
         version: 4.6.7
 
   tooling/tsconfig: {}
+
+  tools/voice-bench:
+    devDependencies:
+      '@speeq/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@speeq/speech':
+        specifier: workspace:*
+        version: link:../../packages/adapters/speech
+      '@speeq/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
 
 packages:
 

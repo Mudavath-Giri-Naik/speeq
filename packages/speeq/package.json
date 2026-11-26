@@ -151,6 +151,17 @@
         "types": "./dist/server/next.d.cts",
         "default": "./dist/server/next.cjs"
       }
+    },
+    "./speech": {
+      "@speeq/source": "./src/speech.ts",
+      "import": {
+        "types": "./dist/speech.d.ts",
+        "default": "./dist/speech.js"
+      },
+      "require": {
+        "types": "./dist/speech.d.cts",
+        "default": "./dist/speech.cjs"
+      }
     }
   },
   "publishConfig": {
@@ -170,7 +181,8 @@
     "@speeq/llm-openai-compatible": "workspace:*",
     "@speeq/llm-gemini": "workspace:*",
     "@speeq/store-memory": "workspace:*",
-    "@speeq/store-mongodb": "workspace:*"
+    "@speeq/store-mongodb": "workspace:*",
+    "@speeq/speech": "workspace:*"
   },
   "peerDependencies": {
     "zod": "^4.0.0",

@@ -34,9 +34,14 @@ export function packageNameOf(specifier: string): string | null {
   return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : (parts[0] ?? null);
 }
 
-const scopedPackages = Object.keys(RULES);
+const scopedPackages = [...Object.keys(RULES), "@speeq/speech"];
 const packageRules = {
   ...RULES,
+  "@speeq/speech": {
+    internalDeps: ["@speeq/core"],
+    internalImports: ["@speeq/core"],
+    externalDeps: [],
+  },
   speeq: {
     internalDeps: scopedPackages,
     internalImports: scopedPackages,

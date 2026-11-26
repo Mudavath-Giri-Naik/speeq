@@ -3,6 +3,7 @@ packages:
   - "packages/*"
   - "packages/adapters/*"
   - "tooling/*"
+  - "tools/*"
 allowBuilds:
   esbuild: true
   mongodb-memory-server: false

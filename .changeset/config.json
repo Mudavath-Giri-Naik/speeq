@@ -9,6 +9,7 @@
       "@speeq/react",
       "@speeq/server",
       "@speeq/testing",
+      "@speeq/speech",
       "@speeq/llm-openai-compatible",
       "@speeq/llm-gemini",
       "@speeq/store-memory",
