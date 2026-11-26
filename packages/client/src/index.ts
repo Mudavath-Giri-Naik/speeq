@@ -12,6 +12,13 @@ export type {
 export { createAuditClient } from "./audit.js";
 export { createSpeeqClient } from "./client.js";
 export type {
+  AudioContextLike,
+  MicMonitor,
+  MicMonitorHandlers,
+  MicMonitorOptions,
+} from "./mic-monitor.js";
+export { createMicMonitor } from "./mic-monitor.js";
+export type {
   CallOptions,
   CallState,
   ChatMessage,

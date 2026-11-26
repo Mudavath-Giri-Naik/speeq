@@ -359,3 +359,113 @@ it("changes recognition language during a call", async () => {
   await tick(300);
   expect(input.starts.at(-1)?.language).toBe("hi-IN");
 });
+
+// ---- Voice detection from the microphone level, and transcript fixes ----
+
+function fakeMonitor() {
+  const state = {
+    handlers: undefined as undefined | { onVoice(): void; isPlaying(): boolean },
+    level: 0,
+    stopped: 0,
+  };
+  const create: NonNullable<NonNullable<SpeeqClientOptions["call"]>["createMicMonitor"]> = (
+    handlers,
+  ) => {
+    state.handlers = handlers;
+    return {
+      start: async () => true,
+      stop: () => {
+        state.stopped++;
+      },
+      level: () => state.level,
+    };
+  };
+  return { state, create };
+}
+
+it("pauses the greeting the moment the microphone hears a voice, before any words are recognised", async () => {
+  const mon = fakeMonitor();
+  const { client, output } = setup({ call: { createMicMonitor: mon.create } }, 5000);
+  client.startCall();
+  void client.speak("Hi, I am the guide. I can open any page.");
+  await tick(300);
+  expect(client.getSnapshot().state).toBe("speaking");
+  expect(mon.state.handlers?.isPlaying()).toBe(true);
+  mon.state.handlers?.onVoice(); // a quiet voice: no recognised words yet
+  expect(output.pauseCount).toBe(1);
+  expect(client.getSnapshot().call.interrupted).toBe(true);
+});
+
+it("resumes the greeting after the grace time when the voice was only noise", async () => {
+  const mon = fakeMonitor();
+  const { client, output } = setup({ call: { createMicMonitor: mon.create } }, 5000);
+  client.startCall();
+  void client.speak("Hi, I am the guide. I can open any page.");
+  await tick(300);
+  mon.state.handlers?.onVoice();
+  await tick(1100);
+  expect(output.resumeCount).toBe(1);
+  expect(client.getSnapshot().call.interrupted).toBe(false);
+});
+
+it("keeps the greeting paused while the voice continues, then answers the new words", async () => {
+  const mon = fakeMonitor();
+  const { client, output, input, turns } = setup({ call: { createMicMonitor: mon.create } }, 5000);
+  client.startCall();
+  void client.speak("Hi, I am the guide. I can open any page.");
+  await tick(300);
+  for (let i = 0; i < 4; i++) {
+    mon.state.handlers?.onVoice();
+    await tick(600);
+  }
+  expect(output.resumeCount).toBe(0); // kept talking, so it stayed paused
+  input.final("open the install page");
+  await tick(50);
+  expect(turns).toEqual(["open the install page"]);
+});
+
+it("ignores the microphone monitor when voice detection is off", async () => {
+  const mon = fakeMonitor();
+  const { client } = setup({ call: { voiceDetection: false, createMicMonitor: mon.create } });
+  client.startCall();
+  expect(mon.state.handlers).toBeUndefined();
+});
+
+it("reports the mic level during a call and zero otherwise, and stops the monitor on end", async () => {
+  const mon = fakeMonitor();
+  const { client } = setup({ call: { createMicMonitor: mon.create } });
+  expect(client.getMicLevel()).toBe(0);
+  client.startCall();
+  await tick(0);
+  mon.state.level = 0.6;
+  expect(client.getMicLevel()).toBe(0.6);
+  client.endCall();
+  expect(mon.state.stopped).toBe(1);
+  expect(client.getMicLevel()).toBe(0);
+});
+
+it("fixes recognition mistakes before showing and sending the words", async () => {
+  const { client, input, turns } = setup({
+    call: { correct: (t) => t.replace(/\bspeak\b/gi, "speeq") },
+  });
+  client.startCall();
+  input.interim("how does speak work");
+  expect(client.getSnapshot().interimTranscript).toBe("how does speeq work");
+  input.final("how does speak work");
+  await tick(50);
+  expect(turns).toEqual(["how does speeq work"]);
+});
+
+it("keeps working when the fixer throws", async () => {
+  const { client, input, turns } = setup({
+    call: {
+      correct: () => {
+        throw new Error("boom");
+      },
+    },
+  });
+  client.startCall();
+  input.final("hello there");
+  await tick(50);
+  expect(turns).toEqual(["hello there"]);
+});

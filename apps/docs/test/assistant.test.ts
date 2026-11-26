@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { selectModel } from "../lib/assistant/llm";
 import { findPage } from "../lib/assistant/pages";
+import { correctTranscript } from "../lib/assistant/transcript";
 
 describe("assistant page lookup", () => {
   it("ignores command words, so 'open the privacy page' finds the privacy page", () => {
@@ -57,4 +58,24 @@ describe("assistant model choice", () => {
     const { calls } = await run("how do I install speeq");
     expect(calls.length).toBe(4);
   }, 30_000);
+});
+
+describe("transcript fixes", () => {
+  it("turns common mishearings of the product name into speeq", () => {
+    expect(correctTranscript("what is speak")).toBe("What is speeq?");
+    expect(correctTranscript("how does speed q work")).toBe("How does speeq work?");
+    expect(correctTranscript("install speak sdk")).toBe("Install speeq SDK");
+  });
+
+  it("leaves the verb 'speak' alone", () => {
+    expect(correctTranscript("can i speak to a person")).toBe("Can i speak to a person?");
+  });
+
+  it("fixes tech names and adds a question mark to questions", () => {
+    expect(correctTranscript("does it work with next js and open a i")).toBe(
+      "Does it work with Next.js and OpenAI?",
+    );
+    expect(correctTranscript("show the audit lock")).toBe("Show the audit log");
+    expect(correctTranscript("")).toBe("");
+  });
 });

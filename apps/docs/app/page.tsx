@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { CodeTabs } from "../components/home/code-tabs";
 import { CopyCommand } from "../components/home/copy-command";
+import { AskAssistantButton, PrimaryCta } from "../components/home/cta-buttons";
+import { CtaPanel } from "../components/home/cta-panel";
 import { Demo } from "../components/home/demo";
+import { HeroFan } from "../components/home/hero-fan";
+import { HowBeams } from "../components/home/how-beams";
+import { CountUp, Reveal, SplitHeading } from "../components/home/motion";
 import {
   ArrowIcon,
   BoltIcon,
@@ -15,7 +20,7 @@ import {
 } from "../components/icons";
 import { getHomeCodeTabs } from "../lib/home-code";
 import { INSTALL_COMMAND, REPO_URL, siteUrl } from "../lib/site";
-import { formatCount, getSiteStats } from "../lib/stats";
+import { getSiteStats } from "../lib/stats";
 
 export const revalidate = 3600;
 
@@ -56,11 +61,13 @@ const features = [
     icon: PlugIcon,
     title: "Any model",
     text: "Groq, Gemini, or any service with an OpenAI-style API. Or write your own.",
+    span: "md:col-span-2",
   },
   {
     icon: BoltIcon,
     title: "Works with Next.js today",
     text: "A ready adapter, React hooks, and a five minute quickstart with no keys.",
+    span: "md:col-span-2",
   },
 ];
 
@@ -96,267 +103,318 @@ export default async function Home() {
     url: siteUrl(),
   };
 
+  // Show real numbers only. A brand new package has no download or star counts yet, and a big
+  // "0" reads worse than a fact that is always true.
+  const highlights: Array<{ label: string; value: number | string }> = [
+    ...(speeq?.week ? [{ label: "Installs, last week", value: speeq.week }] : []),
+    ...(stats.github?.stars ? [{ label: "GitHub stars", value: stats.github.stars }] : []),
+    { label: "Packages, one install", value: stats.packages.length || 10 },
+    { label: "Latest version", value: speeq?.version ?? "–" },
+    { label: "License", value: "MIT" },
+    { label: "Cookies or trackers", value: "None" },
+  ].slice(0, 4);
+
   return (
-    <main>
+    <main className="overflow-x-clip">
       <script type="application/ld+json" suppressHydrationWarning>
         {JSON.stringify(jsonLd)}
       </script>
 
       {/* Hero */}
-      <section className="noise relative isolate overflow-hidden">
+      <section className="relative isolate overflow-hidden pt-14 sm:pt-20">
         <div className="aurora" aria-hidden="true" />
-        <div className="grid-bg" aria-hidden="true" />
-        <div className="container-x relative pt-20 pb-16 text-center sm:pt-28 sm:pb-24">
-          <Link
-            href="/docs/releases"
-            className="reveal in mx-auto inline-flex items-center gap-2 rounded-full border border-line-strong bg-elev/60 py-1.5 pr-3 pl-1.5 text-xs text-soft backdrop-blur transition hover:border-accent"
-          >
-            <span className="rounded-full bg-accent-soft px-2 py-0.5 font-semibold text-accent">
-              New
-            </span>
-            speeq {speeq?.version ?? "0.2"} is on npm
-            <ArrowIcon width={14} height={14} />
-          </Link>
-          <h1 className="mx-auto mt-7 max-w-4xl text-[clamp(2.6rem,8vw,5.6rem)] leading-[1.02] font-bold tracking-[-0.045em] text-fg">
-            Give your website <span className="gradient-text">a voice.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-[clamp(1.05rem,2.4vw,1.3rem)] leading-relaxed text-muted">
-            speeq is a voice and text assistant that you add to your own app. It talks, opens pages,
-            and answers using your data, with your model and your design.
-          </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/docs/quickstart" className="btn btn-primary w-full sm:w-auto">
-              Get started
-              <ArrowIcon width={18} height={18} />
+        <div className="container-x relative text-center">
+          <Reveal y={12}>
+            <Link
+              href="/docs/releases"
+              className="mx-auto inline-flex items-center gap-2 rounded-full border border-line-strong bg-elev/70 py-1.5 pr-3 pl-1.5 text-xs text-soft backdrop-blur transition hover:border-accent"
+            >
+              <span className="rounded-full bg-accent px-2.5 py-0.5 font-semibold text-white">
+                New
+              </span>
+              speeq {speeq?.version ?? "0.2"} is on npm
+              <ArrowIcon width={14} height={14} />
             </Link>
-            <CopyCommand command={INSTALL_COMMAND} />
-          </div>
-          <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-2 sm:gap-4">
-            {[
-              ["Installs last week", formatCount(speeq?.week)],
-              ["GitHub stars", formatCount(stats.github?.stars)],
-              ["Version", speeq?.version ?? "–"],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="rounded-2xl border border-line bg-elev/50 px-2 py-3 backdrop-blur sm:px-4"
-              >
-                <dd className="text-xl font-semibold text-fg tabular-nums sm:text-2xl">{value}</dd>
-                <dt className="mt-0.5 text-[0.7rem] text-muted sm:text-xs">{label}</dt>
+          </Reveal>
+          <SplitHeading
+            text="Give your website| a voice."
+            accent={["voice."]}
+            delay={0.1}
+            className="hero-title mx-auto mt-7 max-w-5xl text-[clamp(2.7rem,8.4vw,6rem)] leading-[0.98] font-extrabold text-fg"
+          />
+          <Reveal delay={0.55} y={16}>
+            <p className="mx-auto mt-7 max-w-2xl text-[clamp(1.05rem,2.2vw,1.3rem)] leading-relaxed text-muted">
+              speeq is a voice and text assistant that you add to your own app. It talks, opens
+              pages, and answers using your data, with your model and your design.
+            </p>
+          </Reveal>
+          <Reveal delay={0.7} y={16}>
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <PrimaryCta href="/docs/quickstart">Get started</PrimaryCta>
+              <CopyCommand command={INSTALL_COMMAND} />
+            </div>
+            <p className="mt-6 text-sm text-muted">
+              Want to hear it first?{" "}
+              <AskAssistantButton>Talk to the speeq guide</AskAssistantButton>
+            </p>
+          </Reveal>
+        </div>
+        <div className="relative -mt-4 sm:-mt-10">
+          <HeroFan />
+        </div>
+      </section>
+
+      {/* Numbers */}
+      <section className="container-x pb-6 sm:pb-12" aria-label="speeq in numbers">
+        <Reveal>
+          <dl className="mx-auto grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-4">
+            {highlights.map((item) => (
+              <div key={item.label} className="bg-elev px-4 py-6 text-center">
+                <dd className="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-fg tabular-nums sm:text-4xl">
+                  {typeof item.value === "number" ? <CountUp value={item.value} /> : item.value}
+                </dd>
+                <dt className="mt-1 text-xs text-muted sm:text-sm">{item.label}</dt>
               </div>
             ))}
           </dl>
+        </Reveal>
+      </section>
+
+      {/* How it works */}
+      <section className="container-x py-16 sm:py-24" aria-labelledby="how-title">
+        <div className="mx-auto mb-4 max-w-2xl text-center">
+          <Reveal>
+            <p className="eyebrow">How it works</p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <h2
+              id="how-title"
+              className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
+            >
+              Three steps, all on <span className="gradient-text">your side</span>
+            </h2>
+          </Reveal>
         </div>
+        <Reveal delay={0.1}>
+          <HowBeams />
+        </Reveal>
+        <ol className="mt-6 grid gap-4 md:grid-cols-3">
+          {steps.map((step, i) => (
+            <Reveal key={step.n} as="li" delay={i * 0.1} className="card glow-card p-6">
+              <span className="gradient-text font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tighter">
+                {step.n}
+              </span>
+              <h3 className="mt-3 text-lg font-semibold text-fg">{step.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{step.text}</p>
+            </Reveal>
+          ))}
+        </ol>
+        <Reveal>
+          <p className="mt-8 text-center text-sm text-muted">
+            Your visitor’s messages go to your server and your model. They never go to speeq.{" "}
+            <Link href="/docs/concepts/how-it-works" className="text-accent hover:underline">
+              Read how it works
+            </Link>
+          </p>
+        </Reveal>
       </section>
 
       {/* Demo */}
       <section className="container-x py-12 sm:py-20" aria-labelledby="demo-title">
-        <div className="reveal mx-auto mb-10 max-w-2xl text-center">
-          <p className="eyebrow">See it work</p>
-          <h2
-            id="demo-title"
-            className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl"
-          >
-            Try the assistant right here
-          </h2>
-          <p className="mt-3 text-muted">
-            This is a small simulation of what your visitors would see. Ask it to open a page, find
-            an order, or cancel one. It will ask before it changes anything.
-          </p>
-        </div>
-        <div className="reveal">
-          <Demo />
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="container-x py-12 sm:py-20" aria-labelledby="how-title">
-        <div className="reveal mx-auto mb-12 max-w-2xl text-center">
-          <p className="eyebrow">How it works</p>
-          <h2 id="how-title" className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
-            Three steps, all on your side
-          </h2>
-        </div>
-        <ol className="grid gap-4 md:grid-cols-3">
-          {steps.map((step, i) => (
-            <li
-              key={step.n}
-              className="reveal card relative p-6"
-              style={{ transitionDelay: `${i * 90}ms` }}
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <Reveal>
+            <p className="eyebrow">See it work</p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <h2
+              id="demo-title"
+              className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
             >
-              <span className="gradient-text text-5xl font-bold tracking-tighter">{step.n}</span>
-              <h3 className="mt-3 text-lg font-semibold text-fg">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{step.text}</p>
-              {i < steps.length - 1 && (
-                <svg
-                  className="absolute top-1/2 -right-5 z-10 hidden h-6 w-8 -translate-y-1/2 text-accent md:block"
-                  viewBox="0 0 32 24"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    className="flow-line"
-                    d="M0 12h26"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="m21 6 6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </li>
-          ))}
-        </ol>
-        <p className="reveal mt-8 text-center text-sm text-muted">
-          Your visitor’s messages go to your server and your model. They never go to speeq.{" "}
-          <Link href="/docs/concepts/how-it-works" className="text-accent hover:underline">
-            Read how it works
-          </Link>
-        </p>
+              Try the assistant right here
+            </h2>
+          </Reveal>
+          <Reveal delay={0.16}>
+            <p className="mt-4 text-muted">
+              This is a small simulation of what your visitors would see. Ask it to open a page,
+              find an order, or cancel one. It will ask before it changes anything.
+            </p>
+          </Reveal>
+        </div>
+        <Reveal delay={0.1} y={40}>
+          <Demo />
+        </Reveal>
       </section>
 
       {/* Code */}
       <section className="container-x py-12 sm:py-20" aria-labelledby="code-title">
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="reveal">
-            <p className="eyebrow">Simple to add</p>
-            <h2
-              id="code-title"
-              className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl"
-            >
-              About thirty lines to start
-            </h2>
-            <p className="mt-4 leading-relaxed text-muted">
-              Mount one route on your server and wrap your app in one provider. Start with a fake
-              model, so you need no account and no keys. Swap in a real model when you are ready.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/docs/quickstart" className="btn btn-primary">
-                Read the quickstart
-              </Link>
-              <Link href="/docs/ai-setup" className="btn btn-ghost">
-                Let an AI set it up
-              </Link>
-            </div>
+          <div>
+            <Reveal>
+              <p className="eyebrow">Simple to add</p>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <h2
+                id="code-title"
+                className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
+              >
+                About thirty lines to start
+              </h2>
+            </Reveal>
+            <Reveal delay={0.16}>
+              <p className="mt-4 leading-relaxed text-muted">
+                Mount one route on your server and wrap your app in one provider. Start with a fake
+                model, so you need no account and no keys. Swap in a real model when you are ready.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/docs/quickstart" className="btn btn-primary">
+                  Read the quickstart
+                </Link>
+                <Link href="/docs/ai-setup" className="btn btn-ghost">
+                  Let an AI set it up
+                </Link>
+              </div>
+            </Reveal>
           </div>
-          <div className="reveal min-w-0">
+          <Reveal delay={0.1} className="min-w-0">
             <CodeTabs tabs={tabs} />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Features */}
       <section className="container-x py-12 sm:py-20" aria-labelledby="features-title">
-        <div className="reveal mx-auto mb-12 max-w-2xl text-center">
-          <p className="eyebrow">Everything you need</p>
-          <h2
-            id="features-title"
-            className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl"
-          >
-            Built to be safe by default
-          </h2>
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <Reveal>
+            <p className="eyebrow">Everything you need</p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <h2
+              id="features-title"
+              className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
+            >
+              Built to be <span className="gradient-text">safe by default</span>
+            </h2>
+          </Reveal>
         </div>
         <ul className="grid gap-4 md:grid-cols-4">
           {features.map((f, i) => (
-            <li
+            <Reveal
               key={f.title}
-              className={`reveal card glow-card p-6 ${f.span ?? ""}`}
-              style={{ transitionDelay: `${(i % 4) * 70}ms` }}
+              as="li"
+              delay={(i % 4) * 0.07}
+              className={`card glow-card group p-6 transition-transform duration-500 hover:-translate-y-1.5 ${f.span ?? ""}`}
             >
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent ring-1 ring-accent/25 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
                 <f.icon />
               </span>
               <h3 className="mt-4 text-lg font-semibold text-fg">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">{f.text}</p>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </section>
 
       {/* Privacy */}
       <section className="container-x py-12 sm:py-20" aria-labelledby="privacy-title">
-        <div className="reveal card relative overflow-hidden p-8 sm:p-12">
-          <div className="aurora !opacity-30" aria-hidden="true" />
-          <div className="relative grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
-            <div>
-              <p className="eyebrow">Privacy first</p>
-              <h2
-                id="privacy-title"
-                className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl"
-              >
-                We never see your visitors’ words
-              </h2>
-              <p className="mt-4 leading-relaxed text-muted">
-                There is no speeq cloud. Conversations live in your database. Optional usage
-                counters are anonymous, go only to a dashboard you run, and are off until you set an
-                address.
-              </p>
-              <Link
-                href="/docs/concepts/privacy"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
-              >
-                What is and is never collected <ArrowIcon width={16} height={16} />
-              </Link>
-            </div>
-            <ul className="grid gap-2 text-sm">
-              {[
-                "Your data stays in your database",
-                "Your model provider, your choice",
-                "Changes always need a Yes",
-                "No cookies or trackers on this site",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-3 rounded-xl border border-line bg-elev/60 px-4 py-3 text-fg backdrop-blur"
+        <Reveal>
+          <div className="card relative overflow-hidden p-8 sm:p-12">
+            <div className="aurora !opacity-30" aria-hidden="true" />
+            <div className="relative grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
+              <div>
+                <p className="eyebrow">Privacy first</p>
+                <h2
+                  id="privacy-title"
+                  className="mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
                 >
-                  <ShieldIcon width={18} height={18} className="shrink-0 text-ok" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+                  We never see your visitors’ words
+                </h2>
+                <p className="mt-4 leading-relaxed text-muted">
+                  There is no speeq cloud. Conversations live in your database. Optional usage
+                  counters are anonymous, go only to a dashboard you run, and are off until you set
+                  an address.
+                </p>
+                <Link
+                  href="/docs/concepts/privacy"
+                  className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+                >
+                  What is and is never collected <ArrowIcon width={16} height={16} />
+                </Link>
+              </div>
+              <ul className="grid gap-2 text-sm">
+                {[
+                  "Your data stays in your database",
+                  "Your model provider, your choice",
+                  "Changes always need a Yes",
+                  "No cookies or trackers on this site",
+                ].map((item, i) => (
+                  <Reveal
+                    key={item}
+                    as="li"
+                    delay={i * 0.08}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-elev/60 px-4 py-3 text-fg backdrop-blur"
+                  >
+                    <ShieldIcon width={18} height={18} className="shrink-0 text-ok" />
+                    {item}
+                  </Reveal>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Packages + adoption */}
       <section className="container-x py-12 sm:py-20" aria-labelledby="pkg-title">
-        <div className="reveal mx-auto mb-10 max-w-2xl text-center">
-          <p className="eyebrow">Adoption</p>
-          <h2 id="pkg-title" className="mt-3 text-3xl font-bold tracking-tight text-fg sm:text-4xl">
-            Ten small packages, one install
-          </h2>
-          <p className="mt-3 text-muted">Live from npm and GitHub. Updated about once an hour.</p>
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <Reveal>
+            <p className="eyebrow">Adoption</p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <h2
+              id="pkg-title"
+              className="mt-3 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-fg sm:text-5xl"
+            >
+              Ten small packages, one install
+            </h2>
+          </Reveal>
+          <Reveal delay={0.16}>
+            <p className="mt-3 text-muted">Live from npm and GitHub. Updated about once an hour.</p>
+          </Reveal>
         </div>
-        <div className="reveal mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
-            ["Installs, last week", formatCount(speeq?.week)],
-            ["Installs, all time", formatCount(stats.speeqAllTime)],
-            ["GitHub stars", formatCount(stats.github?.stars)],
-            ["Latest version", speeq?.version ?? "–"],
-          ].map(([label, value]) => (
-            <div key={label} className="card p-5">
-              <p className="text-sm text-muted">{label}</p>
-              <p className="mt-1 text-3xl font-semibold tracking-tight text-fg tabular-nums">
-                {value}
+            { label: "Installs, last week", value: speeq?.week ?? null },
+            { label: "Installs, all time", value: stats.speeqAllTime ?? null },
+            { label: "GitHub stars", value: stats.github?.stars ?? null },
+          ].map((item, i) => (
+            <Reveal key={item.label} delay={i * 0.07} className="card p-5">
+              <p className="text-sm text-muted">{item.label}</p>
+              <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-fg tabular-nums">
+                <CountUp value={item.value} />
               </p>
-            </div>
+            </Reveal>
           ))}
+          <Reveal delay={0.21} className="card p-5">
+            <p className="text-sm text-muted">Latest version</p>
+            <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-fg">
+              {speeq?.version ?? "–"}
+            </p>
+          </Reveal>
         </div>
-        <ul className="reveal grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {stats.packages.map((p) => (
-            <li key={p.name} className="card px-4 py-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {stats.packages.map((p, i) => (
+            <Reveal
+              key={p.name}
+              as="li"
+              delay={(i % 5) * 0.05}
+              className="card px-4 py-3 transition-transform duration-300 hover:-translate-y-1"
+            >
               <p className="truncate font-mono text-[0.78rem] font-semibold text-fg">{p.name}</p>
               <p className="mt-0.5 text-xs text-muted">{p.version ? `v${p.version}` : "–"}</p>
-            </li>
+            </Reveal>
           ))}
         </ul>
-        <p className="reveal mt-6 text-center">
+        <p className="mt-6 text-center">
           <Link
             href="/stats"
             className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
@@ -367,22 +425,8 @@ export default async function Home() {
       </section>
 
       {/* CTA */}
-      <section className="container-x pb-8">
-        <div className="reveal noise relative isolate overflow-hidden rounded-[2rem] border border-line-strong px-6 py-16 text-center sm:py-20">
-          <div className="aurora" aria-hidden="true" />
-          <h2 className="relative mx-auto max-w-2xl text-3xl font-bold tracking-tight text-fg sm:text-5xl">
-            Ready to let your site <span className="gradient-text">talk back?</span>
-          </h2>
-          <p className="relative mx-auto mt-4 max-w-xl text-muted">
-            Install it, mount one route, and say hello in five minutes.
-          </p>
-          <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/docs/quickstart" className="btn btn-primary w-full sm:w-auto">
-              Get started
-            </Link>
-            <CopyCommand command={INSTALL_COMMAND} />
-          </div>
-        </div>
+      <section className="container-x pb-10">
+        <CtaPanel command={INSTALL_COMMAND} />
       </section>
     </main>
   );

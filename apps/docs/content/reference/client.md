@@ -32,6 +32,7 @@ Use this when you do not use React. Import it from `speeq/client` and call `crea
 | `sendText(text, options?)`             | Send a message. Creates a session if needed.                                   |
 | `startListening()`, `stopListening()`  | Control the microphone for one phrase.                                         |
 | `startCall()`, `endCall()`             | Start or end a hands-free call. See [Voice and languages](/docs/guides/voice). |
+| `getMicLevel()`                        | Visitor loudness from 0 to 1 during a call, otherwise 0.                       |
 | `setLanguage(tag)`, `speak(text)`      | Change language, or say something aloud.                                       |
 | `confirm(confirmationId, approved)`    | Answer a pending approval.                                                     |
 | `cancel()`, `destroy()`                | Stop current work, or clean up.                                                |

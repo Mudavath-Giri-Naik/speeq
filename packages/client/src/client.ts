@@ -2,6 +2,7 @@ import type { ProtocolEvent } from "@speeq/core";
 import { type PublicError, SpeeqError, toPublicError } from "@speeq/core/errors";
 import { createId, SentenceChunker, TypedEmitter } from "@speeq/core/utils";
 import { pageContext } from "./context.js";
+import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
 import { sessions } from "./session.js";
 import { SpeechQueue } from "./speech-queue.js";
 import { readEvents } from "./stream.js";
@@ -66,6 +67,19 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let spoken = "";
   let lastAudioEnd = 0;
   let restarts: number[] = [];
+  const correct = options.call?.correct;
+  const voiceDetection = options.call?.voiceDetection !== false;
+  let monitor: MicMonitor | undefined;
+  /** Fixes recognition mistakes, if the app gave a fixer. Never lets a bad fixer break a call. */
+  function fix(text: string): string {
+    if (!correct) return text;
+    try {
+      const out = correct(text);
+      return typeof out === "string" ? out : text;
+    } catch {
+      return text;
+    }
+  }
   if (snapshot.support.speechOutput) {
     setTimeout(() => {
       if (destroyed || snapshot.language !== language) return;
@@ -318,10 +332,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       { language: snapshot.language, interimResults: true },
       {
         onInterim(text) {
-          if (listening()) update({ interimTranscript: text });
+          if (listening()) update({ interimTranscript: fix(text) });
         },
-        onFinal(text) {
+        onFinal(raw) {
           if (!listening()) return;
+          const text = fix(raw);
           if (options.autoSendOnFinal === false || !text.trim())
             update({
               interimTranscript: options.autoSendOnFinal === false ? text : "",
@@ -360,29 +375,33 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   const NOISE = /^(um+|uh+|hm+|mm+|ah+|oh+|er+|erm|huh)$/i;
 
   /** The visitor is talking. Pause the assistant, and resume if nothing real follows. */
-  function onCallInterim(text: string) {
+  function pauseForVisitor() {
+    if (!callActive || !audible()) return;
+    if (speech.canPause) {
+      if (!snapshot.call.interrupted) {
+        speech.pause();
+        setCall({ interrupted: true });
+      }
+      if (graceTimer) clearTimeout(graceTimer);
+      graceTimer = setTimeout(() => {
+        graceTimer = undefined;
+        if (!callActive || !snapshot.call.interrupted) return;
+        speech.resume();
+        update({ interimTranscript: "", call: { active: true, interrupted: false } });
+      }, graceMs);
+    } else {
+      // This output cannot pause, so stop talking right away.
+      speech.cancel();
+      update({ state: restState() });
+    }
+  }
+
+  function onCallInterim(raw: string) {
     if (!callActive) return;
+    const text = fix(raw);
     if (isEcho(text)) return;
     if (committed !== null && wordsOf(text).join(" ") === committed) return;
-    if (audible()) {
-      if (speech.canPause) {
-        if (!snapshot.call.interrupted) {
-          speech.pause();
-          setCall({ interrupted: true });
-        }
-        if (graceTimer) clearTimeout(graceTimer);
-        graceTimer = setTimeout(() => {
-          graceTimer = undefined;
-          if (!callActive || !snapshot.call.interrupted) return;
-          speech.resume();
-          update({ interimTranscript: "", call: { active: true, interrupted: false } });
-        }, graceMs);
-      } else {
-        // This output cannot pause, so stop talking right away.
-        speech.cancel();
-        update({ state: restState() });
-      }
-    }
+    pauseForVisitor();
     update({ interimTranscript: text });
     if (commitAfterMs > 0) {
       clearCommit();
@@ -393,9 +412,9 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     }
   }
 
-  function onCallFinal(text: string, early = false) {
+  function onCallFinal(raw: string, early = false) {
     if (!callActive) return;
-    const trimmed = text.trim();
+    const trimmed = fix(raw).trim();
     if (!trimmed) return;
     clearCommit();
     const key = wordsOf(trimmed).join(" ");
@@ -479,12 +498,27 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     speech.setEnabled(true);
     update({ ...clearActivity(), call: { active: true, interrupted: false }, state: "listening" });
     callListen(callId);
+    if (voiceDetection) {
+      const handlers = {
+        isPlaying: () => audible() && !snapshot.call.interrupted,
+        // The visitor is talking, even if quietly or before speech recognition has any words.
+        onVoice: pauseForVisitor,
+      };
+      monitor = options.call?.createMicMonitor?.(handlers) ?? createMicMonitor(handlers);
+      const mine = monitor;
+      void mine.start().then((ok) => {
+        if (!ok && monitor === mine) monitor = undefined; // keep the call, recognition still works
+      });
+    }
   }
 
   function endCall(error?: PublicError) {
     if (!callActive) return;
     callActive = false;
     callId++;
+    monitor?.stop();
+    monitor = undefined;
+    clearGrace();
     clearCommit();
     committed = null;
     interrupt(true);
@@ -506,6 +540,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     startListening,
     cancel,
     startCall,
+    getMicLevel: () => (callActive ? (monitor?.level() ?? 0) : 0),
     endCall: () => endCall(),
     stopListening() {
       if (destroyed) return;

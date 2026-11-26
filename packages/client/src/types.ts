@@ -1,5 +1,6 @@
 import type { ClientConfig, ProtocolEvent, SpeechInput, SpeechOutput } from "@speeq/core";
 import type { PublicError } from "@speeq/core/errors";
+import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
 
 /** Current activity of the client. */
 export type SpeeqState = "idle" | "listening" | "thinking" | "speaking" | "error";
@@ -60,6 +61,20 @@ export interface CallOptions {
    * for the browser to finish the phrase. Lower is faster but may cut people off. Default 0 (off).
    */
   commitAfterMs?: number;
+  /**
+   * Watch the microphone level, apart from speech recognition, so the assistant stops talking
+   * the moment the visitor does, even when their voice is quiet. Asks the browser for echo
+   * cancellation and automatic gain. Default true. If the microphone cannot be opened for this,
+   * the call still works and relies on speech recognition alone.
+   */
+  voiceDetection?: boolean;
+  /**
+   * Fixes what speech recognition got wrong before the words are shown or sent, for example turning
+   * "speak" into your product name. Runs on every interim and final phrase, so keep it fast.
+   */
+  correct?: (text: string) => string;
+  /** Replaces the microphone monitor (tests, custom audio). */
+  createMicMonitor?: (handlers: MicMonitorHandlers & { isPlaying: () => boolean }) => MicMonitor;
 }
 
 /** Current view of the conversation and device capabilities. */
@@ -126,6 +141,8 @@ export interface SpeeqClient {
    * from a user gesture so the browser allows the microphone.
    */
   startCall(): void;
+  /** Loudness of the visitor's voice from 0 to 1 during a call, for drawing a level meter. 0 otherwise. */
+  getMicLevel(): number;
   /** Ends the call, stops listening and stops speaking. */
   endCall(): void;
   cancel(): void;

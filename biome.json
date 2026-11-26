@@ -10,6 +10,7 @@
       "!**/drizzle/meta",
       "!**/next-env.d.ts",
       "!**/dist-packs",
+      "!apps/docs/components/animate-ui",
       "!**/.pglite"
     ]
   },
