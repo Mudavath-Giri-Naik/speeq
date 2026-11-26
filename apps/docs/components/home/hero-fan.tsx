@@ -89,7 +89,8 @@ interface Tile {
   depth: number;
   delay: number;
   label: string;
-  hideOnMobile?: boolean;
+  /** Placement on phones: the tile centre (x in percent, y in px, on the fan lines) and its width in px. */
+  m: { x: number; y: number; w: number };
 }
 
 const TILES: Tile[] = [
@@ -102,6 +103,7 @@ const TILES: Tile[] = [
     depth: 22,
     delay: 0,
     label: "React",
+    m: { x: 7, y: 77, w: 34 },
   },
   {
     glyph: Glyph.next,
@@ -112,7 +114,7 @@ const TILES: Tile[] = [
     depth: -14,
     delay: 1.2,
     label: "Next.js",
-    hideOnMobile: true,
+    m: { x: 7, y: 123, w: 34 },
   },
   {
     glyph: Glyph.gemini,
@@ -123,6 +125,7 @@ const TILES: Tile[] = [
     depth: 30,
     delay: 2.1,
     label: "Gemini",
+    m: { x: 7, y: 177, w: 34 },
   },
   {
     glyph: Glyph.mongo,
@@ -133,7 +136,7 @@ const TILES: Tile[] = [
     depth: -26,
     delay: 0.7,
     label: "MongoDB",
-    hideOnMobile: true,
+    m: { x: 7, y: 228, w: 34 },
   },
   {
     glyph: Glyph.groq,
@@ -144,7 +147,7 @@ const TILES: Tile[] = [
     depth: -24,
     delay: 0.4,
     label: "Groq",
-    hideOnMobile: true,
+    m: { x: 93, y: 77, w: 34 },
   },
   {
     glyph: Glyph.ts,
@@ -155,7 +158,7 @@ const TILES: Tile[] = [
     depth: 16,
     delay: 1.7,
     label: "TypeScript",
-    hideOnMobile: true,
+    m: { x: 93, y: 123, w: 34 },
   },
   {
     glyph: Glyph.vercel,
@@ -166,6 +169,7 @@ const TILES: Tile[] = [
     depth: -30,
     delay: 2.6,
     label: "Vercel",
+    m: { x: 93, y: 177, w: 34 },
   },
   {
     glyph: Glyph.mic,
@@ -176,13 +180,13 @@ const TILES: Tile[] = [
     depth: 24,
     delay: 1,
     label: "Voice",
-    hideOnMobile: true,
+    m: { x: 93, y: 228, w: 34 },
   },
 ];
 
 function CenterLogo() {
   return (
-    <div className="hero-core absolute top-[55%] left-1/2 z-10 flex aspect-square w-[clamp(64px,7.4vw,120px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[26%] bg-gradient-to-br from-[#ff8a3d] via-[#ff5a1f] to-[#ff2e3b] shadow-[0_24px_60px_-10px_var(--glow)]">
+    <div className="hero-core absolute top-[55%] left-1/2 z-10 flex aspect-square w-[clamp(56px,7.4vw,120px)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[26%] bg-gradient-to-br from-[#ff8a3d] via-[#ff5a1f] to-[#ff2e3b] shadow-[0_24px_60px_-10px_var(--glow)]">
       <span className="absolute inset-0 rounded-[inherit] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.45),transparent_55%)]" />
       <span className="relative font-[family-name:var(--font-display)] text-[clamp(0.95rem,1.9vw,1.9rem)] font-extrabold tracking-[-0.06em] text-white">
         speeq
@@ -264,12 +268,15 @@ export function HeroFan() {
       {TILES.map((tile) => (
         <div
           key={tile.label}
-          className={`hero-tile absolute z-10 ${tile.hideOnMobile ? "hidden sm:block" : ""}`}
+          className="hero-tile absolute z-10 top-[var(--my)] left-[var(--mx)] w-[var(--mw)] sm:top-[var(--y)] sm:left-[var(--x)] sm:w-[var(--w)]"
           style={
             {
-              left: `${tile.x}%`,
-              top: `${tile.y}%`,
-              width: `clamp(38px, ${tile.size}vw, ${tile.size * 18}px)`,
+              "--x": `${tile.x}%`,
+              "--y": `${tile.y}%`,
+              "--w": `clamp(38px, ${tile.size}vw, ${tile.size * 18}px)`,
+              "--mx": `${tile.m.x}%`,
+              "--my": `${tile.m.y}px`,
+              "--mw": `${tile.m.w}px`,
               "--depth": tile.depth,
               "--delay": `${tile.delay}s`,
             } as CSSProperties
@@ -279,7 +286,7 @@ export function HeroFan() {
             title={tile.label}
             role="img"
             aria-label={tile.label}
-            className="hero-tile-inner flex aspect-square items-center justify-center rounded-[24%] text-[clamp(0.8rem,1.3vw,1.25rem)] shadow-[0_18px_40px_-14px_rgba(0,0,0,0.55)] ring-1 ring-white/15"
+            className="hero-tile-inner flex aspect-square items-center justify-center rounded-[24%] text-[clamp(0.58rem,1.3vw,1.25rem)] shadow-[0_18px_40px_-14px_rgba(0,0,0,0.55)] ring-1 ring-white/15"
             style={{ background: tile.bg }}
           >
             {tile.glyph}

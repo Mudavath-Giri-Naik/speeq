@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "concurrency": "1",
   "ui": "stream",
   "globalEnv": ["NODE_ENV", "SPEEQ_TELEMETRY"],
   "tasks": {

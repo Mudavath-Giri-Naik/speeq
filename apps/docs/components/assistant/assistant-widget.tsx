@@ -219,13 +219,19 @@ export function AssistantWidget() {
     return () => window.removeEventListener("speeq:open-assistant", openPanel);
   }, []);
 
+  // When the panel is minimized, the launcher comes back: give it focus again.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && !open) requestAnimationFrame(() => launcher.current?.focus());
+    wasOpen.current = open;
+  }, [open]);
+
   // Escape closes the panel, but never ends a call.
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
-        launcher.current?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -280,8 +286,8 @@ export function AssistantWidget() {
 
   return (
     <div className="pointer-events-none fixed right-3 bottom-3 z-[80] flex flex-col items-end gap-3 sm:right-5 sm:bottom-5">
-      <AnimatePresence>
-        {open && (
+      <AnimatePresence mode="popLayout">
+        {open ? (
           <motion.section
             key="panel"
             role="dialog"
@@ -517,45 +523,45 @@ export function AssistantWidget() {
               )}
             </footer>
           </motion.section>
+        ) : (
+          /* Launcher: it becomes the panel when opened, and comes back when minimized. */
+          <motion.button
+            key="launcher"
+            ref={launcher}
+            type="button"
+            onClick={() => setOpen(true)}
+            initial={reduce ? false : { opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={reduce ? undefined : { opacity: 0, scale: 0.6 }}
+            transition={{ type: "spring", stiffness: 420, damping: 30 }}
+            style={{ transformOrigin: "bottom right" }}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label={call.active ? "Open assistant, call in progress" : "Open assistant"}
+            aria-expanded={false}
+            className="group pointer-events-auto relative inline-flex h-14 items-center gap-2.5 rounded-full border border-line-strong bg-elev pr-5 pl-3 text-sm font-semibold text-fg shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55)] transition-colors hover:border-accent"
+          >
+            {call.active && (
+              <span
+                className="absolute inset-0 -z-10 rounded-full bg-accent/25 motion-safe:animate-ping"
+                aria-hidden="true"
+              />
+            )}
+            {call.active ? (
+              <span className="launcher-orb" aria-hidden="true">
+                <Orb mode={mode} size={34} getLevel={getLevel} label="Call in progress" />
+              </span>
+            ) : (
+              <span className="launcher-orb" aria-hidden="true">
+                <MicIcon width={20} height={20} className="text-white" />
+              </span>
+            )}
+            <span className="hidden sm:inline">
+              {call.active ? (call.interrupted ? "Paused" : "On call") : "Ask speeq"}
+            </span>
+          </motion.button>
         )}
       </AnimatePresence>
-
-      {/* Launcher */}
-      <motion.button
-        ref={launcher}
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        whileHover={{ y: -3 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label={
-          open
-            ? "Minimize assistant"
-            : call.active
-              ? "Open assistant, call in progress"
-              : "Open assistant"
-        }
-        aria-expanded={open}
-        className="group pointer-events-auto relative inline-flex h-14 items-center gap-2.5 rounded-full border border-line-strong bg-elev pr-5 pl-3 text-sm font-semibold text-fg shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55)] transition-colors hover:border-accent"
-      >
-        {call.active && (
-          <span
-            className="absolute inset-0 -z-10 rounded-full bg-accent/25 motion-safe:animate-ping"
-            aria-hidden="true"
-          />
-        )}
-        {call.active ? (
-          <span className="launcher-orb" aria-hidden="true">
-            <Orb mode={mode} size={34} getLevel={getLevel} label="Call in progress" />
-          </span>
-        ) : (
-          <span className="launcher-orb" aria-hidden="true">
-            <MicIcon width={20} height={20} className="text-white" />
-          </span>
-        )}
-        <span className="hidden sm:inline">
-          {call.active ? (call.interrupted ? "Paused" : "On call") : "Ask speeq"}
-        </span>
-      </motion.button>
     </div>
   );
 }

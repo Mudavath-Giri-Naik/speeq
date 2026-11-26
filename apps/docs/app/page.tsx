@@ -121,7 +121,7 @@ export default async function Home() {
       </script>
 
       {/* Hero */}
-      <section className="relative isolate flex min-h-[max(34rem,calc(100svh-4rem))] flex-col overflow-hidden pt-[clamp(1.25rem,4svh,3rem)]">
+      <section className="relative isolate -mt-16 flex flex-col sm:min-h-[max(38rem,100svh)] overflow-hidden pt-[calc(4rem+clamp(1.25rem,4svh,3rem))]">
         <div className="aurora" aria-hidden="true" />
         <div className="container-x relative z-10 text-center">
           <Reveal immediate y={12}>
@@ -137,11 +137,11 @@ export default async function Home() {
             </Link>
           </Reveal>
           <SplitHeading
-            text="Give your website| a voice."
+            text="Give your website a voice."
             accent={["voice."]}
             accentClass="hero-accent"
             delay={0.1}
-            className="hero-title mx-auto mt-[clamp(0.6rem,2svh,1.5rem)] max-w-5xl text-[clamp(2.2rem,min(7vw,9svh),4.8rem)] leading-[0.98] font-extrabold text-fg"
+            className="hero-title mx-auto mt-[clamp(0.6rem,2svh,1.5rem)] text-[clamp(1.6rem,min(6.4vw,9svh),4.6rem)] leading-[1.05] text-fg"
           />
           <Reveal immediate delay={0.55} y={16}>
             <p className="mx-auto mt-[clamp(0.6rem,2svh,1.5rem)] max-w-2xl text-[clamp(0.9rem,min(1.9vw,2.5svh),1.15rem)] leading-relaxed text-muted">
@@ -162,7 +162,7 @@ export default async function Home() {
         </div>
         {/* The connection animation fills the space under the text, so it never covers it. */}
         <div
-          className="relative mt-4 aspect-[4/3] w-full [mask-image:linear-gradient(to_bottom,transparent,black_28%)] sm:mt-auto sm:aspect-auto sm:max-h-[26rem] sm:min-h-[12rem] sm:flex-1"
+          className="relative mt-3 h-72 w-full [mask-image:linear-gradient(to_bottom,transparent,black_12%)] sm:mt-auto sm:h-auto sm:max-h-[26rem] sm:min-h-[12rem] sm:flex-1 sm:[mask-image:linear-gradient(to_bottom,transparent,black_28%)]"
           aria-hidden="true"
         >
           <HeroFan />
@@ -170,11 +170,11 @@ export default async function Home() {
       </section>
 
       {/* Numbers */}
-      <section className="container-x pb-6 sm:pb-12" aria-label="speeq in numbers">
+      <section className="container-x pb-4 sm:pb-12" aria-label="speeq in numbers">
         <Reveal>
           <dl className="mx-auto grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-4">
             {highlights.map((item) => (
-              <div key={item.label} className="bg-elev px-4 py-6 text-center">
+              <div key={item.label} className="bg-elev px-3 py-5 text-center sm:px-4 sm:py-6">
                 <dd className="font-[family-name:var(--font-display)] text-3xl font-extrabold tracking-tight text-fg tabular-nums sm:text-4xl">
                   {typeof item.value === "number" ? <CountUp value={item.value} /> : item.value}
                 </dd>

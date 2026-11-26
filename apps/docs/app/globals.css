@@ -24,10 +24,10 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0a0a0a;
-  --bg-elev: #111111;
-  --surface: #171717;
-  --surface-2: #202020;
+  --bg: #000000;
+  --bg-elev: #0a0a0a;
+  --surface: #121212;
+  --surface-2: #1c1c1c;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
   --fg: #f6f4f2;
@@ -39,7 +39,7 @@
   --ok: #34d399;
   --warn: #fbbf24;
   --danger: #f87171;
-  --code-bg: #0e0e0e;
+  --code-bg: #050505;
   --glow: rgba(255, 90, 31, 0.42);
   color-scheme: dark;
 }
@@ -190,6 +190,17 @@ body {
 }
 :root:not([data-theme="dark"]) .aurora {
   opacity: 0.45;
+}
+/* Dark theme is pure black: no orange wash behind the page. */
+[data-theme="dark"] .aurora {
+  display: none;
+}
+[data-theme="dark"] .cta-aurora {
+  background: #000;
+}
+[data-theme="dark"] .assistant-panel,
+[data-theme="dark"] .nav-popup {
+  background-image: none;
 }
 @keyframes drift {
   from {
@@ -855,6 +866,21 @@ html.lenis-on body {
     transform: translateY(-14px) rotate(2deg);
   }
 }
+@media (max-width: 639px) {
+  /* On phones the tiles sit on their lines, so they only bob a little. */
+  .hero-tile-inner {
+    animation-name: tile-float-sm;
+  }
+  @keyframes tile-float-sm {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+}
 .hero-core {
   animation: core-pulse 3.2s ease-in-out infinite;
 }
@@ -872,8 +898,10 @@ html.lenis-on body {
   }
 }
 .hero-title {
-  font-family: var(--font-display);
-  letter-spacing: -0.035em;
+  font-family: var(--font-geist-sans), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
 }
 h1,
 h2,
