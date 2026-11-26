@@ -16,7 +16,7 @@ describe("assistant model choice", () => {
     expect(selectModel({}).mode).toBe("offline");
   });
 
-  async function run(content: string) {
+  async function run(content: string, system?: string) {
     const real = globalThis.fetch;
     const calls: string[] = [];
     globalThis.fetch = (async (url: string | URL | Request) => {
@@ -31,7 +31,10 @@ describe("assistant model choice", () => {
       expect(mode).toBe("gemini");
       const chunks = [];
       for await (const c of provider.stream({
-        messages: [{ role: "user", content }],
+        messages: [
+          ...(system ? [{ role: "system" as const, content: system }] : []),
+          { role: "user", content },
+        ],
         tools: [],
       }))
         chunks.push(c);
@@ -53,6 +56,14 @@ describe("assistant model choice", () => {
     expect(calls.length).toBe(0);
     expect(said).toContain("speeq guide");
   });
+
+  it("sends greetings to the model when the reply must be Telugu, not the English guide", async () => {
+    const { calls } = await run(
+      "hello",
+      "Always reply in Telugu (te-IN), even if earlier messages",
+    );
+    expect(calls.length).toBeGreaterThan(0);
+  }, 30_000);
 
   it("does not take 'how do I install' for the install-count question", async () => {
     const { calls } = await run("how do I install speeq");

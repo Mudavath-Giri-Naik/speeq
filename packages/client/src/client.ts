@@ -185,7 +185,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     spoken = `${spoken} ${text}`.slice(-1500);
   }
   function wordsOf(text: string) {
-    return text.toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [];
+    return text.toLowerCase().match(/[\p{L}\p{M}\p{N}']+/gu) ?? [];
   }
   const audible = () => snapshot.state === "speaking";
   /** True when the microphone is probably hearing the assistant's own voice. */
@@ -529,6 +529,20 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     );
   }
   const NOISE = /^(um+|uh+|hm+|mm+|ah+|oh+|er+|erm|huh)$/i;
+  /** Short words that mean something even while the assistant is talking. */
+  const STOP_WORD =
+    /^(stop|wait|pause|cancel|no|ok|okay|yes|ఆపు|ఆగు|ఆపండి|వద్దు|సరే|అవును|रुको|रुकिए|बस|नहीं|हाँ|ठीक)[.!?]*$/iu;
+  /**
+   * While the assistant talks, a very short result is almost always a cough, a breath or the
+   * speech engine hearing noise. Only a longer or clearly meant phrase should interrupt.
+   */
+  function tooShortToInterrupt(text: string) {
+    if (!audible() && !snapshot.call.interrupted) return false;
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return false;
+    if (STOP_WORD.test(text.trim())) return false;
+    return [...text].filter((c) => /[\p{L}\p{M}\p{N}]/u.test(c)).length < 6;
+  }
 
   /** The visitor is talking. Pause the assistant, and resume if nothing real follows. */
   function pauseForVisitor() {
@@ -580,7 +594,10 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       if (same) return; // the browser finished a phrase that was already sent early
     }
     if (isEcho(trimmed)) return;
-    if ((audible() || snapshot.call.interrupted) && NOISE.test(trimmed)) {
+    if (
+      (audible() || snapshot.call.interrupted) &&
+      (NOISE.test(trimmed) || tooShortToInterrupt(trimmed))
+    ) {
       update({ interimTranscript: "" }); // a filler word: let the grace timer resume speech
       return;
     }

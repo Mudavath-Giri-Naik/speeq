@@ -34,6 +34,11 @@ export interface OpenAICompatibleOptions {
   maxOutputTokens?: number;
   /** Ask for token usage in the stream (`stream_options.include_usage`). Default `true`. */
   includeUsage?: boolean;
+  /**
+   * How hard a reasoning model thinks before it answers (`reasoning_effort`). `low` answers much
+   * sooner. Only send it to models that support it, such as Groq's gpt-oss models.
+   */
+  reasoningEffort?: "low" | "medium" | "high";
   /** Telemetry kind. Default `openai-compatible`. */
   kind?: string;
   /** Custom fetch (tests, proxies). */
@@ -144,6 +149,7 @@ export function createOpenAICompatibleProvider(options: OpenAICompatibleOptions)
       };
       const temperature = request.temperature ?? options.temperature;
       if (temperature !== undefined) body.temperature = temperature;
+      if (options.reasoningEffort) body.reasoning_effort = options.reasoningEffort;
       if (options.includeUsage !== false) body.stream_options = { include_usage: true };
       if (request.tools.length > 0) {
         body.tools = request.tools.map((t) => ({

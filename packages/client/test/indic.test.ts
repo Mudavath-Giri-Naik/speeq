@@ -149,7 +149,7 @@ it("retains only an opted-in WAV and drops it on the next speech start or explic
   await vi.waitFor(() => expect(final).toHaveBeenCalledOnce());
   await input.retranscribeLast("hi");
   expect(paths[1]).toContain("language=hi");
-  frames(5, 0.3);
+  frames(10, 0.3);
   await expect(input.retranscribeLast("hi")).rejects.toMatchObject({ code: "NOT_FOUND" });
   frames(8, 0);
   await vi.waitFor(() => expect(final).toHaveBeenCalledTimes(2));

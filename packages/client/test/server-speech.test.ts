@@ -171,3 +171,22 @@ it("shares session establishment across overlapping speech requests", async () =
   expect(fetch).toHaveBeenCalledOnce();
   expect(send).toHaveBeenCalledTimes(3);
 });
+it("drops a click or cough instead of sending it for recognition", async () => {
+  const post = vi.fn(async () => Response.json({ text: "ok" }));
+  let frame: (s: Float32Array, r: number) => void = () => {};
+  const input = new ServerSpeechInput(post, 100, async (cb) => {
+    frame = cb;
+  });
+  const final = vi.fn();
+  input.start({ language: "te", continuous: true }, { onFinal: final });
+  const emit = (n: number, level: number) => {
+    for (let i = 0; i < n; i++) frame(new Float32Array(640).fill(level), 16000);
+  };
+  emit(4, 0.25); // about 160 ms of sound
+  emit(10, 0);
+  emit(12, 0.25); // then real speech, about half a second
+  emit(10, 0);
+  await vi.waitFor(() => expect(final).toHaveBeenCalledOnce());
+  expect(post).toHaveBeenCalledTimes(1);
+  input.abort();
+});

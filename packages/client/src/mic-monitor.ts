@@ -37,6 +37,10 @@ export interface MicMonitorOptions extends MicMonitorHandlers {
   ratio?: number;
   /** How long the loudness must stay up before it counts as a voice, in ms. Default 90. */
   holdMs?: number;
+  /** While the assistant talks, how long a sound must last to interrupt it, in ms. Default 350. */
+  interruptHoldMs?: number;
+  /** While the assistant talks, the loudness (0 to 1 RMS) a sound needs to interrupt it. Default 0.02. */
+  interruptMinLevel?: number;
   /** How long it must stay down before the visitor counts as quiet, in ms. Default 650. */
   quietMs?: number;
   /** Test hooks. */

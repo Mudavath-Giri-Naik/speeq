@@ -140,6 +140,16 @@ function createOfflineGuide(): LLMProvider {
   });
 }
 
+/** The reply language the server asked for in this turn's system prompt. English when unknown. */
+function replyIsEnglish(messages: readonly { role: string; content: string }[]): boolean {
+  for (const m of messages) {
+    if (m.role !== "system") continue;
+    const match = /Always reply in [^(\n]+\(([A-Za-z]{2,3})[-)]/.exec(m.content);
+    if (match?.[1]) return match[1].toLowerCase() === "en";
+  }
+  return true;
+}
+
 /**
  * Answers quick requests (open a page, live numbers, greetings) with the instant local guide and
  * sends the rest to the language model. The whole turn, including the step after a tool runs,
@@ -152,7 +162,10 @@ function createQuickPathProvider(model: LLMProvider, quick: LLMProvider): LLMPro
     stream(request) {
       const lastUser = [...request.messages].reverse().find((m) => m.role === "user");
       if (!lastUser) return model.stream(request);
-      if (isQuickIntent(lastUser.content)) return quick.stream(request);
+      // The instant guide only writes English. A visitor speaking Telugu or Hindi can still say
+      // "hello" or "open adoption", so those turns go to the model, which answers in their language.
+      if (replyIsEnglish(request.messages) && isQuickIntent(lastUser.content))
+        return quick.stream(request);
       // Search the docs here, before the model starts. The model can then answer in one step,
       // instead of calling a search tool first and waiting for a second round trip.
       const last = request.messages[request.messages.length - 1];
@@ -295,6 +308,9 @@ export function selectModel(env: Record<string, string | undefined>): {
               baseURL: env.GROQ_BASE_URL?.trim() || "https://api.groq.com/openai/v1",
               apiKey: groq,
               model,
+              // gpt-oss models think before they answer. Low effort starts the reply much sooner,
+              // which matters most for Telugu and Hindi, where the answer has many tokens.
+              ...(model.includes("gpt-oss") ? { reasoningEffort: "low" as const } : {}),
             }),
           ),
           ...geminiChain(),

@@ -75,6 +75,8 @@ export class ServerSpeechInput implements SpeechInput {
     private request: SpeechRequest,
     private endpointMs = 700,
     private capture = openCapture,
+    /** Sounds shorter than this are ignored instead of being sent for recognition. */
+    private minUtteranceMs = 350,
   ) {}
   get supported() {
     return this.capture !== openCapture || !!globalThis.navigator?.mediaDevices?.getUserMedia;
@@ -83,7 +85,10 @@ export class ServerSpeechInput implements SpeechInput {
     this.abort();
     const mic = new AbortController(),
       network = new AbortController(),
-      detector = new Endpointing({ endpointMs: this.endpointMs });
+      detector = new Endpointing({
+        endpointMs: this.endpointMs,
+        minUtteranceMs: this.minUtteranceMs,
+      });
     let pre: PreRoll | undefined,
       frames: Float32Array[] | undefined,
       rate = 16000,
@@ -165,6 +170,11 @@ export class ServerSpeechInput implements SpeechInput {
         this.clearLast();
         frames = [pre.take()];
         h.onSpeechStart?.();
+      }
+      if (event === "speechCancel") {
+        frames = undefined; // too short to be speech: a click, a cough, a bump on the desk
+        pre.push(samples);
+        return;
       }
       if (frames) frames.push(samples);
       else pre.push(samples);

@@ -43,6 +43,7 @@ export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): s
     [
       "## Language",
       `Always reply in ${lang} (${input.language}), even if earlier messages used another language.`,
+      `Write the whole reply in ${lang}, every sentence. Do not switch to another language part way through. Only a name or a technical term with no ${lang} word may stay in its original letters.`,
       "Replies may be read aloud: keep them short and conversational, usually one to three sentences.",
       "Do not use markdown, tables, emoji or raw URLs in replies.",
     ].join("\n"),

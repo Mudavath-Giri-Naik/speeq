@@ -19,7 +19,10 @@ export class VoiceDetector {
   private lastBeat = 0;
 
   constructor(
-    private options: Pick<MicMonitorOptions, "minLevel" | "ratio" | "quietMs" | "holdMs"> = {},
+    private options: Pick<
+      MicMonitorOptions,
+      "minLevel" | "ratio" | "quietMs" | "holdMs" | "interruptHoldMs" | "interruptMinLevel"
+    > = {},
   ) {}
   get level() {
     return Math.min(1, this.smooth * 9);
@@ -46,10 +49,13 @@ export class VoiceDetector {
     }
 
     const background = playing ? Math.max(this.floor, this.echo) : this.floor;
+    // While the assistant talks, a sound must be louder and last longer to count as the visitor
+    // speaking. A cough, a click or a breath should not cut the assistant off.
     const threshold = Math.max(
-      this.options.minLevel ?? 0.012,
+      playing ? (this.options.interruptMinLevel ?? 0.02) : (this.options.minLevel ?? 0.012),
       background * (this.options.ratio ?? 2.4),
     );
+    const hold = playing ? (this.options.interruptHoldMs ?? 350) : (this.options.holdMs ?? 90);
     const loud = rms > threshold;
 
     if (!loud && !this.talking)
@@ -58,7 +64,7 @@ export class VoiceDetector {
     if (loud) {
       this.quietSince = 0;
       if (!this.loudSince) this.loudSince = t;
-      if (t - this.loudSince >= (this.options.holdMs ?? 90)) {
+      if (t - this.loudSince >= hold) {
         if (!this.talking) {
           this.talking = true;
           this.lastBeat = t;

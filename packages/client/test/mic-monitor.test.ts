@@ -80,6 +80,8 @@ it("does not mistake the assistant's own steady voice for the visitor, but hears
   await vi.advanceTimersByTimeAsync(1500);
   expect(events).toEqual([]);
   level.value = 0.16; // the visitor talks over it
+  await vi.advanceTimersByTimeAsync(200);
+  expect(events).toEqual([]); // a short sound, a cough or a click, does not cut the assistant off
   await vi.advanceTimersByTimeAsync(300);
   expect(events).toEqual(["voice"]);
   monitor.stop();

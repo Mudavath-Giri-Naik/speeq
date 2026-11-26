@@ -174,6 +174,25 @@ describe("OpenAI-compatible provider", () => {
     expect(body.messages[3]).toEqual({ role: "tool", tool_call_id: "c1", content: '{"ok":true}' });
   });
 
+  it("sends reasoning_effort only when asked", async () => {
+    const seen: RequestInit[] = [];
+    const make = (reasoningEffort?: "low") =>
+      createOpenAICompatibleProvider({
+        baseURL: "https://api.groq.com/openai/v1",
+        model: "openai/gpt-oss-120b",
+        ...(reasoningEffort ? { reasoningEffort } : {}),
+        fetch: async (_url, init) => {
+          seen.push(init ?? {});
+          return sseResponse([{ choices: [{ delta: { content: "ok" } }] }]);
+        },
+      });
+    const request = { messages: [{ role: "user" as const, content: "hi" }], tools: [] };
+    await collect(make().stream(request));
+    await collect(make("low").stream(request));
+    expect(JSON.parse(String(seen[0]?.body))).not.toHaveProperty("reasoning_effort");
+    expect(JSON.parse(String(seen[1]?.body))).toMatchObject({ reasoning_effort: "low" });
+  });
+
   it("maps 429 to RATE_LIMITED with the retry-after hint", async () => {
     const res = new Response('{"error":{"message":"Rate limit reached for model"}}', {
       status: 429,
