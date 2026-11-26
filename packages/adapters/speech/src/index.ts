@@ -165,3 +165,8 @@ export function createOpenAICompatibleTts(
     },
   };
 }
+
+export { createDetectThenTranscribe } from "./detect-then-transcribe.js";
+export { createGeminiStt } from "./gemini-stt.js";
+export { createSpeechConfig } from "./profiles.js";
+export { createSarvamStt, createSarvamTts } from "./sarvam.js";
