@@ -1,6 +1,6 @@
 import { defineKnowledgeSource } from "speeq/server";
-import { getAllDocs } from "../content";
 import { routeIdFor } from "./pages";
+import { readDocsSafely } from "./safe-docs";
 
 interface Section {
   /** "<route id>#<heading id>" or just "<route id>". */
@@ -86,7 +86,7 @@ let cache: Section[] | null = null;
 function sections(): Section[] {
   if (cache) return cache;
   const out: Section[] = [];
-  for (const doc of getAllDocs()) {
+  for (const doc of readDocsSafely()) {
     const routeId = routeIdFor(doc.slug);
     const body = doc.body.trim().replace(/^#\s.*\n+/, "");
     const parts = body.split(/^##\s+/m);

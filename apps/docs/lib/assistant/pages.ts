@@ -1,7 +1,7 @@
 import { defineRoute } from "speeq/server";
 import { z } from "zod";
 import { flatNav, nav } from "../../content/nav";
-import { getAllDocs } from "../content";
+import { readDocsSafely } from "./safe-docs";
 
 export interface GuidePage {
   /** Route id, like "guides-tools". Search hit ids start with it. */
@@ -21,7 +21,7 @@ export const routeIdFor = (slug: string) => slug.replace(/\//g, "-");
 
 /** Every page of the website: the home page, the adoption page and all documentation pages. */
 export function guidePages(): GuidePage[] {
-  const docs = new Map(getAllDocs().map((d) => [d.slug, d]));
+  const docs = new Map(readDocsSafely().map((d) => [d.slug, d]));
   const pages: GuidePage[] = [
     {
       id: "home",
