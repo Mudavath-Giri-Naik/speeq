@@ -1,6 +1,6 @@
 {
   "name": "@speeq/client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Headless browser client for speeq.",
   "license": "MIT",
   "type": "module",

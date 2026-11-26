@@ -1,6 +1,6 @@
 {
   "name": "speeq",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Headless conversational AI for web applications.",
   "license": "MIT",
   "type": "module",
