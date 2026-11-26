@@ -168,6 +168,7 @@ export function correctWithVocabulary(
   const spans = Array.from(text.matchAll(protectedPattern));
   for (const m of text.matchAll(/\S+/gu)) {
     if (/\p{N}/u.test(m[0])) spans.push(m);
+    else if (/^(?:[\p{L}\p{N}-]+\.)+[\p{L}]{2,}(?:[/?#]\S*)?$/iu.test(m[0])) spans.push(m);
     else if (m[0].includes("@") && /^[^@]+@[^@]+\.[^@]+$/u.test(m[0])) spans.push(m);
   }
   spans.sort((a, b) => a.index - b.index);

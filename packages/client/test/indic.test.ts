@@ -23,6 +23,7 @@ function setup(
   input: FakeSpeechInput | ServerSpeechInput,
   auto = true,
   override?: (s: string) => string,
+  keepLastUtterance = false,
 ) {
   const turns: Record<string, unknown>[] = [];
   const config = {
@@ -35,6 +36,7 @@ function setup(
   };
   const client = createSpeeqClient({
     endpoint: "/api",
+    voice: { keepLastUtterance },
     languageMode: auto ? "auto" : "fixed",
     preferredLanguages: candidates,
     language: "en-IN",
@@ -155,3 +157,32 @@ it("retains only an opted-in WAV and drops it on the next speech start or explic
   await expect(input.retranscribeLast("en")).rejects.toMatchObject({ code: "NOT_FOUND" });
   input.abort();
 });
+
+it.each(["endCall", "destroy"] as const)(
+  "clears the retained WAV on %s and keeps retries one-shot",
+  async (cleanup) => {
+    let frame: (s: Float32Array, r: number) => void = () => {};
+    const paths: string[] = [];
+    const input = new ServerSpeechInput(
+      async (path) => {
+        paths.push(path);
+        return Response.json({ text: "hello", language: "en" });
+      },
+      75,
+      async (cb) => {
+        frame = cb;
+      },
+    );
+    const { client, turns } = setup(input, true, undefined, true);
+    client.startCall();
+    for (let i = 0; i < 16; i++) frame(new Float32Array(640).fill(i < 10 ? 0.3 : 0), 16000);
+    await vi.waitFor(() => expect(turns).toHaveLength(1));
+    await client.retranscribeLast("te-IN");
+    expect(paths.at(-1)).toContain("language=te-IN");
+    expect(input.autoLanguage).toBe(true);
+    expect(turns).toHaveLength(1);
+    client[cleanup]();
+    await expect(input.retranscribeLast("te")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    client.destroy();
+  },
+);

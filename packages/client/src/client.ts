@@ -699,11 +699,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     async retranscribeLast(language) {
       if (!(input instanceof ServerSpeechInput) || destroyed) throw new SpeeqError("NOT_FOUND");
       const result = await input.retranscribeLast(language);
-      if (!destroyed) {
-        mode.set(language);
-        input.autoLanguage = false;
-        update({ inputLanguage: language, interimTranscript: fix(result.text) });
-      }
+      if (!destroyed) update({ interimTranscript: fix(result.text) });
     },
     getSnapshot: () => snapshot,
     subscribe: (cb) => (destroyed ? () => {} : emitter.on("change", cb)),
