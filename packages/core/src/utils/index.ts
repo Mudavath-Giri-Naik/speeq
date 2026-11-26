@@ -4,8 +4,6 @@
  */
 
 export { baseLanguage, guessLanguageFromScript } from "../language.js";
-export type { CorrectionResult, Vocabulary } from "../vocabulary.js";
-export { correctWithVocabulary } from "../vocabulary.js";
 export { combineSignals, sleep } from "./async.js";
 export { type Listener, TypedEmitter } from "./emitter.js";
 export { createId } from "./ids.js";
@@ -25,3 +23,5 @@ export {
 export { DEFAULT_SECRET_KEYS, REDACTED, redactKeys, redactText } from "./redact.js";
 export { SentenceChunker, type SentenceChunkerOptions } from "./sentence-chunker.js";
 export { encodeSse, type SseMessage, SseParser } from "./sse.js";
+export type { CorrectionResult, Vocabulary } from "./vocabulary.js";
+export { correctWithVocabulary } from "./vocabulary.js";

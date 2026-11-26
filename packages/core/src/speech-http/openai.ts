@@ -1,14 +1,13 @@
-import {
-  type AudioFormat,
-  isAbortError,
-  type ProviderKind,
-  parseRetryAfter,
-  SpeeqError,
-  type SttProvider,
-  type TtsProvider,
-  type VoiceInfo,
-  type VoiceParam,
-} from "../index.js";
+import { isAbortError, SpeeqError } from "../errors.js";
+import type {
+  AudioFormat,
+  ProviderKind,
+  SttProvider,
+  TtsProvider,
+  VoiceInfo,
+  VoiceParam,
+} from "../interfaces/speech-provider.js";
+import { parseRetryAfter } from "../utils/provider-http.js";
 
 interface Options {
   id?: string;

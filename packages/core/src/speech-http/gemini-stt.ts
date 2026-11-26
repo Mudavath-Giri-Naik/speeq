@@ -1,11 +1,8 @@
-import {
-  baseLanguage,
-  isAbortError,
-  type ProviderKind,
-  parseRetryAfter,
-  SpeeqError,
-  type SttProvider,
-} from "../index.js";
+import { isAbortError, SpeeqError } from "../errors.js";
+import type { ProviderKind, SttProvider } from "../interfaces/speech-provider.js";
+import { baseLanguage } from "../language.js";
+import { parseRetryAfter } from "../utils/provider-http.js";
+
 /** Send a buffered audio request without exposing upstream payloads in errors. */
 export async function audioJson(fetcher: typeof fetch, url: string, init: RequestInit) {
   try {

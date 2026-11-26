@@ -49,6 +49,7 @@ export default defineConfig({
         "@speeq/core": [`${cache}/wire.d.ts`],
         "@speeq/core/speech": ["../core/src/interfaces/speech.ts"],
         "@speeq/core/http": ["../core/src/schemas/http.ts"],
+        "@speeq/core/utils": ["../core/src/utils/index.ts"],
         "@speeq/core/errors": ["../core/src/errors.ts"],
       },
     },

@@ -1,4 +1,7 @@
-import { baseLanguage, SpeeqError, type SttProvider } from "../index.js";
+import { SpeeqError } from "../errors.js";
+import type { SttProvider } from "../interfaces/speech-provider.js";
+import { baseLanguage } from "../language.js";
+
 /** Detect a candidate language before running a recognizer that requires a language. */
 export function createDetectThenTranscribe(o: {
   id?: string;
