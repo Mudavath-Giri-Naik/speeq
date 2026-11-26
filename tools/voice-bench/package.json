@@ -1,0 +1,16 @@
+{
+  "name": "@speeq/voice-bench",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@speeq/speech": "workspace:*",
+    "@speeq/core": "workspace:*",
+    "@speeq/tsconfig": "workspace:*",
+    "zod": "4.6.7",
+    "tsx": "4.23.15"
+  }
+}

@@ -6,6 +6,7 @@
  */
 export { FakeLLMProvider, type FakeScript, type FakeStep, playStep } from "./fake-llm.js";
 export { FakeSpeechInput, FakeSpeechOutput } from "./fake-speech.js";
+export { FakeSttProvider, FakeTtsProvider } from "./fake-speech-provider.js";
 export {
   assistantText,
   type FetchHandler,
