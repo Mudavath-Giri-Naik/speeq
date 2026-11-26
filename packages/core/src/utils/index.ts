@@ -2,6 +2,10 @@
  * Dependency-free utilities (no zod). Safe to import in browsers from `@speeq/core/utils`.
  * @packageDocumentation
  */
+
+export { baseLanguage, guessLanguageFromScript } from "../language.js";
+export type { CorrectionResult, Vocabulary } from "../vocabulary.js";
+export { correctWithVocabulary } from "../vocabulary.js";
 export { combineSignals, sleep } from "./async.js";
 export { type Listener, TypedEmitter } from "./emitter.js";
 export { createId } from "./ids.js";

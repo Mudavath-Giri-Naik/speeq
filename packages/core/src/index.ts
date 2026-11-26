@@ -40,6 +40,7 @@ export type {
   SessionPage,
 } from "./interfaces/store.js";
 export type { TelemetryTransport } from "./interfaces/telemetry.js";
+export * from "./language.js";
 export * from "./schemas/audit.js";
 export * from "./schemas/common.js";
 export * from "./schemas/http.js";
@@ -54,3 +55,4 @@ export {
   isAfterCursor,
 } from "./store-helpers.js";
 export * from "./utils/index.js";
+export * from "./vocabulary.js";
