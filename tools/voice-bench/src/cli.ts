@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
-import { parseArgs } from "node:util";
+import { type ParseArgsConfig, parseArgs } from "node:util";
 import { z } from "zod";
 import { Manifest } from "./metrics.js";
 import { markdown, type Row, report } from "./report.js";
@@ -32,7 +32,7 @@ const {
     ...Object.fromEntries(names.map((n) => [n, { type: "string" as const }])),
     help: { type: "boolean" },
     "strip-zwj": { type: "boolean" },
-  },
+  } as NonNullable<ParseArgsConfig["options"]>,
 });
 const opt = (n: string) => (typeof values[n] === "string" ? String(values[n]) : undefined);
 function need(n: string) {

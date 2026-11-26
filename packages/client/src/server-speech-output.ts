@@ -1,4 +1,8 @@
-import type { SpeakOptions, SpeechOutput, VoiceInfo } from "@speeq/core";
+import type { SpeechOutput } from "@speeq/core";
+
+type SpeakOptions = Parameters<SpeechOutput["speak"]>[1];
+type VoiceInfo = Awaited<ReturnType<NonNullable<SpeechOutput["listVoices"]>>>[number];
+
 import { SpeeqError } from "@speeq/core/errors";
 import type { SpeechRequest } from "./server-speech-input.js";
 import { WebSpeechOutput } from "./web-speech-output.js";

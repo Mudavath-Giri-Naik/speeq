@@ -73,4 +73,4 @@ const { startCall, endCall, call, interimTranscript } = useSpeeq();
 
 ## Server speech
 
-For buffered recognition or synthesis through your own backend, see [Voice providers](/guides/voice-providers). Browser Web Speech remains the default.
+For buffered recognition or synthesis through your own backend, see [Voice providers](/docs/guides/voice-providers). Browser Web Speech remains the default.

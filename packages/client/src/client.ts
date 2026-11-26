@@ -185,6 +185,8 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   }
 
   const request = sessions(options, ({ sessionId, config }) => {
+    if (input instanceof ServerSpeechInput)
+      input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
     const languages =
       options.languages?.filter((l) => config.languages.includes(l)) ?? config.languages;
     const language = languages.includes(snapshot.language)

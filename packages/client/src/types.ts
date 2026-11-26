@@ -1,10 +1,4 @@
-import type {
-  ClientConfig,
-  ProtocolEvent,
-  SpeechInput,
-  SpeechOutput,
-  StreamingMode,
-} from "@speeq/core";
+import type { ClientConfig, ProtocolEvent, SpeechInput, SpeechOutput } from "@speeq/core";
 import type { PublicError } from "@speeq/core/errors";
 import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
 
@@ -88,7 +82,7 @@ export interface SpeeqSnapshot {
   voice: {
     input: "browser" | "server";
     output: "browser" | "server";
-    streaming: StreamingMode;
+    streaming: NonNullable<SpeechInput["capabilities"]>["streaming"];
     processing: "local" | "remote";
     note?: string;
   };

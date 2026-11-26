@@ -1,4 +1,8 @@
-import type { SpeechInput, SpeechInputHandlers, SpeechInputOptions } from "@speeq/core";
+import type { SpeechInput } from "@speeq/core";
+
+type SpeechInputOptions = Parameters<SpeechInput["start"]>[0];
+type SpeechInputHandlers = Parameters<SpeechInput["start"]>[1];
+
 import { Endpointing } from "./endpointing.js";
 import { openCapture, PreRoll } from "./pcm-capture.js";
 import { encodeWav, resample } from "./wav.js";
@@ -11,7 +15,7 @@ export type SpeechRequest = (
 ) => Promise<Response>;
 /** Buffered recognition with one upload per detected utterance. */
 export class ServerSpeechInput implements SpeechInput {
-  readonly capabilities = {
+  readonly capabilities: NonNullable<SpeechInput["capabilities"]> = {
     streaming: "buffered",
     processing: "remote",
     detectsLanguage: false,

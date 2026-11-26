@@ -32,6 +32,9 @@ export function speechRoutes(rt: Runtime<AgentUser>) {
   const cache = new Map<string, { expires: number; result: Promise<TranscribeResponse> }>();
   return {
     features: {
+      detectsLanguage:
+        rt.config.languages.some((l) => inputs(l).length) &&
+        rt.config.languages.flatMap((l) => inputs(l)).every((p) => p.capabilities.detectsLanguage),
       stt: rt.config.languages.some((l) => inputs(l).length),
       tts: rt.config.languages.some((l) => outputs(l).length),
     },
@@ -74,7 +77,9 @@ export function speechRoutes(rt: Runtime<AgentUser>) {
         const voices = await runChain(outputs(language), req.signal, timeout, (p) =>
           p.listVoices(),
         );
-        return json(VoicesResponseSchema.parse({ voices }), 200, headers);
+        const parsed = VoicesResponseSchema.safeParse({ voices });
+        if (!parsed.success) throw new SpeeqError("PROVIDER_ERROR");
+        return json(parsed.data, 200, headers);
       }
       const chain = inputs(language);
       if (!chain.length) throw new SpeeqError("SPEECH_UNAVAILABLE");

@@ -13,9 +13,9 @@ async function mount(speech?: SpeechConfig) {
   const { token, sessionId } = await startSession(speeq.handler);
   return (path: string, init: RequestInit = {}, auth = true) => {
     const headers = new Headers(init.headers);
-    if (auth) headers.set("authorization", "Bearer " + token);
+    if (auth) headers.set("authorization", `Bearer ${token}`);
     return speeq.handler(
-      new Request("http://localhost/session/" + sessionId + "/speech/" + path, {
+      new Request(`http://localhost/session/${sessionId}/speech/${path}`, {
         method: "POST",
         ...init,
         headers,

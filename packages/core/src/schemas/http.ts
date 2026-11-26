@@ -15,7 +15,9 @@ export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
 
 /** Public configuration the client receives when a session starts. */
 export const ClientConfigSchema = z.object({
-  speech: z.object({ stt: z.boolean(), tts: z.boolean() }).optional(),
+  speech: z
+    .object({ stt: z.boolean(), tts: z.boolean(), detectsLanguage: z.boolean().optional() })
+    .optional(),
   agentName: z.string(),
   languages: z.array(LanguageSchema).min(1),
   defaultLanguage: LanguageSchema,
