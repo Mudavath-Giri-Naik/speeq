@@ -69,6 +69,24 @@ const latin = /^\p{Script=Latin}{5,}$/u;
 type Entry = { term: VocabularyTerm; kind: "canonical" | "alias" | "regional"; language?: string };
 type Trie = { next: Map<string, Trie>; entries: Entry[] };
 const node = (): Trie => ({ next: new Map(), entries: [] });
+// Prefix deletion keys bound lookup work independently of vocabulary size.
+function deletionKeys(word: string, edits: number) {
+  const keys = new Set([word.slice(0, 8)]);
+  let frontier = [...keys];
+  for (let edit = 0; edit < edits; edit++) {
+    const next: string[] = [];
+    for (const form of frontier)
+      for (let i = 0; i < form.length; i++) {
+        const shortened = form.slice(0, i) + form.slice(i + 1);
+        if (!keys.has(shortened)) {
+          keys.add(shortened);
+          next.push(shortened);
+        }
+      }
+    frontier = next;
+  }
+  return keys;
+}
 function build(v: Vocabulary) {
   const root = node();
   const fuzzy = new Map<string, Set<VocabularyTerm>>();
@@ -96,14 +114,21 @@ function build(v: Vocabulary) {
     for (const [language, forms] of Object.entries(term.regional ?? {}))
       for (const f of forms) add(f, { term, kind: "regional", language });
   }
-  return { root, fuzzy, memo: new Map<string, string[]>() };
+  const buckets = new Map<string, string[]>();
+  for (const form of fuzzy.keys())
+    for (const key of deletionKeys(form, 2)) {
+      const bucket = buckets.get(key);
+      if (bucket) bucket.push(form);
+      else buckets.set(key, [form]);
+    }
+  return { root, fuzzy, buckets, memo: new Map<string, string[]>() };
 }
 const indexes = new WeakMap<Vocabulary, ReturnType<typeof build>>();
 function indexFor(v: Vocabulary) {
   let i = indexes.get(v);
   if (!i) {
     i = build(v);
-    if (Object.isFrozen(v)) indexes.set(v, i);
+    indexes.set(v, i);
   }
   return i;
 }
@@ -132,7 +157,11 @@ function nearest(word: string, index: ReturnType<typeof build>) {
   if (cached) return cached;
   let best = word.length < 9 ? 1 : 2;
   const hits = new Set<string>();
-  for (const [form, terms] of index.fuzzy) {
+  const candidates = new Set<string>();
+  for (const key of deletionKeys(word, best))
+    for (const form of index.buckets.get(key) ?? []) candidates.add(form);
+  for (const form of candidates) {
+    const terms = index.fuzzy.get(form) ?? [];
     const d = distance(word, form, best);
     if (d > best) continue;
     if (d < best) {
@@ -147,7 +176,7 @@ function nearest(word: string, index: ReturnType<typeof build>) {
   return result;
 }
 const protectedPattern =
-  /(?:https?:\/\/|www\.)[^\s]+|[^\s@]+@[^\s@]+\.[^\s@]+|(?:[$₹€£]\s*|(?:rupees|dollars)\s+)\p{N}[\p{N},.]*(?:\s*%)?|\p{N}+[\s/-]+(?:January|February|March|April|May|June|July|August|September|October|November|December)\b|\p{N}[\p{N},.]*\s*(?:rupees|dollars|%)/giu;
+  /(?:https?:\/\/|www\.)[^\s]+|(?:[$₹€£]\s*|(?:rupees|dollars)\s+)\p{N}[\p{N},.]*(?:\s*%)?|\p{N}+[\s/-]+(?:January|February|March|April|May|June|July|August|September|October|November|December)\b|\p{N}[\p{N},.]*\s*(?:rupees|dollars|%)/giu;
 /** Correct whole spans conservatively and preserve all unmatched original characters. */
 export function correctWithVocabulary(
   text: string,
@@ -160,7 +189,12 @@ export function correctWithVocabulary(
     ambiguous: { span: string; candidates: string[] }[] = [];
   const blocked = new Uint8Array(tokens.length);
   let pos = 0;
-  for (const m of text.matchAll(protectedPattern)) {
+  const spans = Array.from(text.matchAll(protectedPattern));
+  for (const m of text.matchAll(/\S+/gu)) {
+    if (m[0].includes("@") && /^[^@]+@[^@]+\.[^@]+$/u.test(m[0])) spans.push(m);
+  }
+  spans.sort((a, b) => a.index - b.index);
+  for (const m of spans) {
     while (
       pos < tokens.length &&
       (tokens[pos]?.index ?? 0) + (tokens[pos]?.[0].length ?? 0) <= m.index
