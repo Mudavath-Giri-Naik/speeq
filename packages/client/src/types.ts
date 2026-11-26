@@ -1,5 +1,6 @@
 import type { ClientConfig, ProtocolEvent, SpeechInput, SpeechOutput } from "@speeq/core";
 import type { PublicError } from "@speeq/core/errors";
+import type { Vocabulary } from "@speeq/core/utils";
 import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
 
 /** Current activity of the client. */
@@ -7,6 +8,7 @@ export type SpeeqState = "idle" | "listening" | "thinking" | "speaking" | "error
 
 /** One user or assistant message in the local conversation. */
 export interface ChatMessage {
+  rawText?: string;
   id: string; // createId("msg") for local ids
   role: "user" | "assistant";
   text: string;
@@ -79,6 +81,7 @@ export interface CallOptions {
 
 /** Current view of the conversation and device capabilities. */
 export interface SpeeqSnapshot {
+  inputLanguage: string | null;
   voice: {
     input: "browser" | "server";
     output: "browser" | "server";
@@ -103,6 +106,10 @@ export interface SpeeqSnapshot {
 
 /** Configures transport, speech and host callbacks. */
 export interface SpeeqClientOptions {
+  languageMode?: "fixed" | "auto";
+  preferredLanguages?: string[];
+  replyLanguage?: "same-as-input" | "fixed";
+  vocabulary?: Vocabulary;
   /** Base URL of the mounted handler, e.g. "/api/speeq". */
   endpoint: string;
   languages?: string[];
@@ -111,6 +118,7 @@ export interface SpeeqClientOptions {
   getContext?: () => PageContextInput | undefined;
   /** Omitted or undefined input/output use Web Speech defaults. Pass null to disable either adapter. */
   voice?: {
+    keepLastUtterance?: boolean;
     input?: "browser" | "server";
     output?: "browser" | "server";
     endpointMs?: number;
@@ -130,6 +138,7 @@ export interface SpeeqClientOptions {
 
 /** Payloads delivered by client event listeners. */
 export interface SpeeqClientEvents {
+  languageSuggestion: { suggested: string; confidence: number };
   change: SpeeqSnapshot;
   state: SpeeqState; // emitted only when state actually changes
   event: ProtocolEvent; // every valid protocol event received
@@ -139,6 +148,8 @@ export interface SpeeqClientEvents {
 
 /** Controls a headless conversation and exposes its current snapshot. */
 export interface SpeeqClient {
+  setInputLanguage(tag: string | "auto"): void;
+  retranscribeLast(language: string): Promise<void>;
   getSnapshot(): SpeeqSnapshot;
   subscribe(listener: () => void): () => void;
   on<K extends keyof SpeeqClientEvents>(

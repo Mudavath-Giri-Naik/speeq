@@ -29,6 +29,8 @@ export const nav: NavSection[] = [
       { slug: "guides/routes", title: "Open pages (routes)" },
       { slug: "guides/models", title: "Connect a model" },
       { slug: "guides/stores", title: "Choose a store" },
+      { slug: "guides/multilingual", title: "Multilingual speech" },
+      { slug: "guides/vocabulary", title: "Domain vocabulary" },
       { slug: "guides/voice-providers", title: "Voice providers" },
       { slug: "guides/voice", title: "Voice and languages" },
       { slug: "guides/testing", title: "Test without a model" },

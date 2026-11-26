@@ -79,3 +79,5 @@ Rate limits count inside one running server.
 ## Speech
 
 Register recognizers under `speech.stt` and synthesizers under `speech.tts`. The respective `speech.routing` maps associate language tags with ordered provider IDs. Both remote and paid access default off. Defaults for `speech.limits` are 5,000,000 upload bytes, 60 seconds, 1,000 synthesis characters, 30 transcriptions and 60 syntheses per minute, and a 15,000 ms provider timeout. Voice listing uses its own rate bucket. See [Voice providers](/docs/guides/voice-providers).
+
+Pass `vocabulary` to merge explicit domain terms with route titles and tool names. Set `speech.clarifyBelow` between zero and one to require clarification for low-confidence voice writes. Use `createSpeechConfig` for an explicit provisional profile. [Domain vocabulary](/docs/guides/vocabulary)

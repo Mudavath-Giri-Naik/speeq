@@ -17,6 +17,7 @@ const base = {
 export const TurnStartedEventSchema = z.object({
   ...base,
   type: z.literal("turn.started"),
+  inputLanguage: LanguageSchema.optional(),
   sessionId: z.string(),
   language: LanguageSchema,
 });

@@ -1,0 +1,34 @@
+x-settings: &settings
+  SIDECAR_TOKEN: ${SIDECAR_TOKEN:?set a sidecar token}
+  HF_TOKEN: ${HF_TOKEN:-}
+  MODEL_REVISION: ${MODEL_REVISION:-}
+  DECODER: ${DECODER:-ctc}
+services:
+  indic-stt:
+    build: { context: ., dockerfile: indic-stt/Dockerfile }
+    ports: ["127.0.0.1:8101:8000"]
+    environment:
+      <<: *settings
+      DEVICE: cpu
+  indic-tts:
+    build: { context: ., dockerfile: indic-tts/Dockerfile }
+    ports: ["127.0.0.1:8102:8000"]
+    environment:
+      <<: *settings
+      DEVICE: cpu
+  stt-gpu:
+    build: { context: ., dockerfile: indic-stt/Dockerfile }
+    ports: ["127.0.0.1:8101:8000"]
+    environment:
+      <<: *settings
+      DEVICE: cuda
+    profiles: ["gpu"]
+    gpus: all
+  tts-gpu:
+    build: { context: ., dockerfile: indic-tts/Dockerfile }
+    ports: ["127.0.0.1:8102:8000"]
+    environment:
+      <<: *settings
+      DEVICE: cuda
+    profiles: ["gpu"]
+    gpus: all

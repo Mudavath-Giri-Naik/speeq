@@ -54,3 +54,5 @@ Each message has an `id`, a `role` (`user` or `assistant`), `text`, and a `statu
 ## Voice selection
 
 The optional `voice` object accepts `input` and `output` (each `"browser"` or `"server"`), `endpointMs` (700 by default) and `fallbackToBrowserVoice` (true by default). Explicit `speech.input` and `speech.output` take precedence. Read `snapshot.voice` for active input, output, input streaming mode and processing location. An informational note accompanies browser input fallback.
+
+Configure `languageMode`, `preferredLanguages`, `replyLanguage`, `vocabulary` and optional `voice.keepLastUtterance`. Read `snapshot.inputLanguage`, subscribe to `languageSuggestion`, override with `setInputLanguage(tag | "auto")`, or preview a retry with `retranscribeLast(tag)`. Corrected local messages retain `rawText` when it differs. [Multilingual speech](/docs/guides/multilingual)

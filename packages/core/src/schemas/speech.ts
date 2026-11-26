@@ -31,6 +31,9 @@ export type TranscribeQuery = z.infer<typeof TranscribeQuerySchema>;
 
 /** Wire schema for TranscribeResponse. */
 export const TranscribeResponseSchema = z.object({
+  raw: z.string().optional(),
+  corrected: z.boolean().optional(),
+  ambiguous: z.array(z.string()).optional(),
   text: z.string(),
   silent: z.boolean().optional(),
   language: LanguageSchema.optional(),

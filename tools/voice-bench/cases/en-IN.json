@@ -1,0 +1,288 @@
+{
+  "review": "Needs review by native Telugu and Hindi speakers.",
+  "cases": [
+    {
+      "id": "en-IN-1",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Pull up OS deadlock practice, please.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "deadlock"
+        }
+      }
+    },
+    {
+      "id": "en-IN-2",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Show last month's report once.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_month"
+        }
+      }
+    },
+    {
+      "id": "en-IN-3",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Any update on my latest order?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {}
+      }
+    },
+    {
+      "id": "en-IN-4",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Go to dashboard and show the revenue report also.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "current"
+        },
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "en-IN-5",
+      "language": "en-IN",
+      "replyLanguage": "hi-IN",
+      "text": "Headphones within two thousand rupees, please.",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "headphones",
+          "maxPrice": 2000
+        }
+      }
+    },
+    {
+      "id": "en-IN-6",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Where has my parcel reached?",
+      "expected": {
+        "tool": "track",
+        "args": {}
+      }
+    },
+    {
+      "id": "en-IN-7",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "I want to practise SQL questions.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "SQL"
+        }
+      }
+    },
+    {
+      "id": "en-IN-8",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Can you bring up Linux questions once?",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "Linux"
+        }
+      }
+    },
+    {
+      "id": "en-IN-9",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Keyboard within nine hundred rupees?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "keyboard",
+          "maxPrice": 900
+        }
+      }
+    },
+    {
+      "id": "en-IN-10",
+      "language": "en-IN",
+      "replyLanguage": "hi-IN",
+      "text": "Check where PK42 has reached.",
+      "expected": {
+        "tool": "track",
+        "args": {
+          "id": "PK42"
+        }
+      }
+    },
+    {
+      "id": "en-IN-11",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Open my orders page once.",
+      "expected": {
+        "route": "orders"
+      }
+    },
+    {
+      "id": "en-IN-12",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Let's go to practice.",
+      "expected": {
+        "route": "practice"
+      }
+    },
+    {
+      "id": "en-IN-13",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Open parcel tracking, please.",
+      "expected": {
+        "route": "tracking"
+      }
+    },
+    {
+      "id": "en-IN-14",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Dashboard please.",
+      "expected": {
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "en-IN-15",
+      "language": "en-IN",
+      "replyLanguage": "hi-IN",
+      "text": "What's today's revenue so far?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "today"
+        }
+      }
+    },
+    {
+      "id": "en-IN-16",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Show revenue for last week only.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_week"
+        }
+      }
+    },
+    {
+      "id": "en-IN-17",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Please cancel my AB1234 order.",
+      "expected": {
+        "tool": "cancelOrder",
+        "args": {
+          "id": "AB1234"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-IN-18",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Bookmark Q17, I'll do it later.",
+      "expected": {
+        "tool": "saveQuestion",
+        "args": {
+          "id": "Q17"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-IN-19",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Shift PK42 to 3 December 2026.",
+      "expected": {
+        "tool": "reschedule",
+        "args": {
+          "id": "PK42",
+          "date": "2026-12-03"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "en-IN-20",
+      "language": "en-IN",
+      "replyLanguage": "hi-IN",
+      "text": "Cancel that order... which one was it?",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "en-IN-21",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Can you open that section for me?",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "en-IN-22",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "Any mouse below fifteen hundred rupees?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "mouse",
+          "maxPrice": 1500
+        }
+      }
+    },
+    {
+      "id": "en-IN-23",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "How is BX51 coming along?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {
+          "id": "BX51"
+        }
+      }
+    },
+    {
+      "id": "en-IN-24",
+      "language": "en-IN",
+      "replyLanguage": "en-IN",
+      "text": "By when will TT77 reach?",
+      "expected": {
+        "tool": "eta",
+        "args": {
+          "id": "TT77"
+        }
+      }
+    },
+    {
+      "id": "en-IN-25",
+      "language": "en-IN",
+      "replyLanguage": "hi-IN",
+      "text": "Cancel AB15... actually maybe AB50.",
+      "expected": {
+        "action": "clarify"
+      }
+    }
+  ]
+}

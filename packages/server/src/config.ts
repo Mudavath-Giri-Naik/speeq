@@ -7,6 +7,7 @@ import type {
   SttProvider,
   TelemetryTransport,
   TtsProvider,
+  Vocabulary,
 } from "@speeq/core";
 import { SpeeqError } from "@speeq/core";
 import { z } from "zod";
@@ -90,6 +91,7 @@ export interface TelemetryConfig {
 
 /** Server speech providers, routing policy and resource limits. */
 export interface SpeechConfig {
+  clarifyBelow?: number;
   stt?: readonly SttProvider[];
   tts?: readonly TtsProvider[];
   /** Ordered provider ids per language tag. `default` is the fallback entry. Unlisted providers never run. */
@@ -114,6 +116,7 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   projectKey?: string;
   /** Signs session tokens. Required when `NODE_ENV=production`. Use 32+ random characters. */
   secret?: string;
+  vocabulary?: Vocabulary;
   speech?: SpeechConfig;
   agent: AgentConfig;
   llm: LLMProvider;

@@ -6,6 +6,10 @@ import { Manifest } from "./metrics.js";
 import { markdown, type Row, report } from "./report.js";
 
 const names = [
+  "server",
+  "cases",
+  "llm",
+  "tag-filter",
   "provider",
   "base-url",
   "model",
@@ -49,7 +53,7 @@ const file = (p: string) => readFile(p, "utf8");
 async function main() {
   if (values.help) {
     console.log(
-      "bench score --results hypotheses.json --manifest corpus.json [--out reports/] [--strip-zwj]\nbench stt --provider openai-compatible --base-url URL --model NAME --manifest FILE\nbench tts --provider openai-compatible --base-url URL --model NAME --voice ID --sentences FILE\nbench manifest --from-tsv FILE --audio-dir DIR --language TAG --license LICENSE\nbench fetch fleurs --language te_in --count 50",
+      "bench intent --cases FILE --server URL --llm gemini|groq|openai-compatible\nbench stt also accepts --tag-filter TAG\nbench score --results hypotheses.json --manifest corpus.json [--out reports/] [--strip-zwj]\nbench stt --provider openai-compatible --base-url URL --model NAME --manifest FILE\nbench tts --provider openai-compatible --base-url URL --model NAME --voice ID --sentences FILE\nbench manifest --from-tsv FILE --audio-dir DIR --language TAG --license LICENSE\nbench fetch fleurs --language te_in --count 50",
     );
     return;
   }
@@ -60,6 +64,17 @@ async function main() {
   }
   const out = resolve(opt("out") ?? "reports");
   await mkdir(out, { recursive: true });
+  if (cmd === "intent") {
+    const { evaluateIntent, IntentCases, summarizeIntent } = await import("./intent.js");
+    const llm = z.enum(["groq", "gemini", "openai-compatible"]).parse(need("llm"));
+    const rows = [];
+    for (const c of IntentCases.parse(JSON.parse(await file(need("cases")))).cases)
+      rows.push(await evaluateIntent(c, need("server")));
+    const report = { llm, ...summarizeIntent(rows), rows };
+    await writeFile(join(out, "intent.json"), JSON.stringify(report, null, 2));
+    console.log(JSON.stringify({ llm, ...summarizeIntent(rows) }, null, 2));
+    return;
+  }
   if (cmd === "manifest") {
     const items = (await file(need("from-tsv")))
       .trim()
@@ -130,7 +145,11 @@ async function main() {
       cmd === "stt"
         ? (await import("@speeq/speech")).createOpenAICompatibleStt(config())
         : undefined;
-    for (const item of manifest.items.filter((i) => !language || i.language === language))
+    for (const item of manifest.items.filter(
+      (i) =>
+        (!language || i.language === language) &&
+        (!opt("tag-filter") || i.tags?.includes(String(opt("tag-filter")))),
+    ))
       jobs.push(async () => {
         const row = { ...item } as Row;
         rows.push(row);

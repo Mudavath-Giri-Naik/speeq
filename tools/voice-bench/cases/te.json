@@ -1,0 +1,288 @@
+{
+  "review": "Needs review by native Telugu and Hindi speakers.",
+  "cases": [
+    {
+      "id": "te-1",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "ఆపరేటింగ్ సిస్టమ్స్‌లో డెడ్‌లాక్ ప్రశ్నలు చూపించు.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "deadlock"
+        }
+      }
+    },
+    {
+      "id": "te-2",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "పోయిన నెల ఆదాయం చూపించు.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_month"
+        }
+      }
+    },
+    {
+      "id": "te-3",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "చివరగా పెట్టిన ఆర్డర్ ఏమైంది?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {}
+      }
+    },
+    {
+      "id": "te-4",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "డాష్‌బోర్డ్ తెరిచి ఆదాయం వివరాలు చూపించు.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "current"
+        },
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "te-5",
+      "language": "te",
+      "replyLanguage": "en-IN",
+      "text": "రెండు వేల లోపు హెడ్‌ఫోన్లు ఉన్నాయా?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "headphones",
+          "maxPrice": 2000
+        }
+      }
+    },
+    {
+      "id": "te-6",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "నా పార్సెల్ ఇప్పుడు ఎక్కడ ఉంది?",
+      "expected": {
+        "tool": "track",
+        "args": {}
+      }
+    },
+    {
+      "id": "te-7",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "ఎస్క్యూఎల్ సాధన ప్రశ్నలు కావాలి.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "SQL"
+        }
+      }
+    },
+    {
+      "id": "te-8",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "లినక్స్ మీద ప్రశ్నలు చూపించు.",
+      "expected": {
+        "tool": "questions",
+        "args": {
+          "topic": "Linux"
+        }
+      }
+    },
+    {
+      "id": "te-9",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "తొమ్మిది వందల్లోపు కీబోర్డు ఉందా?",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "keyboard",
+          "maxPrice": 900
+        }
+      }
+    },
+    {
+      "id": "te-10",
+      "language": "te",
+      "replyLanguage": "en-IN",
+      "text": "PK42 పార్సెల్ ఎక్కడికి వచ్చిందో చూడు.",
+      "expected": {
+        "tool": "track",
+        "args": {
+          "id": "PK42"
+        }
+      }
+    },
+    {
+      "id": "te-11",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "నా ఆర్డర్ల పేజీ తెరువు.",
+      "expected": {
+        "route": "orders"
+      }
+    },
+    {
+      "id": "te-12",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "సాధన పేజీ తెరువు.",
+      "expected": {
+        "route": "practice"
+      }
+    },
+    {
+      "id": "te-13",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "పార్సెల్ జాడ చూసే పేజీ తెరువు.",
+      "expected": {
+        "route": "tracking"
+      }
+    },
+    {
+      "id": "te-14",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "డాష్‌బోర్డ్ చూపించు.",
+      "expected": {
+        "route": "dashboard"
+      }
+    },
+    {
+      "id": "te-15",
+      "language": "te",
+      "replyLanguage": "en-IN",
+      "text": "ఈ రోజు ఆదాయం ఎంత?",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "today"
+        }
+      }
+    },
+    {
+      "id": "te-16",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "పోయిన వారం ఆదాయం చూపించు.",
+      "expected": {
+        "tool": "revenue",
+        "args": {
+          "period": "last_week"
+        }
+      }
+    },
+    {
+      "id": "te-17",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "AB1234 ఆర్డర్ రద్దు చెయ్యి.",
+      "expected": {
+        "tool": "cancelOrder",
+        "args": {
+          "id": "AB1234"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te-18",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "Q17 ప్రశ్నను దాచిపెట్టు.",
+      "expected": {
+        "tool": "saveQuestion",
+        "args": {
+          "id": "Q17"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te-19",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "PK42 డెలివరీని 2026 డిసెంబరు 3కి మార్చు.",
+      "expected": {
+        "tool": "reschedule",
+        "args": {
+          "id": "PK42",
+          "date": "2026-12-03"
+        },
+        "action": "confirm"
+      }
+    },
+    {
+      "id": "te-20",
+      "language": "te",
+      "replyLanguage": "en-IN",
+      "text": "అది రద్దు చెయ్యి... ఏ ఆర్డరో గుర్తులేదు.",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "te-21",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "ఆ పేజీ తెరువు, పేరు గుర్తు రావట్లేదు.",
+      "expected": {
+        "action": "clarify"
+      }
+    },
+    {
+      "id": "te-22",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "పదిహేను వందల్లోపు మౌస్ చూపించు.",
+      "expected": {
+        "tool": "products",
+        "args": {
+          "category": "mouse",
+          "maxPrice": 1500
+        }
+      }
+    },
+    {
+      "id": "te-23",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "BX51 ఆర్డర్ పరిస్థితి ఏంటి?",
+      "expected": {
+        "tool": "orderStatus",
+        "args": {
+          "id": "BX51"
+        }
+      }
+    },
+    {
+      "id": "te-24",
+      "language": "te",
+      "replyLanguage": "te-IN",
+      "text": "TT77 పార్సెల్ ఎప్పటికి వస్తుంది?",
+      "expected": {
+        "tool": "eta",
+        "args": {
+          "id": "TT77"
+        }
+      }
+    },
+    {
+      "id": "te-25",
+      "language": "te",
+      "replyLanguage": "en-IN",
+      "text": "AB15 రద్దు చెయ్యి, ఆగు AB50 అనుకుంటా.",
+      "expected": {
+        "action": "clarify"
+      }
+    }
+  ]
+}

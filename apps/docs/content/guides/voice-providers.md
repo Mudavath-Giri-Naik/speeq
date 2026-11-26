@@ -60,3 +60,11 @@ From the repository, run `pnpm --filter @speeq/voice-bench exec tsx src/cli.ts s
 - `fetch fleurs` prints manual dataset preparation steps and exits nonzero when automatic retrieval is unavailable.
 
 Read the JSON and Markdown files in `--out` (default `reports/`). WER and grapheme CER are reported within each language and tag. Compare runs under the same conditions.
+
+## Indic providers and provisional profiles
+
+Import `createSpeechConfig` from `speeq/server` and pass its result as `speech`. The browser profile returns `undefined`. The provisional free-cloud profile uses Groq Whisper for English and Gemini for Telugu and Hindi. Supply both API keys and both STT model IDs via `sttModels` or `GROQ_STT_MODEL` and `GEMINI_STT_MODEL`. Choosing this profile permits remote free-tier calls. Check your account's quotas. Profiles never enable paid access.
+
+The self-hosted-indic profile accepts STT and TTS base URLs ending in `/v1` and a shared token. Auto mode additionally requires a self-hosted language detector. The detect-then-transcribe adapter restricts the detected language to its candidates and inherits the stricter provider kind. See `examples/voice-sidecars/README.md` in the repository for gated model access, voice licences, CPU and GPU options. Hardware and code-mixed accuracy have not been validated.
+
+Experimental Sarvam STT and TTS are classified as remote-paid. Register them manually with both remote and paid permission if your application chooses that service. The adapters follow the documented REST contracts and have been tested with mocked responses. [Sarvam STT](https://docs.sarvam.ai/api-reference/speech-to-text/transcribe) · [Sarvam TTS](https://docs.sarvam.ai/api-reference/text-to-speech/convert)

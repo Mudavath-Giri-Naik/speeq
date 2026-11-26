@@ -47,6 +47,16 @@ export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;
 
 /** Body of `POST /session/:id/turn`. */
 export const TurnRequestSchema = z.object({
+  inputLanguage: LanguageSchema.optional(),
+  transcript: z
+    .object({
+      raw: z.string().max(MAX_TURN_TEXT_CHARS * 4),
+      confidence: z.number().min(0).max(1).optional(),
+      provider: z.string().max(200).optional(),
+      corrected: z.boolean().optional(),
+      ambiguous: z.array(z.string().max(2000)).max(200).optional(),
+    })
+    .optional(),
   text: z.string().trim().min(1).max(MAX_TURN_TEXT_CHARS),
   language: LanguageSchema,
   context: PageContextSchema.optional(),
