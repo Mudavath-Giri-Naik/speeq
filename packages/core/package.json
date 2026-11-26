@@ -62,7 +62,18 @@
         "default": "./dist/utils.cjs"
       }
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./speech-http": {
+      "@speeq/source": "./src/speech-http/index.ts",
+      "import": {
+        "types": "./dist/speech-http.d.ts",
+        "default": "./dist/speech-http.js"
+      },
+      "require": {
+        "types": "./dist/speech-http.d.cts",
+        "default": "./dist/speech-http.cjs"
+      }
+    }
   },
   "publishConfig": {
     "access": "public"

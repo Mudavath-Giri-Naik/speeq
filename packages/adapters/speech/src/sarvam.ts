@@ -5,7 +5,7 @@ import {
   type TtsProvider,
   type VoiceInfo,
 } from "@speeq/core";
-import { audioJson } from "./gemini-stt.js";
+import { audioJson } from "@speeq/core/speech-http";
 
 type Options = { id?: string; apiKey: string; model: string; fetch?: typeof fetch };
 function language(tag: string) {

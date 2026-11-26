@@ -126,11 +126,12 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let spoken = "";
   let lastAudioEnd = 0;
   let restarts: number[] = [];
+  const vocabulary = options.vocabulary;
   const correct =
     options.call?.correct ??
-    (options.vocabulary
+    (vocabulary
       ? (t: string) =>
-          correctWithVocabulary(t, options.vocabulary!, {
+          correctWithVocabulary(t, vocabulary, {
             language: mode.input ?? snapshot.language,
           }).text
       : undefined);

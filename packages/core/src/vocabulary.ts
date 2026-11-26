@@ -114,6 +114,15 @@ function build(v: Vocabulary) {
     for (const [language, forms] of Object.entries(term.regional ?? {}))
       for (const f of forms) add(f, { term, kind: "regional", language });
   }
+  for (const term of v.terms)
+    if (term.protected) {
+      for (const name of [
+        term.term,
+        ...(term.aliases ?? []),
+        ...Object.values(term.regional ?? {}).flat(),
+      ])
+        fuzzy.delete(fold(name));
+    }
   const buckets = new Map<string, string[]>();
   for (const form of fuzzy.keys())
     for (const key of deletionKeys(form, 2)) {
@@ -279,8 +288,10 @@ export function sttPromptFromVocabulary(
       ...(t.pronunciations ?? []),
       ...(t.regional?.[baseLanguage(options.language ?? "")] ?? []),
     ];
-    const next = [result, forms.join(" / ")].filter(Boolean).join(", ");
-    if (next.length <= (options.maxChars ?? 224)) result = next;
+    for (const form of forms) {
+      const next = [result, form].filter(Boolean).join(", ");
+      if (next.length <= (options.maxChars ?? 224)) result = next;
+    }
   }
   return result;
 }

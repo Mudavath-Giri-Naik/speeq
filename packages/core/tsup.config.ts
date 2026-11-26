@@ -1,7 +1,12 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: { index: "src/index.ts", errors: "src/errors.ts", utils: "src/utils/index.ts" },
+  entry: {
+    "speech-http": "src/speech-http/index.ts",
+    index: "src/index.ts",
+    errors: "src/errors.ts",
+    utils: "src/utils/index.ts",
+  },
   format: ["esm", "cjs"],
   dts: true,
   clean: true,

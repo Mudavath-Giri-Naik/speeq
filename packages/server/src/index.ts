@@ -70,6 +70,7 @@ export type {
   AgentConfig,
   AuditConfig,
   GuardrailsConfig,
+  SpeechConfig,
   SpeeqConfig,
   SpeeqLogger,
   TelemetryConfig,
@@ -89,4 +90,5 @@ export {
   timingSafeEqual,
   verifySessionToken,
 } from "./security/token.js";
+export { createSpeechConfig } from "./speech/profiles.js";
 export { SDK_VERSION } from "./version.js";

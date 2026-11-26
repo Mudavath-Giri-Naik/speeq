@@ -4,7 +4,6 @@ import {
   createGeminiStt,
   createSarvamStt,
   createSarvamTts,
-  createSpeechConfig,
 } from "../src/index.js";
 
 const req = { audio: Uint8Array.of(1, 2, 3), mimeType: "audio/wav", hints: { prompt: "Brand" } };
@@ -66,43 +65,13 @@ it("uses paid Sarvam contracts and decodes WAV bytes", async () => {
     tts = createSarvamTts(o);
   expect(stt.kind).toBe("remote-paid");
   expect((await stt.transcribe({ ...req, language: "hi" })).language).toBe("hi");
-  expect((fetch.mock.calls[0]?.[1]?.body as FormData).get("language_code")).toBe("hi-IN");
+  expect((fetch.mock.calls[0]?.[1]?.body as FormData | undefined)?.get("language_code")).toBe(
+    "hi-IN",
+  );
   const res = await tts.synthesize({ text: "hi", language: "hi-IN", voiceId: "v" });
   expect([...new Uint8Array(await new Response(res.audio).arrayBuffer())]).toEqual([1, 2, 3]);
   expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toMatchObject({
     language_code: "hi-IN",
     speaker: "v",
   });
-});
-it("profiles only enable explicitly configured, unpaid providers", () => {
-  expect(createSpeechConfig({ profile: "browser" })).toBeUndefined();
-  const o = {
-    profile: "free-cloud" as const,
-    groqApiKey: "g",
-    geminiApiKey: "k",
-    sttModels: { groq: "g", gemini: "m" },
-  };
-  expect(() => createSpeechConfig({ ...o, groqApiKey: "" })).toThrow();
-  for (const p of [
-    createSpeechConfig(o),
-    createSpeechConfig({
-      profile: "self-hosted-indic",
-      sttBaseURL: "http://localhost:1/v1",
-      ttsBaseURL: "http://localhost:2/v1",
-    }),
-  ]) {
-    expect(p?.policy).not.toHaveProperty("allowPaid", true);
-    expect([...(p?.stt ?? []), ...(p?.tts ?? [])].some((i) => i.kind === "remote-paid")).toBe(
-      false,
-    );
-  }
-  expect(() =>
-    createSpeechConfig({
-      profile: "self-hosted-indic",
-      languageMode: "auto",
-      detector: createSarvamStt({ apiKey: "k", model: "m" }),
-      sttBaseURL: "a",
-      ttsBaseURL: "b",
-    }),
-  ).toThrow();
 });

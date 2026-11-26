@@ -1,7 +1,11 @@
-import { SpeeqError, type SttProvider, type TtsProvider } from "@speeq/core";
-import { createDetectThenTranscribe } from "./detect-then-transcribe.js";
-import { createGeminiStt } from "./gemini-stt.js";
-import { createOpenAICompatibleStt, createOpenAICompatibleTts } from "./index.js";
+import { SpeeqError, type SttProvider } from "@speeq/core";
+import {
+  createDetectThenTranscribe,
+  createGeminiStt,
+  createOpenAICompatibleStt,
+  createOpenAICompatibleTts,
+} from "@speeq/core/speech-http";
+import type { SpeechConfig } from "../config.js";
 
 // PROVISIONAL until ADR 0012 records measured routing decisions.
 const routing = {
@@ -24,14 +28,8 @@ type Options =
       languageMode?: "fixed" | "auto";
       detector?: SttProvider;
     };
-type Config = {
-  stt: SttProvider[];
-  tts?: TtsProvider[];
-  routing: { stt: Record<string, readonly string[]>; tts?: Record<string, readonly string[]> };
-  policy?: { allowRemote: boolean };
-};
 /** Build an explicit provider profile. Model defaults are read from server configuration. */
-export function createSpeechConfig(o: Options): Config | undefined {
+export function createSpeechConfig(o: Options): SpeechConfig | undefined {
   if (o.profile === "browser") return;
   if (o.profile === "free-cloud") {
     const groq = o.sttModels?.groq ?? process.env.GROQ_STT_MODEL,
@@ -75,7 +73,7 @@ export function createSpeechConfig(o: Options): Config | undefined {
       id: transcriber.id,
       transcriber,
       detector: o.detector,
-      candidates: ["te", "hi", "en"],
+      candidates: ["te", "hi"],
     });
   }
   const tts = createOpenAICompatibleTts({
