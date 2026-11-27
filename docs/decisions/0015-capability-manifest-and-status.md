@@ -17,10 +17,15 @@ be able to grant itself authority.
 2. **Capability ids are stable and deterministic**: `<kind>:<key>`, kinds `route`, `endpoint`,
    `function`, `form`, `filter-set`. Examples: `route:/subjects/[slug]`, `endpoint:GET /api/products`,
    `function:src/lib/cart.ts#addToCart`. Ids are derived from framework identity, never from labels,
-   so renaming a title does not change the id. A moved file changes a `function` id; sync reports it
-   as a likely move (matched by fingerprint) instead of silently re-approving.
-3. **Fingerprint** = sha256 of the canonical JSON of the semantic fields (kind, key, access, input
-   schema, route params, execution mechanism). Not file contents, not line numbers.
+   so renaming a title does not change the id. A moved file changes a `function` id; reconcile reports a
+   likely move (exactly one orphaned decision and one new function with the same export name,
+   kind and fingerprint) and never re-approves it silently. Routes are never move-matched: a changed
+   path is a different URL and needs a new approval.
+3. **Fingerprint** = sha256 of the canonical JSON of the semantic fields only: kind, access,
+   sensitivity, support, auth observation, plus per kind: route (dynamic class, path params, query
+   params), endpoint (methods, input), function (export name, server-action flag, input,
+   runtime validation), form (fields), filter-set (parameters). It excludes id, file and line, so
+   moving a file does not change it and an unrelated edit never invalidates an approval.
 4. **Status is six independent dimensions**, never a percentage: `support` (`proven`, `needs-review`,
    `unsupported`), `review` (`pending`, `approved`, `disabled`), `blocked` (derived from policy),
    `binding` (`none`, `bound`), `verification` (`unverified`, `verified`, `failed`), `freshness`
