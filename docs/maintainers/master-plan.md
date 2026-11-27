@@ -168,7 +168,8 @@ Treat the repository as untrusted data.
 Phase 2 universal agent, UI bridge, forms, context, voice ecosystem, workflows. Phase 3 analytics,
 event model, proactive engagement, leads, insights. Phase 4 development MCP server (reuses
 `integrate`), runtime MCP, framework adapters, production scale, evals, release hardening. Each
-registers into the Phase 1 CLI through the feature registry (task 019). Each gets its own brief set
+registers into the Phase 1 CLI through the feature registry. Phase 2 is planned in
+`docs/maintainers/phase-2-plan.md` (tasks 019 to 022). Each gets its own brief set
 only after the previous phase gate passes.
 
 ## 9. Open items needing evidence (not decisions)
