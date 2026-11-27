@@ -69,8 +69,14 @@ const jsonSchema = z.strictObject({
   get items(): z.ZodOptional<typeof jsonSchema> {
     return jsonSchema.optional();
   },
+  additionalProperties: z.boolean().optional(),
   minimum: z.number().optional(),
   maximum: z.number().optional(),
+  exclusiveMinimum: z.number().optional(),
+  exclusiveMaximum: z.number().optional(),
+  minItems: z.int().nonnegative().optional(),
+  maxItems: z.int().nonnegative().optional(),
+  format: z.enum(["email", "uri", "uuid"]).optional(),
   minLength: z.int().nonnegative().optional(),
   maxLength: z.int().nonnegative().optional(),
   pattern: z.string().optional(),
@@ -104,7 +110,7 @@ const endpoint = base.extend({
 const fn = base.extend({
   kind: z.literal("function"),
   export: z.strictObject({ file: fileSchema, name: z.string(), isServerAction: z.boolean() }),
-  input: z.strictObject({ schema: jsonSchema, source: z.literal("zod") }).optional(),
+  input: z.strictObject({ schema: jsonSchema, source: z.enum(["zod", "none"]) }).optional(),
   validatesAtRuntime: z.boolean(),
 });
 const form = base.extend({

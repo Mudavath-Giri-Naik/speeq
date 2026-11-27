@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { RouteCapability } from "@speeq/core/manifest";
 import { expect, it } from "vitest";
 import {
-  discover,
+  emptyDiscover,
   type GroundTruth,
   loadGroundTruth,
   openRepoFs,
@@ -93,7 +93,7 @@ it("checks all fixture labels against source and the supported zero-recall basel
       }
     for (const d of truth.unsupported) expect((await stat(join(dir, d.file))).isFile()).toBe(true);
     if (["next-app-minimal", "next-pages-minimal"].includes(name)) {
-      const scores = score(truth, await discover(await openRepoFs({ root: dir })));
+      const scores = score(truth, await emptyDiscover(await openRepoFs({ root: dir })));
       expect(scores.passed).toBe(false);
       expect(scores.perKind.find((k) => k.kind === "route")?.recall).toBe(0);
       expect(renderReport([scores])).toContain("missing route:");
