@@ -1,0 +1,12 @@
+{
+  "fixture": "old-next",
+  "supported": false,
+  "capabilities": [],
+  "unsupported": [
+    {
+      "code": "SQ0103",
+      "file": "package.json"
+    }
+  ],
+  "forbidden": []
+}

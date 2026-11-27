@@ -1,0 +1,9 @@
+{
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  },
+  "packageManager": "npm@11"
+}

@@ -1,0 +1,21 @@
+{
+  "fixture": "monorepo-npm-turbo-one-app",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "apps/web/app/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [],
+  "forbidden": []
+}

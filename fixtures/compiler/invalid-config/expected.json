@@ -1,0 +1,12 @@
+{
+  "fixture": "invalid-config",
+  "supported": true,
+  "capabilities": [],
+  "unsupported": [
+    {
+      "code": "SQ0104",
+      "file": "tsconfig.json"
+    }
+  ],
+  "forbidden": []
+}

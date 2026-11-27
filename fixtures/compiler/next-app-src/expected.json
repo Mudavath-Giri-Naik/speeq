@@ -1,0 +1,21 @@
+{
+  "fixture": "next-app-src",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "src/app/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [],
+  "forbidden": []
+}

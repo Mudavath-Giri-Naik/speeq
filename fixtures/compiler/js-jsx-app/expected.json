@@ -1,0 +1,21 @@
+{
+  "fixture": "js-jsx-app",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/page.jsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [],
+  "forbidden": []
+}

@@ -1,0 +1,12 @@
+{
+  "fixture": "partial-speeq",
+  "supported": true,
+  "capabilities": [],
+  "unsupported": [
+    {
+      "code": "SQ0170",
+      "file": "speeq.config.ts"
+    }
+  ],
+  "forbidden": []
+}
