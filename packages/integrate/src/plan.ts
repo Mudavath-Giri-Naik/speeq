@@ -1,3 +1,4 @@
+import { posix } from "node:path";
 import { reconcile } from "@speeq/compiler";
 import { formFillActionName } from "@speeq/core";
 import type {
@@ -11,13 +12,16 @@ import type {
 } from "@speeq/core/manifest";
 import { defineFormFill } from "@speeq/server";
 import { manifestPath } from "./decisions.js";
+import { type EnvName, ignoresEnvLocal, newSecret, planEnv } from "./env.js";
 import type { ProjectFs } from "./fsx.js";
+import { spliceLayout } from "./layout.js";
 import { snake, uniqueName } from "./names.js";
 import { type Ownership, ownership, seal } from "./owned.js";
-import { FEATURES, provider as findProvider, PROVIDERS } from "./registry.js";
+import { FEATURES, provider as findProvider, voice as findVoice, PROVIDERS } from "./registry.js";
 import {
   type FormSpec,
   imp,
+  importPath,
   layoutSnippet,
   type RouteSpec,
   renderConfig,
@@ -28,6 +32,8 @@ import {
   type ToolSpec,
 } from "./render.js";
 import { renderObject, renderZod } from "./schema.js";
+import { setupOf, setupPath } from "./setup.js";
+import { renderAssistant, type VoiceMode } from "./ui-template.js";
 
 /** Versions the engine may add to the host. Exact, from a fixed allow-list. */
 export const ZOD_VERSION = "4.6.7";
@@ -42,11 +48,24 @@ export interface PlanOptions {
   speeqVersion: string;
   providerId?: string;
   featureIds?: readonly string[];
+  /** How the assistant listens and speaks. Default `browser`. */
+  voice?: VoiceMode;
+  /** Language tags, the first is the default. Default `["en-IN"]`. */
+  languages?: readonly string[];
+  /** Generate the chat widget and add it to the root layout. */
+  ui?: boolean;
+  /** Display name of the assistant in the widget. */
+  assistantName?: string;
+  /** Add the needed variable names to `.env.local` and `.env.example`. */
+  env?: boolean;
+  /** Remember these choices in `.speeq/setup.json` so `upgrade` regenerates the same files. */
+  remember?: boolean;
 }
 /** One file operation in a plan. */
 export interface PlannedChange {
   path: string;
-  action: "create" | "update" | "delete" | "keep";
+  /** `append` adds `content` to the end of a file the developer owns (env files). */
+  action: "create" | "update" | "append" | "delete" | "keep";
   ownership: Ownership;
   /** New content for create and update. */
   content?: string;
@@ -55,6 +74,8 @@ export interface PlannedChange {
   reason?: string;
   /** An owned file was edited by hand; it is never written. */
   conflict?: boolean;
+  /** What to show in diffs instead of `content` (secret-bearing files). */
+  display?: string;
 }
 /** Everything a run would do. Building a plan writes nothing. */
 export interface IntegrationPlan {
@@ -402,6 +423,18 @@ export async function buildPlan(input: {
         ? { path: mPath, action: "create", ownership: "missing", content: mText }
         : { path: mPath, action: "update", ownership: "owned", content: mText, before: mCurrent },
   );
+  if (options.remember) {
+    const sPath = setupPath(prefix);
+    const sText = `${JSON.stringify(setupOf(options), null, 2)}\n`;
+    const sCurrent = await read(sPath);
+    changes.push(
+      sCurrent === sText
+        ? { path: sPath, action: "keep", ownership: "owned" }
+        : sCurrent === undefined
+          ? { path: sPath, action: "create", ownership: "missing", content: sText }
+          : { path: sPath, action: "update", ownership: "owned", content: sText, before: sCurrent },
+    );
+  }
   const toolsPath = `${generated}/tools.ts`;
   const routesPath = `${generated}/routes.ts`;
   changes.push(owned(toolsPath, await read(toolsPath), renderTools(tools, toolsPath)));
@@ -441,6 +474,8 @@ export async function buildPlan(input: {
         generatedDir: generated,
         configFile: configPath,
         ui: forms.length > 0,
+        voice: findVoice(options.voice ?? "browser"),
+        languages: options.languages,
       }),
     });
   } else {
@@ -491,7 +526,8 @@ export async function buildPlan(input: {
       changes.push(owned(handlerPath, current, renderHandler(handlerPath, configFile)));
     }
     const layoutDone = await layoutHasProvider(fs, options.appRouterDir);
-    if (!layoutDone)
+    if (options.ui) await planAssistant(options, options.appRouterDir, read, changes, manual);
+    else if (!layoutDone)
       manual.push({ title: "Add the provider to your root layout", snippet: layoutSnippet() });
   } else {
     manual.push({
@@ -530,6 +566,17 @@ export async function buildPlan(input: {
     env.set("SPEEQ_BASE_URL", "Origin of this app for bound endpoints, e.g. https://example.com");
   for (const v of [...prov.env, ...features.flatMap((f) => f.env)]) env.set(v.name, v.note);
 
+  if (options.env) {
+    const names: EnvName[] = [
+      { name: "SPEEQ_SECRET", note: "Signs session tokens. Generated locally; keep it private." },
+      ...[...env]
+        .filter(([name]) => name !== "SPEEQ_SECRET")
+        .map(([name, note]) => ({ name, note })),
+      ...(findVoice(options.voice ?? "browser")?.env ?? []),
+    ];
+    await planEnvFiles(prefix, names, read, changes);
+  }
+
   const conflicts = changes.filter((c) => c.conflict).map((c) => c.path);
   return {
     prefix,
@@ -549,9 +596,112 @@ export async function buildPlan(input: {
 async function layoutHasProvider(fs: ProjectFs, appRouterDir: string): Promise<boolean> {
   for (const ext of ["tsx", "jsx", "js", "ts"]) {
     const text = await fs.read(`${appRouterDir}/layout.${ext}`);
-    if (text !== undefined) return /SpeeqProvider|<Speeq[\s>]/.test(text);
+    if (text !== undefined) return /SpeeqProvider|SpeeqAssistant|<Speeq[\s>]/.test(text);
   }
   return false;
+}
+/** Env files: only missing names are appended, values are never read out or changed. */
+async function planEnvFiles(
+  prefix: string,
+  names: readonly EnvName[],
+  read: (p: string) => Promise<string | undefined>,
+  changes: PlannedChange[],
+): Promise<void> {
+  for (const file of [".env.local", ".env.example"]) {
+    const path = `${prefix}${file}`;
+    const current = await read(path);
+    const plan = planEnv(current, names, file === ".env.local" ? { secret: newSecret() } : {});
+    if (!plan) continue;
+    changes.push(
+      current === undefined
+        ? {
+            path,
+            action: "create",
+            ownership: "missing",
+            content: plan.append,
+            display: plan.masked,
+          }
+        : {
+            path,
+            action: "append",
+            ownership: "foreign",
+            content: plan.append,
+            display: plan.masked,
+          },
+    );
+  }
+  const ignorePath = `${prefix}.gitignore`;
+  const ignore = await read(ignorePath);
+  if (ignore !== undefined && !ignoresEnvLocal(ignore))
+    changes.push({
+      path: ignorePath,
+      action: "append",
+      ownership: "foreign",
+      content: `${ignore.endsWith("\n") ? "" : "\n"}.env*.local\n`,
+    });
+}
+/** The chat widget file and the layout splice (or the manual snippet when the layout has another shape). */
+async function planAssistant(
+  options: PlanOptions,
+  appRouterDir: string,
+  read: (p: string) => Promise<string | undefined>,
+  changes: PlannedChange[],
+  manual: IntegrationPlan["manual"],
+): Promise<void> {
+  const base = posix.dirname(appRouterDir);
+  const widget = `${base === "." ? "" : `${base}/`}components/speeq/assistant.tsx`;
+  const prov = findProvider(options.providerId ?? "mock");
+  changes.push(
+    owned(
+      widget,
+      await read(widget),
+      renderAssistant({
+        voice: options.voice ?? "browser",
+        languages: options.languages?.length ? options.languages : ["en-IN"],
+        mock: (options.providerId ?? "mock") === "mock" || prov?.needsKey === false,
+        ...(options.assistantName ? { name: options.assistantName } : {}),
+      }),
+    ),
+  );
+  let layoutFile: string | undefined;
+  let layoutText: string | undefined;
+  for (const ext of ["tsx", "jsx", "js", "ts"]) {
+    const p = `${appRouterDir}/layout.${ext}`;
+    const text = await read(p);
+    if (text !== undefined) {
+      layoutFile = p;
+      layoutText = text;
+      break;
+    }
+  }
+  const snippet = [
+    imp("{ SpeeqAssistant }", `<path to ${widget}>`),
+    "// inside <body>, after {children}:",
+    "<SpeeqAssistant />",
+  ].join("\n");
+  if (layoutFile === undefined || layoutText === undefined) {
+    manual.push({ title: "Add <SpeeqAssistant /> to your root layout", snippet });
+    return;
+  }
+  if (layoutText.includes("SpeeqAssistant")) return;
+  if (/SpeeqProvider/.test(layoutText)) {
+    manual.push({
+      title: `${layoutFile} already has a SpeeqProvider; render <SpeeqAssistant /> yourself`,
+      snippet,
+    });
+    return;
+  }
+  const spliced = spliceLayout(layoutText, importPath(layoutFile, widget));
+  if (spliced.ok)
+    changes.push({
+      path: layoutFile,
+      action: "update",
+      ownership: "foreign",
+      content: spliced.text,
+      before: layoutText,
+    });
+  else
+    manual.push({ title: `Add <SpeeqAssistant /> to ${layoutFile} (${spliced.reason})`, snippet });
 }
 /** True when applying the plan would change nothing. */
 export function isEmptyPlan(plan: IntegrationPlan): boolean {

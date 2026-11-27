@@ -10,7 +10,7 @@ description: Add a working assistant to a Next.js app in about five minutes, wit
 
 You need an App Router project (a folder named `app`), TypeScript, and Node 20 or newer.
 
-> **Tip** Already have a Next.js App Router app with routes and server actions? Try [one command](/docs/guides/cli) (`npx speeq init`) first. It finds what your app can do and writes the wiring for what you approve. This page is the manual path.
+> **Tip** Already have a Next.js App Router app with routes and server actions? Try [one command](/docs/guides/cli) (`npx speeq init`) first. It finds what your app can do, writes the wiring for what you approve, adds the chat box with voice, and writes the variable names for your model key into `.env.local`. This page is the manual path.
 
 ## 1. Install
 

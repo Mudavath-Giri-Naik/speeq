@@ -17,6 +17,35 @@ Install: `npm i speeq zod`, then `npx speeq init` in a Next.js App Router projec
 for the command line tool; the SDK itself supports Node 20). `init --install` adds the two packages for
 you.
 
+## Chat box, voice and keys
+
+`npx speeq init` also sets up the chat box, so you do not write any code. In a terminal it asks:
+
+1. **Language model:** mock (no key, the default), Groq, Gemini, OpenRouter, or any OpenAI-compatible server such as Ollama.
+2. **Voice:** browser voice (no key, Chrome and Edge), cloud speech-to-text (Groq and Gemini free tiers, better for Telugu and Hindi), or text only.
+3. **Languages:** English, Telugu, Hindi.
+4. **Add the chat box to your layout?** and **Write the needed variable names into `.env.local`?**
+
+Then it writes:
+
+- `components/speeq/assistant.tsx`: the chat box, with text, mic, call mode, language switch, mock badge, and approval dialogs for confirmations and page actions. It is generated into **your** app (speeq's own packages ship no UI). Delete its first line to take it over and restyle it.
+- A one-line change to your root layout: an import and `<SpeeqAssistant />` before `</body>`. If your layout has another shape, speeq prints the exact snippet instead of guessing.
+- `.env.local` and `.env.example` with the **names** of the variables you need and empty values. speeq never writes your keys and never reads the values you add. The one value it generates is `SPEEQ_SECRET` (random, made on your machine). `.gitignore` gets `.env*.local` if it does not already cover it.
+- `.speeq/setup.json`, so `speeq upgrade` regenerates the same files.
+
+Then you only paste the keys:
+
+```text
+Next steps
+  1. Open .env.local, paste a value for: GROQ_API_KEY, SPEEQ_LLM_MODEL
+  2. Save it
+  3. Run npm run dev and open your app: the chat box is bottom-right
+```
+
+Skip any part with flags: `--no-ui`, `--no-env`. Choose without prompts with `--provider groq|gemini|openrouter|openai-compatible|mock`, `--voice browser|cloud|none`, and `--languages en-IN,te-IN,hi-IN`. Without a terminal the defaults are mock mode, browser voice and the chat box. `npx speeq rollback` undoes it: the layout is restored exactly, and an env file that you have already filled in is left alone.
+
+Model ids change often, so speeq never writes one: you set `SPEEQ_LLM_MODEL` yourself (for Groq, pick one from console.groq.com/docs/models).
+
 ## What gets written
 
 | File                                     | Owner   | Rule                                                                                 |

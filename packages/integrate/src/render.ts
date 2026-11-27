@@ -1,5 +1,5 @@
 import { posix } from "node:path";
-import type { FeatureEntry, ProviderEntry } from "./registry.js";
+import type { FeatureEntry, ProviderEntry, VoiceEntry } from "./registry.js";
 
 /** How a generated tool reaches host code. */
 export type ToolCall =
@@ -182,9 +182,13 @@ export function renderConfig(o: {
   configFile: string;
   /** Generated UI actions exist: import and pass them. */
   ui?: boolean;
+  voice?: VoiceEntry | undefined;
+  languages?: readonly string[] | undefined;
 }): string {
   const imports = new Map<string, Set<string>>([["speeq/server", new Set(["createSpeeq"])]]);
   imports.set("speeq/store-memory", new Set(["createMemoryStore"]));
+  for (const i of o.voice?.imports ?? [])
+    imports.set(i.from, new Set([...(imports.get(i.from) ?? []), ...i.names]));
   for (const i of o.provider.imports)
     imports.set(i.from, new Set([...(imports.get(i.from) ?? []), ...i.names]));
   const lines = [...imports].map(
@@ -200,7 +204,7 @@ export function renderConfig(o: {
     "",
     "export const speeq = createSpeeq({",
     "  secret: process.env.SPEEQ_SECRET,",
-    '  agent: { name: "Assistant", instructions: "You help people use this website. Use the tools and routes you are given. Say so when you cannot do something." },',
+    `  agent: { name: "Assistant", instructions: "You help people use this website. Use the tools and routes you are given. Say so when you cannot do something."${o.languages?.length ? `, languages: ${JSON.stringify([...o.languages])}` : ""} },`,
     `  llm: ${o.provider.expression},`,
     "  // In-memory store: conversations are lost on restart. Use speeq/store-mongodb for production.",
     "  store: createMemoryStore(),",
@@ -209,6 +213,7 @@ export function renderConfig(o: {
     "  routes,",
     "  tools,",
     ...(o.ui ? ["  uiActions,"] : []),
+    ...(o.voice?.config ?? []),
     ...o.features.flatMap((f) => f.config).filter((l) => !(o.ui && l.startsWith("  uiActions:"))),
     "});",
     "",

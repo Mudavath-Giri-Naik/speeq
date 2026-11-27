@@ -5,7 +5,10 @@ import type { IntegrationPlan, PlannedChange } from "./plan.js";
 
 interface JournalFile {
   path: string;
-  action: "create" | "update" | "delete";
+  action: "create" | "update" | "append" | "delete";
+  /** For `append`: length and hash of the appended block. Nothing else is stored. */
+  appendedLength?: number;
+  appendedHash?: string;
   /** Backup file name under the backup folder, for update and delete. */
   backup?: string;
   /** sha256 of the content speeq wrote; `undefined` for deletes. */
@@ -88,6 +91,19 @@ export async function applyPlan(
     for (const c of todo) {
       const entry: JournalFile = { path: c.path, action: c.action as JournalFile["action"] };
       const before = await fs.read(c.path);
+      if (c.action === "append") {
+        // Appends never copy the file: it may hold keys. Rollback removes exactly the appended block.
+        if (before === undefined)
+          return {
+            status: "failed",
+            reason: `${c.path} disappeared before apply`,
+            restored: false,
+          };
+        entry.appendedLength = (c.content as string).length;
+        entry.appendedHash = sha256(c.content as string);
+        journal.files.push(entry);
+        continue;
+      }
       if (before !== undefined) {
         entry.backup = `files/${n++}`;
         await fs.write(`${dir}/${entry.backup}`, before);
@@ -104,6 +120,10 @@ export async function applyPlan(
       if (c.action === "delete") {
         await fs.remove(c.path);
         removed.push(c.path);
+      } else if (c.action === "append") {
+        const current = (await fs.read(c.path)) ?? "";
+        await fs.write(c.path, current + (c.content as string));
+        written.push(c.path);
       } else {
         await fs.write(c.path, c.content as string);
         written.push(c.path);
@@ -142,7 +162,20 @@ async function restore(fs: ProjectFs, dir: string, journal: Journal, checkHash: 
       skipped.push({ path: f.path, reason: "Changed since speeq wrote it; left as is." });
       continue;
     }
-    if (f.action === "create") {
+    if (f.action === "append") {
+      const n = f.appendedLength ?? 0;
+      if (
+        current === undefined ||
+        n === 0 ||
+        current.length < n ||
+        sha256(current.slice(-n)) !== f.appendedHash
+      ) {
+        skipped.push({ path: f.path, reason: "Changed since speeq wrote it; left as is." });
+        continue;
+      }
+      await fs.write(f.path, current.slice(0, current.length - n));
+      restored.push(f.path);
+    } else if (f.action === "create") {
       if (current !== undefined) await fs.remove(f.path);
       removed.push(f.path);
     } else if (f.backup) {

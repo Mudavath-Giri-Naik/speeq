@@ -39,6 +39,10 @@ code=0; npx speeq init --ci --json > "$scratch/out/init.json" || code=$?
 echo "init: exit $code in $(( ($(date +%s%N) - start) / 1000000 )) ms, applied=$(field init.json j.applied)"
 [[ $code == 0 || $code == 3 ]] || { echo "FAIL: init exit $code"; exit 1; }
 [[ "$(field init.json j.applied)" == "applied" ]] || { echo "FAIL: init did not apply"; exit 1; }
+[[ -f components/speeq/assistant.tsx ]] || { echo "FAIL: chat box was not generated"; exit 1; }
+grep -q "SpeeqAssistant" app/layout.tsx || { echo "FAIL: layout was not wired"; exit 1; }
+grep -q "^SPEEQ_SECRET=" .env.local || { echo "FAIL: env names were not written"; exit 1; }
+echo "onboarding: chat box generated, layout wired, .env.local written"
 snap > "$scratch/out/after-init.txt"
 
 code=0; npx speeq init --ci --json > "$scratch/out/init2.json" || code=$?

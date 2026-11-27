@@ -1,9 +1,9 @@
-import { FEATURES, PROVIDERS, reviewState } from "@speeq/integrate";
+import { FEATURES, type IntegrationPlan, PROVIDERS, reviewState, VOICES } from "@speeq/integrate";
 import pc from "picocolors";
 import { load } from "../load.js";
 import { reviewPending } from "../review.js";
 import { installDependencies, reviewExit, showManual, showPlan, sync } from "../sync.js";
-import { type Ctx, type Loaded, planSummary } from "../types.js";
+import { CliExit, type Ctx, EXIT, type Loaded, planSummary } from "../types.js";
 
 function projectDoc(l: Loaded) {
   const p = l.manifest.project;
@@ -14,6 +14,79 @@ function projectDoc(l: Loaded) {
     language: p.language,
   };
 }
+const LANGUAGE_CHOICES = [
+  { value: "en-IN", label: "English" },
+  { value: "te-IN", label: "Telugu" },
+  { value: "hi-IN", label: "Hindi" },
+];
+/** Provider, voice, languages, chat box and env choices: prompts in a terminal, flags and defaults otherwise. */
+async function chooseSetup(ctx: Ctx, loaded: Loaded) {
+  const prompts = ctx.env.prompts;
+  const o = loaded.options;
+  const ask = ctx.interactive && prompts !== undefined;
+  if (ctx.flags.provider && !PROVIDERS.some((p) => p.id === ctx.flags.provider))
+    throw new CliExit(EXIT.usage, `Unknown provider "${ctx.flags.provider}".`, "usage");
+  if (ctx.flags.voice && !VOICES.some((v) => v.id === ctx.flags.voice))
+    throw new CliExit(EXIT.usage, `Unknown voice "${ctx.flags.voice}".`, "usage");
+  o.providerId =
+    ctx.flags.provider ??
+    (ask
+      ? await prompts.select(
+          "Language model",
+          PROVIDERS.map((p) => ({ value: p.id, label: p.label, hint: p.note })),
+        )
+      : "mock");
+  const voice =
+    ctx.flags.voice ??
+    (ask
+      ? await prompts.select(
+          "Voice",
+          VOICES.map((v) => ({ value: v.id, label: v.label, hint: v.note })),
+        )
+      : "browser");
+  o.voice = voice as NonNullable<typeof o.voice>;
+  const tags = ctx.flags.languages
+    ? ctx.flags.languages
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : ask
+      ? await prompts.multiselect("Languages", LANGUAGE_CHOICES, ["en-IN"])
+      : ["en-IN"];
+  o.languages = tags.length ? tags : ["en-IN"];
+  o.ui =
+    !ctx.flags.noUi &&
+    (ask && !ctx.flags.yes
+      ? await prompts.confirm("Add the chat box to your layout?", true)
+      : true);
+  o.env =
+    !ctx.flags.noEnv &&
+    (ask && !ctx.flags.yes
+      ? await prompts.confirm("Write the needed variable names into .env.local?", true)
+      : true);
+  o.remember = true;
+}
+/** What to do next, in plain words. */
+function showNextSteps(ctx: Ctx, loaded: Loaded, plan: IntegrationPlan) {
+  const o = loaded.options;
+  const needsKey = PROVIDERS.find((p) => p.id === (o.providerId ?? "mock"))?.needsKey === true;
+  const names = plan.env.map((e) => e.name).filter((n) => n !== "SPEEQ_SECRET");
+  const pm = loaded.manifest.project.packageManager;
+  const dev = pm === "yarn" ? "yarn dev" : `${pm === "unknown" ? "npm" : pm} run dev`;
+  const lines = ["", pc.bold("Next steps")];
+  if (needsKey && o.env)
+    lines.push(`  1. Open .env.local, paste a value for: ${names.join(", ")}`, "  2. Save it");
+  else if (needsKey) lines.push(`  1. Set these environment variables: ${names.join(", ")}`);
+  else lines.push("  1. (Mock mode needs no key: the assistant gives canned replies.)");
+  lines.push(
+    `  ${needsKey ? 3 : 2}. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
+  );
+  if (!needsKey)
+    lines.push(
+      "  To connect a real model later: speeq configure (shows the config and variable names to use).",
+    );
+  ctx.say(lines.join("\n"));
+}
 /** `speeq init`: scan, review, integrate. */
 export async function init(ctx: Ctx): Promise<number> {
   const loaded = await load(ctx);
@@ -23,12 +96,9 @@ export async function init(ctx: Ctx): Promise<number> {
     ),
   );
   const prompts = ctx.env.prompts;
+  const first = !loaded.options.remember;
+  if (first) await chooseSetup(ctx, loaded);
   if (ctx.interactive && prompts) {
-    if (!ctx.flags.provider)
-      loaded.options.providerId = await prompts.select(
-        "Language model",
-        PROVIDERS.map((p) => ({ value: p.id, label: p.label, hint: p.note })),
-      );
     loaded.options.featureIds = await prompts.multiselect(
       "Features",
       FEATURES.map((f) => ({ value: f.id, label: f.label, hint: f.note })),
@@ -46,7 +116,10 @@ export async function init(ctx: Ctx): Promise<number> {
         : false);
     if (wants) installed = await installDependencies(ctx, loaded, plan);
   }
-  if (!ctx.flags.json) showManual(ctx, plan);
+  if (!ctx.flags.json) {
+    showManual(ctx, plan);
+    showNextSteps(ctx, loaded, plan);
+  }
   return ctx.finish(reviewExit(plan), {
     project: projectDoc(loaded),
     plan: planSummary(plan),

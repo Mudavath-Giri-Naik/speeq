@@ -1,7 +1,14 @@
 import { isAbsolute, resolve } from "node:path";
 import { scan } from "@speeq/compiler";
 import type { Manifest } from "@speeq/core/manifest";
-import { IntegrateError, nodeFs, ownership, type ProjectFs, readDecisions } from "@speeq/integrate";
+import {
+  IntegrateError,
+  nodeFs,
+  ownership,
+  type ProjectFs,
+  readDecisions,
+  readSetup,
+} from "@speeq/integrate";
 import { CliExit, type Ctx, EXIT, type Loaded } from "./types.js";
 import { SPEEQ_PACKAGE_VERSION } from "./version.js";
 
@@ -42,6 +49,7 @@ export async function load(ctx: Ctx): Promise<Loaded> {
     throw e;
   }
   const app = result.project.app;
+  const setup = await readSetup(fs, prefix);
   const manifest = await withoutOwnFiles(fs, result.manifest);
   return {
     manifest,
@@ -53,6 +61,17 @@ export async function load(ctx: Ctx): Promise<Loaded> {
       prefix,
       ...(app?.appRouterDir ? { appRouterDir: app.appRouterDir } : {}),
       speeqVersion: SPEEQ_PACKAGE_VERSION,
+      ...(setup
+        ? {
+            providerId: setup.provider,
+            voice: setup.voice,
+            languages: setup.languages,
+            ui: setup.ui,
+            env: setup.env,
+            remember: true,
+            ...(setup.name ? { assistantName: setup.name } : {}),
+          }
+        : {}),
       ...(ctx.flags.provider ? { providerId: ctx.flags.provider } : {}),
     },
   };
@@ -65,15 +84,28 @@ export async function load(ctx: Ctx): Promise<Loaded> {
  */
 async function withoutOwnFiles(fs: ProjectFs, manifest: Manifest): Promise<Manifest> {
   const own = new Set<string>();
+  const isOwn = async (file: string) => {
+    const state = ownership(await fs.read(file));
+    return state === "owned" || state === "edited";
+  };
   for (const d of manifest.diagnostics) {
     if (d.code !== "SQ0171" || !d.file || own.has(d.file)) continue;
-    if (ownership(await fs.read(d.file)) !== "foreign") own.add(d.file);
+    if (await isOwn(d.file)) own.add(d.file);
+  }
+  // Generated UI files (the chat box) contain forms of their own: they are not the app's capabilities.
+  const seen = new Set<string>();
+  for (const c of manifest.capabilities) {
+    const file = c.source?.file;
+    if (!file || seen.has(file)) continue;
+    seen.add(file);
+    if (await isOwn(file)) own.add(file);
   }
   if (own.size === 0) return manifest;
   return {
     ...manifest,
+    capabilities: manifest.capabilities.filter((c) => !(c.source?.file && own.has(c.source.file))),
     diagnostics: manifest.diagnostics.filter(
-      (d) => !(d.code === "SQ0171" && d.file && own.has(d.file)),
+      (d) => !(d.file && own.has(d.file) && d.code === "SQ0171"),
     ),
   };
 }

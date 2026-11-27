@@ -292,10 +292,20 @@ describe("interactive and CI mode", () => {
   });
   it("init in a terminal asks, approves only what was selected, and applies", async () => {
     const a = await make("next-app-minimal");
-    const prompts = scripted(["mock", ["audit"], [ROUTE], true, false]);
+    const prompts = scripted([
+      "mock",
+      "browser",
+      ["en-IN"],
+      true,
+      true,
+      ["audit"],
+      [ROUTE],
+      true,
+      false,
+    ]);
     const r = await a.cli(["init"], { isTTY: true, prompts });
     expect(r.code).toBe(0);
-    expect(prompts.asked).toHaveLength(5);
+    expect(prompts.asked).toHaveLength(9);
     const d = JSON.parse(await a.read(".speeq/decisions.json"));
     expect(Object.keys(d.capabilities)).toEqual([ROUTE]);
     expect(await a.read("speeq.config.ts")).toContain("createMockLLMProvider");
@@ -304,7 +314,10 @@ describe("interactive and CI mode", () => {
   });
   it("answering no to the apply question writes nothing but decisions", async () => {
     const a = await make("next-app-minimal");
-    const r = await a.cli(["init"], { isTTY: true, prompts: scripted(["mock", [], [], false]) });
+    const r = await a.cli(["init"], {
+      isTTY: true,
+      prompts: scripted(["mock", "browser", ["en-IN"], true, true, [], [], false]),
+    });
     expect(r.code).toBe(1);
     const files = Object.keys(await a.snapshot());
     expect(files).not.toContain("speeq.config.ts");
@@ -334,5 +347,130 @@ describe("interactive and CI mode", () => {
     const r = await a.cli([], { prompts: noPrompts });
     expect([0, 3]).toContain(r.code);
     expect(await a.snapshot()).toEqual(before);
+  });
+});
+
+const LAYOUT = `export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+      </body>
+    </html>
+  );
+}
+`;
+
+describe("onboarding: provider, voice, env names and the chat box", () => {
+  async function withLayout() {
+    const a = await make("next-app-minimal");
+    await a.write("app/layout.tsx", LAYOUT);
+    await a.write(".gitignore", "node_modules\n");
+    return a;
+  }
+  it("with flags and no terminal: writes the widget, splices the layout, writes env names", async () => {
+    const a = await withLayout();
+    const r = await a.cli([
+      "init",
+      "--provider",
+      "groq",
+      "--voice",
+      "browser",
+      "--languages",
+      "en-IN,te-IN",
+    ]);
+    expect([0, 3]).toContain(r.code); // 3: capabilities still wait for review
+    expect(await a.read("components/speeq/assistant.tsx")).toContain("SpeeqProvider");
+    expect(await a.read("app/layout.tsx")).toContain("<SpeeqAssistant />");
+    const env = await a.read(".env.local");
+    expect(env).toContain("GROQ_API_KEY=\n");
+    expect(env).toContain("SPEEQ_LLM_MODEL=\n");
+    expect(env).toMatch(/SPEEQ_SECRET=\S{48}/);
+    expect(await a.read(".env.example")).toContain("GROQ_API_KEY=\n");
+    expect(await a.read(".gitignore")).toContain(".env*.local");
+    expect(await a.read("speeq.config.ts")).toContain("https://api.groq.com/openai/v1");
+    expect(JSON.parse(await a.read(".speeq/setup.json"))).toMatchObject({
+      provider: "groq",
+      voice: "browser",
+      languages: ["en-IN", "te-IN"],
+      ui: true,
+    });
+  });
+  it("defaults to mock mode, browser voice and the chat box", async () => {
+    const a = await withLayout();
+    expect([0, 3]).toContain((await a.cli(["init"])).code);
+    expect(await a.read("components/speeq/assistant.tsx")).toContain("const MOCK = true");
+    expect(await a.read("speeq.config.ts")).toContain("createMockLLMProvider");
+    expect(await a.read(".env.local")).not.toContain("GROQ_API_KEY");
+  });
+  it("--no-ui and --no-env skip those files", async () => {
+    const a = await withLayout();
+    await a.cli(["init", "--no-ui", "--no-env"]);
+    const files = Object.keys(await a.snapshot());
+    expect(files).not.toContain("components/speeq/assistant.tsx");
+    expect(files).not.toContain(".env.local");
+    expect(await a.read("app/layout.tsx")).toBe(LAYOUT);
+  });
+  it("never reads values out of an existing .env.local and a second init changes nothing", async () => {
+    const a = await withLayout();
+    await a.write(".env.local", "GROQ_API_KEY=gsk_live_value\n");
+    const r = await a.cli(["init", "--provider", "groq", "--json", "--diff"]);
+    expect(r.stdout).not.toContain("gsk_live_value");
+    expect(await a.read(".env.local")).toContain("GROQ_API_KEY=gsk_live_value");
+    const after = await a.snapshot();
+    const again = await a.cli(["init", "--json"]);
+    expect(again.json()).toMatchObject({ applied: "noop" });
+    expect(await a.snapshot()).toEqual(after);
+  });
+  it("--dry-run writes nothing and shows no secret", async () => {
+    const a = await withLayout();
+    const before = await a.snapshot();
+    const r = await a.cli(["init", "--dry-run", "--diff", "--provider", "groq"]);
+    expect(await a.snapshot()).toEqual(before);
+    expect(r.stdout).toContain("SPEEQ_SECRET=<generated>");
+    expect(r.stdout).not.toMatch(/SPEEQ_SECRET=\S{40,}/);
+  });
+  it("rejects unknown providers and voices with exit code 2", async () => {
+    const a = await withLayout();
+    expect((await a.cli(["init", "--provider", "nope"])).code).toBe(2);
+    expect((await a.cli(["init", "--voice", "nope"])).code).toBe(2);
+  });
+  it("asks for provider, voice, languages, chat box and env names in a terminal", async () => {
+    const a = await withLayout();
+    const prompts = scripted([
+      "gemini",
+      "cloud",
+      ["en-IN", "hi-IN"],
+      true,
+      true,
+      [],
+      [],
+      true,
+      false,
+    ]);
+    const r = await a.cli(["init"], { isTTY: true, prompts });
+    expect([0, 3]).toContain(r.code); // 3: capabilities still wait for review
+    expect(prompts.asked.slice(0, 5)).toEqual([
+      "Language model",
+      "Voice",
+      "Languages",
+      "Add the chat box to your layout?",
+      "Write the needed variable names into .env.local?",
+    ]);
+    const env = await a.read(".env.local");
+    for (const name of ["GEMINI_API_KEY", "GROQ_STT_MODEL", "GEMINI_STT_MODEL"])
+      expect(env).toContain(`${name}=\n`);
+    expect(r.stdout).toContain("Next steps");
+    expect(r.stdout).toContain(".env.local");
+  });
+  it("rollback restores the layout and removes the untouched env blocks", async () => {
+    const a = await withLayout();
+    const before = await a.snapshot();
+    await a.cli(["init", "--provider", "groq"]);
+    await a.cli(["rollback"]);
+    const after = await a.snapshot();
+    expect(after["app/layout.tsx"]).toBe(LAYOUT);
+    expect(Object.keys(after)).not.toContain(".env.local");
+    expect(after[".gitignore"]).toBe(before[".gitignore"]);
   });
 });

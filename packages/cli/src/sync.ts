@@ -13,7 +13,13 @@ import { CliExit, type Ctx, EXIT, type Loaded } from "./types.js";
 
 /** Print a plan for people. */
 export function showPlan(ctx: Ctx, plan: IntegrationPlan) {
-  const verb = { create: "create", update: "update", delete: "delete", keep: "keep" } as const;
+  const verb = {
+    create: "create",
+    update: "update",
+    append: "append",
+    delete: "delete",
+    keep: "keep",
+  } as const;
   for (const c of plan.changes) {
     if (c.action === "keep" && !c.conflict && !c.reason) continue;
     const tag = c.conflict

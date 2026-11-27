@@ -8,6 +8,8 @@ description: Every setting read from the environment, and which ones are secrets
 
 Keep secrets out of browser code. Never use a `NEXT_PUBLIC_` name for a secret.
 
+`npx speeq init` writes the names you need into `.env.local` for you, with empty values. The usual names are `SPEEQ_SECRET` (generated), `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `SPEEQ_LLM_MODEL` (model id, you set it), `SPEEQ_LLM_BASE_URL` (custom OpenAI-compatible server), and for cloud voice `GROQ_STT_MODEL` and `GEMINI_STT_MODEL`. See [Set up with one command](/docs/guides/cli).
+
 ## The SDK
 
 The SDK reads almost everything from the options you pass. It reads only these from the environment itself:

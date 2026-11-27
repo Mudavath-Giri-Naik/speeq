@@ -1,0 +1,52 @@
+import type { ProjectFs } from "./fsx.js";
+import type { PlanOptions } from "./plan.js";
+
+/** The choices made during `speeq init`, remembered so `upgrade` regenerates the same files. */
+export interface Setup {
+  setupVersion: 1;
+  provider: string;
+  voice: "none" | "browser" | "cloud";
+  languages: string[];
+  ui: boolean;
+  env: boolean;
+  name?: string;
+}
+
+/** Path of the setup file. It holds choices only: no keys, no values. */
+export const setupPath = (prefix: string) => `${prefix}.speeq/setup.json`;
+
+/** Read `.speeq/setup.json`; anything malformed is ignored (the defaults apply). */
+export async function readSetup(fs: ProjectFs, prefix: string): Promise<Setup | undefined> {
+  try {
+    const text = await fs.read(setupPath(prefix));
+    const v = text === undefined ? undefined : (JSON.parse(text) as Partial<Setup>);
+    if (!v || v.setupVersion !== 1) return undefined;
+    const voices = ["none", "browser", "cloud"];
+    if (typeof v.provider !== "string" || !voices.includes(String(v.voice))) return undefined;
+    if (!Array.isArray(v.languages) || !v.languages.every((l) => typeof l === "string"))
+      return undefined;
+    return {
+      setupVersion: 1,
+      provider: v.provider,
+      voice: v.voice as Setup["voice"],
+      languages: v.languages.slice(0, 6),
+      ui: v.ui === true,
+      env: v.env === true,
+      ...(typeof v.name === "string" ? { name: v.name.slice(0, 40) } : {}),
+    };
+  } catch {
+    return undefined;
+  }
+}
+/** The setup implied by plan options (what gets remembered). */
+export function setupOf(o: PlanOptions): Setup {
+  return {
+    setupVersion: 1,
+    provider: o.providerId ?? "mock",
+    voice: o.voice ?? "browser",
+    languages: [...(o.languages?.length ? o.languages : ["en-IN"])],
+    ui: o.ui === true,
+    env: o.env === true,
+    ...(o.assistantName ? { name: o.assistantName } : {}),
+  };
+}

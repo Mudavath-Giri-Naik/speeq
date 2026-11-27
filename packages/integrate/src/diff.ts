@@ -54,7 +54,13 @@ export function renderDiff(plan: IntegrationPlan): string {
       `--- ${c.action === "create" ? "/dev/null" : c.path}`,
       `+++ ${c.action === "delete" ? "/dev/null" : c.path}`,
     );
-    const lines = lineDiff(c.before ?? "", c.content ?? "").filter((l) => !l.startsWith(" "));
+    const lines =
+      c.display !== undefined
+        ? c.display
+            .split("\n")
+            .filter(Boolean)
+            .map((l) => `+${l}`)
+        : lineDiff(c.before ?? "", c.content ?? "").filter((l) => !l.startsWith(" "));
     parts.push(...lines);
   }
   return parts.join("\n");

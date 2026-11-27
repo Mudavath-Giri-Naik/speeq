@@ -21,7 +21,9 @@ export {
   writeManifest,
 } from "./decisions.js";
 export { lineDiff, renderDiff } from "./diff.js";
+export { type EnvName, ignoresEnvLocal, newSecret, planEnv } from "./env.js";
 export { memoryFs, nodeFs, type ProjectFs } from "./fsx.js";
+export { type LayoutSplice, spliceLayout } from "./layout.js";
 export { type Ownership, ownership, seal, sha256 } from "./owned.js";
 export {
   buildPlan,
@@ -39,9 +41,14 @@ export {
   PROVIDERS,
   type ProviderEntry,
   provider,
+  VOICES,
+  type VoiceEntry,
+  voice,
 } from "./registry.js";
 export type { FormSpec } from "./render.js";
 export { isSecretName, renderZod } from "./schema.js";
+export { readSetup, type Setup, setupOf, setupPath } from "./setup.js";
+export { type AssistantOptions, renderAssistant, type VoiceMode } from "./ui-template.js";
 export {
   type Check,
   type Level,

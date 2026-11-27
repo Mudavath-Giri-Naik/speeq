@@ -46,6 +46,10 @@ export interface Flags {
   cwd?: string;
   app?: string;
   provider?: string;
+  voice?: string;
+  languages?: string;
+  noUi: boolean;
+  noEnv: boolean;
   kind?: string;
   status?: string;
   access?: string;

@@ -11,6 +11,7 @@ import {
   PROVIDERS,
   renderZod,
   seal,
+  VOICES,
 } from "../src/index.js";
 
 describe("ownership", () => {
@@ -146,6 +147,25 @@ describe("registry", () => {
   });
   it("no provider hard-codes a model id", () => {
     for (const p of PROVIDERS) expect(p.expression).not.toMatch(/gpt-|gemini-\d|llama|claude/i);
+  });
+  it("offers Groq, OpenRouter and Gemini with variable names only: no keys, no model ids", () => {
+    const ids = PROVIDERS.map((p) => p.id);
+    expect(ids).toEqual(["mock", "groq", "gemini", "openrouter", "openai-compatible"]);
+    for (const id of ["groq", "openrouter"]) {
+      const p = PROVIDERS.find((x) => x.id === id);
+      expect(p?.needsKey).toBe(true);
+      expect(p?.env.map((e) => e.name)).toContain("SPEEQ_LLM_MODEL");
+      expect(p?.expression).toContain("process.env.SPEEQ_LLM_MODEL");
+      expect(p?.expression).not.toMatch(/(?:gsk_|sk-)[A-Za-z0-9]/);
+    }
+  });
+  it("cloud voice only turns on when every variable is set, so a fresh app still starts", () => {
+    const cloud = VOICES.find((v) => v.id === "cloud");
+    const text = cloud?.config.join(" ") ?? "";
+    for (const name of cloud?.env.map((e) => e.name) ?? [])
+      expect(text).toContain(`process.env.${name}`);
+    expect(text).toContain(": undefined");
+    expect(VOICES.map((v) => v.id)).toEqual(["browser", "cloud", "none"]);
   });
   it("offers the UI bridge as an opt-in feature", () => {
     const entry = FEATURES.find((f) => f.id === "ui-bridge");

@@ -38,6 +38,10 @@ export function parseCommandLine(argv: string[]): {
       cwd: { type: "string" },
       app: { type: "string" },
       provider: { type: "string" },
+      voice: { type: "string" },
+      languages: { type: "string" },
+      "no-ui": { type: "boolean", default: false },
+      "no-env": { type: "boolean", default: false },
       kind: { type: "string" },
       status: { type: "string" },
       access: { type: "string" },
@@ -64,7 +68,11 @@ export function parseCommandLine(argv: string[]): {
     version: values.version === true,
     ...(values.cwd ? { cwd: values.cwd } : {}),
     ...(values.app ? { app: values.app } : {}),
+    noUi: values["no-ui"] === true,
+    noEnv: values["no-env"] === true,
     ...(values.provider ? { provider: values.provider } : {}),
+    ...(values.voice ? { voice: values.voice } : {}),
+    ...(values.languages ? { languages: values.languages } : {}),
     ...(values.kind ? { kind: values.kind } : {}),
     ...(values.status ? { status: values.status } : {}),
     ...(values.access ? { access: values.access } : {}),
@@ -96,7 +104,10 @@ Options
   --yes, --ci    Never prompt (also when CI is set or there is no terminal)
   --app <dir>    App directory in a monorepo
   --cwd <dir>    Project directory (default: current)
-  --provider <mock|openai-compatible|gemini>
+  --provider <mock|groq|gemini|openrouter|openai-compatible>
+  --voice <browser|cloud|none>   --languages en-IN,te-IN,hi-IN
+  --no-ui        Do not generate the chat box or touch the layout
+  --no-env       Do not write variable names into .env.local
   --install      Install missing dependencies (init)
   --access <read|write> --auth <public|authenticated|roles> --roles a,b
   --forward-auth --no-confirm --name <tool>   (capabilities enable)
