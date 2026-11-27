@@ -4,6 +4,9 @@ const baseURL = "http://localhost:3107";
 
 export default defineConfig({
   testDir: "./e2e",
+  // The demo shares one in-memory conversation store, and the audit test reads the newest session.
+  // Specs must not run at the same time.
+  workers: 1,
   // The dev server compiles each route on first visit.
   timeout: 150_000,
   expect: { timeout: 40_000 },
