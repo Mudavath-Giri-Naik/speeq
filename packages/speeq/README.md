@@ -18,4 +18,6 @@ Use `speeq/client` for browser state, `speeq/react` for hooks, and `speeq/server
 
 Install React 18 or newer for the hooks. Install `mongodb` 6 or newer and supply your connected database for `speeq/store-mongodb`. Importing the MongoDB entry without the driver produces Node’s standard module-not-found error. Both peers are optional, so a default install does not add React or the MongoDB driver.
 
+To integrate speeq into an existing Next.js App Router app, run `npx speeq init` (Node.js 22.12 or newer; see the [CLI reference](https://github.com/Mudavath-Giri-Naik/speeq/blob/main/docs/reference/cli.md)).
+
 [Next.js guide](https://github.com/Mudavath-Giri-Naik/speeq/blob/main/docs/guides/nextjs.md)
