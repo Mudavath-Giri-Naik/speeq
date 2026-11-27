@@ -24,13 +24,13 @@ notices logins and logouts while open through `GET /identity`.
 
 ## 3. Decisions already made (do NOT change or re-decide)
 
-- Everything in ADR-0022 decisions 1 to 7. The architect writes `token.ts` and `Runtime.authenticate`
-  changes on this branch **before** you start (commit `feat(server): tenant-bound session tokens …`).
-  Do not edit those two functions; build on them.
-- New error codes, appended to the end of `ERROR_CODES`: `IDENTITY_CHANGED` (401, not retryable,
-  message "Your account changed. Starting a fresh conversation."), `AUTH_UNAVAILABLE` (503, retryable,
-  message "Sign-in is temporarily unavailable. Please try again in a moment."). Already added by the
-  architect's commit.
+- Everything in ADR-0022 decisions 1 to 7.
+- **Already on the branch** (architect's commit `feat(server): tenant-bound session tokens …`; do not
+  edit, build on it): `AgentUser.tenantId` / `AgentUserProfile` types; error codes `IDENTITY_CHANGED`
+  (401) and `AUTH_UNAVAILABLE` (503, retryable); v2 token claims with `tid` and v1 compatibility;
+  `identityFingerprint(user, secret)` in `security/token.ts`; `Runtime.lookupUser` and the strict
+  `Runtime.authenticate`; `AUTH_UNAVAILABLE` and `tid` signing in `handleCreateSession`; their tests in
+  `server/test/token.test.ts`.
 - `identity.expose` default `[]`. Allowed entries: `"displayName" | "preferredName" | "locale"`. (`roles` and
   `attributes` are reserved for task 023 and rejected with `NOT_CONFIGURED` for now.)
 - Fingerprint is computed only on the server (`identityFingerprint(user, secret)` in `security/token.ts`, written
@@ -46,18 +46,19 @@ notices logins and logouts while open through `GET /identity`.
 Create: `packages/server/src/handler/identity.ts`, `packages/client/src/identity.ts`,
 `packages/server/test/identity-lifecycle.test.ts`, `packages/client/test/identity.test.ts`,
 `packages/react/test/identity.test.tsx`, `.changeset/identity-lifecycle.md`.
-Modify: `packages/core/src/interfaces/context.ts`, `core/src/schemas/http.ts`, `core/src/schemas/audit.ts`,
+Modify: `core/src/schemas/http.ts`, `core/src/schemas/audit.ts`,
 `packages/server/src/config.ts`, `server/src/resolve.ts`, `server/src/handler/session.ts`,
 `server/src/handler/index.ts`, `packages/client/src/session.ts`, `client/src/client.ts`,
 `client/src/types.ts`, `client/src/index.ts`, `packages/react/src/hooks.ts`, `react/src/index.ts`,
 both store adapters (store and return `tenantId`, filter by it), `packages/testing` store contract,
 `packages/server/test/telemetry-privacy.test.ts`, `docs/reference/` pages for errors, protocol and the client API.
-Do NOT touch: `security/token.ts`, `Runtime.authenticate`, the compiler, the CLI, the generated chat box
+Do NOT touch: `security/token.ts`, `Runtime.lookupUser` / `authenticate`, `core/src/errors.ts` codes,
+`core/src/interfaces/context.ts`, the compiler, the CLI, the generated chat box
 (`integrate/ui-template.ts`, task 024 wires it), prompt construction.
 
 ## 5. Requirements
 
-1. `AgentUser` gains `tenantId?: string` and `profile?: AgentUserProfile` (contract below), JSDoc on each.
+1. (Done by the architect.) `AgentUser` contract below; read it, do not change it.
 2. `NewSession`, `SessionSummary` gain `tenantId: string | null` (optional on read for old records, which
    read as `null`); `SessionFilter` gains `tenantId?: string`. Both adapters persist and filter it; the
    store contract tests it, including old records without the field.

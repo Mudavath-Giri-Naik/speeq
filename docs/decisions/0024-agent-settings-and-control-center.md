@@ -43,6 +43,27 @@ free-form TypeScript do not scale to twenty settings and break custom code.
    still uses the linear wizard, then shows the home screen. Non-TTY: `speeq setup --json` prints state.
    A section is listed only when its feature exists; unavailable ones show why.
 
+7. **The terminal experience bar** (owner priority: structured, intelligent, delightful). Task 027 is
+   accepted only if it meets all of these:
+   - **Home first.** A `box()` status card, then sections in a fixed order, each one line:
+     `05  Authentication and identity   ✓ Supabase Auth, bound and verified`. Nothing to read twice.
+   - **One recommendation, ranked deterministically** from state (broken > security review > unbound
+     detection > missing persistence > polish), with the reason and the time it takes:
+     `Recommended  Bind Supabase Auth so the agent knows who is signed in  (about 1 minute)`.
+   - **Smart defaults from the scan, with evidence.** Business name from metadata, preset guessed from
+     routes and tools (`/courses`, `enroll` → Education, "because …"), auth from source files with
+     line numbers. The developer confirms; nothing is assumed silently.
+   - **Show, don't describe.** Greeting previews for guest, member and returning visitor side by side;
+     a sample system-prompt outline with sizes; context sources as a table with fields marked
+     approved / excluded / restricted. Synthetic data only, never real records.
+   - **Every save is a reviewed diff** (coloured, minimal), then a receipt: what changed, what to
+     restart, `speeq rollback` to undo.
+   - **Live checks feel alive.** `taskLog`/spinners with timings for key tests, Mongo ping, binding test;
+     failures show the stable reason and one fix.
+   - **Never stuck.** Back, Skip and Cancel on every screen, `?` help per screen, Ctrl-C writes nothing.
+   - **Accessible and robust.** Status by symbol and word (not colour alone), `NO_COLOR`, works at 60
+     columns, plain output and `--json` without a TTY, secrets never echoed.
+
 ## Alternatives rejected
 
 - Editing `speeq.config.ts` for every setting: fragile, overwrites developer code.
