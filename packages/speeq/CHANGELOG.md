@@ -1,5 +1,26 @@
 # speeq
 
+## 0.7.0
+
+### Minor Changes
+
+- 54755b9: `npx speeq init` now sets up a working assistant without writing code: it asks for a model provider (Groq, Gemini, OpenRouter, any OpenAI-compatible server, or mock) and voice, generates the chat box into your app, adds it to your root layout, and writes the needed variable names into `.env.local` for you to fill in (it never writes or reads your keys). Also adds draft-only form filling (`defineFormFill`, `useSpeeqForm`) and generated `.speeq/generated/ui.ts`.
+
+### Patch Changes
+
+- Updated dependencies [54755b9]
+  - @speeq/core@0.7.0
+  - @speeq/server@0.7.0
+  - @speeq/client@0.7.0
+  - @speeq/react@0.7.0
+  - @speeq/cli@0.7.0
+  - @speeq/llm-gemini@0.7.0
+  - @speeq/llm-openai-compatible@0.7.0
+  - @speeq/speech@0.7.0
+  - @speeq/store-memory@0.7.0
+  - @speeq/store-mongodb@0.7.0
+  - @speeq/testing@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes
