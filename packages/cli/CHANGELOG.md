@@ -1,5 +1,18 @@
 # @speeq/cli
 
+## 0.8.0
+
+### Minor Changes
+
+- 07c2699: New `npx speeq connect` (also offered at the end of `init`): paste your model key in the terminal (hidden), speeq checks it with the provider, tests which chat models work, lets you pick one, and saves the key and model in `.env.local`. It also offers to switch `speeq.config.ts` when it still uses a different provider than the key you pasted. Keys go only to the provider's own host and are never printed.
+
+### Patch Changes
+
+- Updated dependencies [07c2699]
+  - @speeq/integrate@0.8.0
+  - @speeq/compiler@0.8.0
+  - @speeq/core@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes
