@@ -83,6 +83,15 @@ The key goes **only to the provider's own host** (for example `api.groq.com`), i
 
 If you would rather not paste a key into the terminal, choose **Skip** and fill `.env.local` by hand.
 
+## How the assistant behaves
+
+- **It starts the conversation** with a short greeting and buttons for a few of your pages, then follows the whole conversation: it uses what you already said and does not ask twice.
+- **It talks like a person**: short, relaxed sentences, no stock phrases, and in Telugu or Hindi it uses everyday spoken words instead of a word-for-word translation.
+- **It knows the page you are on** (the path and title, never the query string) and the pages speeq found in your app.
+- **Opening a page is quick**: the model says one short line and changes the page in the same reply, so there is no second wait.
+- **The chat box is black and white** (it follows the light or dark setting of the visitor's device), with CSS-only motion that turns off for people who ask for less motion. It adds no packages to your app. It is a file in your app, so you can restyle it: delete its first line to take it over.
+- **Speed depends mostly on the model.** Free tiers have small limits, and a limit shows up as "the assistant is busy". Groq answered in about half a second when I measured; a free Gemini key hit its limit after a few messages. `npx speeq setup` shows which of your models answer.
+
 ## After you update speeq
 
 The chat box and the other generated files are written into your app, so updating the package does not change them. After `pnpm add speeq@latest` run `npx speeq upgrade` (or `npx speeq setup`, which also refreshes an outdated chat box) to get the new version of them. Files you edited are never overwritten.

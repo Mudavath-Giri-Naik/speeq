@@ -53,6 +53,7 @@ export async function runAgentLoop<TUser extends AgentUser>(
 ): Promise<LoopResult> {
   const { config } = rt;
   for (let step = 0; step < config.maxSteps; step++) {
+    let navigated = 0;
     const lastStep = step === config.maxSteps - 1;
     const { text, calls } = await callModel(rt, messages, lastStep ? [] : rt.toolDefs);
     const acted = calls.length > 0 && !lastStep;
@@ -151,7 +152,11 @@ export async function runAgentLoop<TUser extends AgentUser>(
         name: call.name,
         content: outcome.content,
       });
+      if (call.name === "navigate" && outcome.ok) navigated++;
     }
+    // The model already said its line in the same reply as the page change: another model call would
+    // only repeat it and add a second of waiting.
+    if (navigated === calls.length && text.trim()) return { reason: "completed", steps: step + 1 };
   }
   return { reason: "max_steps", steps: config.maxSteps };
 }

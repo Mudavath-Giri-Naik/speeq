@@ -110,15 +110,16 @@ describe("the generated chat box", () => {
   });
   it("starts the conversation with a greeting and tappable suggestions", () => {
     expect(widget).toContain('const SUGGESTIONS: string[] = ["Open Pricing","Open \\"Docs\\""];');
-    expect(widget).toContain("What would you like to do?");
-    expect(widget).toContain("sq-greeting");
+    expect(widget).toContain("What are you after?");
+
     expect(widget).toContain("chat.sendText(s)");
   });
   it("scrolls to the newest message and keeps the log scrollable", () => {
     expect(widget).toContain("el.scrollTo({ top: el.scrollHeight })");
     expect(widget).toContain("latest?.text");
     expect(widget).toContain(".sq-log{flex:1 1 auto;min-height:0;overflow-y:auto");
-    expect(widget).toContain("Thinking...");
+    expect(widget).toContain("sq-typing");
+    expect(widget).toContain("getContext={() =>");
   });
   it("is syntactically valid", () => {
     const out = ts.transpileModule(widget.replace(/^\/\/.*\n/, ""), {
