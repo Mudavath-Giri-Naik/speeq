@@ -87,3 +87,17 @@ export function setDecision(
     capabilities: { ...(decisions?.capabilities ?? {}), [id]: next },
   });
 }
+/** Write the scanner-owned manifest. Returns what happened. */
+export async function writeManifest(
+  fs: ProjectFs,
+  prefix: string,
+  manifest: Manifest,
+): Promise<"created" | "updated" | "unchanged"> {
+  const path = manifestPath(prefix);
+  const text = `${JSON.stringify(manifest, null, 2)}
+`;
+  const current = await fs.read(path);
+  if (current === text) return "unchanged";
+  await fs.write(path, text);
+  return current === undefined ? "created" : "updated";
+}

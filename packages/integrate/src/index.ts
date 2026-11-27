@@ -3,7 +3,13 @@
  * The only package that writes files in a developer's project (ADR-0016).
  * @packageDocumentation
  */
-export { type ApplyResult, applyPlan, type RollbackResult, rollback } from "./apply.js";
+export {
+  type ApplyResult,
+  applyPlan,
+  previewRollback,
+  type RollbackResult,
+  rollback,
+} from "./apply.js";
 export {
   decisionsPath,
   IntegrateError,
@@ -12,6 +18,7 @@ export {
   serializeDecisions,
   setDecision,
   writeDecisions,
+  writeManifest,
 } from "./decisions.js";
 export { lineDiff, renderDiff } from "./diff.js";
 export { memoryFs, nodeFs, type ProjectFs } from "./fsx.js";
@@ -22,6 +29,7 @@ export {
   isEmptyPlan,
   type PlannedChange,
   type PlanOptions,
+  reviewState,
   ZOD_VERSION,
 } from "./plan.js";
 export {

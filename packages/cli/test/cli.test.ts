@@ -1,0 +1,289 @@
+import { readFileSync } from "node:fs";
+import { afterEach, describe, expect, it } from "vitest";
+import { SPEEQ_PACKAGE_VERSION } from "../src/index.js";
+import { app, noPrompts, scripted } from "./helpers.js";
+
+type App = Awaited<ReturnType<typeof app>>;
+const open: App[] = [];
+async function make(fixture: string) {
+  const a = await app(fixture);
+  open.push(a);
+  return a;
+}
+afterEach(async () => {
+  await Promise.all(open.splice(0).map((a) => a.cleanup()));
+});
+const ROUTE = "route:/subjects";
+const ADD = "function:app/actions.ts#addItem";
+
+describe("usage and exit codes", () => {
+  it("returns 2 for an unknown command or flag, with a JSON error when asked", async () => {
+    const a = await make("next-app-minimal");
+    expect((await a.cli(["frobnicate"])).code).toBe(2);
+    expect((await a.cli(["init", "--nope"])).code).toBe(2);
+    const j = await a.cli(["frobnicate", "--json"]);
+    expect(j.code).toBe(2);
+    expect(j.json()).toMatchObject({
+      speeq: 1,
+      ok: false,
+      exitCode: 2,
+      errors: [{ code: "usage" }],
+    });
+  });
+  it("prints help and a version that matches the umbrella package", async () => {
+    const a = await make("next-app-minimal");
+    expect((await a.cli(["--help"])).stdout).toContain("Exit codes");
+    const v = await a.cli(["--version"]);
+    expect(v.stdout.trim()).toBe(SPEEQ_PACKAGE_VERSION);
+    const umbrella = JSON.parse(
+      readFileSync(new URL("../../speeq/package.json", import.meta.url), "utf8"),
+    );
+    expect(SPEEQ_PACKAGE_VERSION).toBe(umbrella.version);
+  });
+  it("returns 4 for a project that is not a supported Next.js app", async () => {
+    for (const f of ["no-next", "old-next"]) {
+      const a = await make(f);
+      expect((await a.cli(["scan"])).code).toBe(4);
+    }
+  });
+  it("returns 2 when several apps exist and none was chosen, and works with --app", async () => {
+    const a = await make("monorepo-pnpm-two-apps");
+    const r = await a.cli(["scan", "--json"]);
+    expect(r.code).toBe(2);
+    expect(r.json().errors).toMatchObject([{ code: "needs-selection" }]);
+    expect((await a.cli(["scan", "--app", "apps/web", "--dry-run"])).code).not.toBe(2);
+  });
+  it("returns 3 when capabilities wait for review and 0 once they are decided", async () => {
+    const a = await make("next-app-minimal");
+    expect((await a.cli(["init"])).code).toBe(3);
+    expect((await a.cli(["capabilities", "enable", ROUTE])).code).toBe(0);
+    expect((await a.cli(["init"])).code).toBe(0);
+    expect((await a.cli(["scan"])).code).toBe(0);
+  });
+  it("returns 1 for a hand-edited generated file and leaves it alone", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    await a.cli(["init"]);
+    const edited = `${await a.read(".speeq/generated/routes.ts")}// mine\n`;
+    await a.write(".speeq/generated/routes.ts", edited);
+    const r = await a.cli(["upgrade", "--json"]);
+    expect(r.code).toBe(1);
+    expect(r.json().errors).toMatchObject([{ code: "conflict" }]);
+    expect(await a.read(".speeq/generated/routes.ts")).toBe(edited);
+  });
+  it("capabilities: unknown id is 2, credentials are 4, bad flags are 2", async () => {
+    const a = await make("endpoints-input");
+    expect((await a.cli(["capabilities", "enable", "route:/nope"])).code).toBe(2);
+    expect((await a.cli(["capabilities", "enable", "endpoint:POST /api/pay"])).code).toBe(4);
+    expect(
+      (await a.cli(["capabilities", "enable", "endpoint:GET /api/query", "--access", "root"])).code,
+    ).toBe(2);
+    expect(
+      (await a.cli(["capabilities", "enable", "endpoint:GET /api/query", "--auth", "roles"])).code,
+    ).toBe(2);
+    expect((await a.cli(["capabilities", "enable"])).code).toBe(2);
+    expect((await a.cli(["capabilities", "wat"])).code).toBe(2);
+    expect(await a.read(".speeq/decisions.json").catch(() => "none")).toBe("none");
+  });
+  it("verify and doctor are stubs that succeed", async () => {
+    const a = await make("next-app-minimal");
+    for (const c of ["verify", "doctor"]) expect((await a.cli([c])).code).toBe(0);
+  });
+  it("rollback with nothing to undo is 1", async () => {
+    const a = await make("next-app-minimal");
+    expect((await a.cli(["rollback"])).code).toBe(1);
+  });
+});
+
+describe("--json", () => {
+  it("prints exactly one document with fixed keys", async () => {
+    const a = await make("next-app-minimal");
+    for (const args of [["init"], ["scan"], ["upgrade"], ["configure"], ["capabilities", "list"]]) {
+      const r = await a.cli([...args, "--json"]);
+      expect(r.stdout.trim().split("\n")).toHaveLength(1);
+      const doc = r.json();
+      expect(doc).toMatchObject({ speeq: 1, command: args[0], exitCode: r.code, errors: [] });
+      expect(typeof doc.ok).toBe("boolean");
+    }
+    const init = (await a.cli(["init", "--json", "--dry-run"])).json();
+    expect(Object.keys(init.plan as object).sort()).toEqual(
+      [
+        "changes",
+        "conflicts",
+        "dependencies",
+        "env",
+        "manual",
+        "pending",
+        "skipped",
+        "stale",
+        "wrapped",
+      ].sort(),
+    );
+    expect(init).toMatchObject({ applied: "dry-run", project: { framework: "nextjs-app" } });
+  });
+  it("prints nothing else on stdout", async () => {
+    const a = await make("next-app-minimal");
+    const r = await a.cli(["init", "--json"]);
+    expect(() => JSON.parse(r.stdout)).not.toThrow();
+  });
+});
+
+describe("dry run, diff and idempotency", () => {
+  it("writes nothing with --dry-run, and shows a diff with --diff", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    const before = await a.snapshot();
+    const r = await a.cli(["init", "--dry-run", "--diff"]);
+    expect(await a.snapshot()).toEqual(before);
+    expect(r.stdout).toContain("+++ .speeq/generated/routes.ts");
+    for (const c of ["scan", "upgrade", "capabilities enable route:/subjects", "rollback"]) {
+      await a.cli([...c.split(" "), "--dry-run"]);
+      expect(await a.snapshot()).toEqual(before);
+    }
+  });
+  it("a second init changes nothing", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    expect((await a.cli(["init"])).code).toBe(0);
+    const after = await a.snapshot();
+    const again = await a.cli(["init", "--json"]);
+    expect(again.json()).toMatchObject({ applied: "noop" });
+    expect(
+      (again.json().plan as { changes: { action: string }[] }).changes.every(
+        (c) => c.action === "keep",
+      ),
+    ).toBe(true);
+    expect(await a.snapshot()).toEqual(after);
+  });
+  it("rollback restores the tree from before init", async () => {
+    const a = await make("next-app-minimal");
+    const before = await a.snapshot();
+    await a.cli(["init"]);
+    expect(await a.snapshot()).not.toEqual(before);
+    const r = await a.cli(["rollback"]);
+    expect(r.code).toBe(0);
+    expect(await a.snapshot()).toEqual(before);
+  });
+  it("rollback keeps a file edited after init and exits 1", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    await a.cli(["init"]);
+    await a.write(".speeq/generated/routes.ts", "// mine\n");
+    const r = await a.cli(["rollback", "--json"]);
+    expect(r.code).toBe(1);
+    expect(await a.read(".speeq/generated/routes.ts")).toBe("// mine\n");
+    expect(r.json().skipped).toHaveLength(1);
+  });
+});
+
+describe("decisions", () => {
+  it("enable records the current fingerprint, and decisions survive scan and upgrade", async () => {
+    const a = await make("server-actions");
+    expect((await a.cli(["capabilities", "enable", ADD, "--auth", "authenticated"])).code).toBe(0);
+    const d = JSON.parse(await a.read(".speeq/decisions.json"));
+    const m = (await a.cli(["capabilities", "show", ADD, "--json"])).json().capability as {
+      fingerprint: string;
+    };
+    expect(d.capabilities[ADD]).toMatchObject({
+      review: "approved",
+      approvedFingerprint: m.fingerprint,
+      auth: { requirement: "authenticated" },
+    });
+    await a.cli(["scan"]);
+    await a.cli(["upgrade"]);
+    expect(JSON.parse(await a.read(".speeq/decisions.json"))).toEqual(d);
+    const list = (await a.cli(["capabilities", "list", "--json", "--status", "executable"])).json();
+    expect((list.capabilities as { id: string }[]).map((c) => c.id)).toEqual([ADD]);
+  });
+  it("a changed fingerprint stops execution: wrapper removed, stale reported, exit 3", async () => {
+    const a = await make("server-actions");
+    await a.cli(["capabilities", "enable", ADD, "--auth", "public"]);
+    await a.cli(["upgrade"]);
+    expect(await a.read(".speeq/generated/tools.ts")).toContain("addItem");
+    await a.write(
+      "app/actions.ts",
+      (await a.read("app/actions.ts")).replace("z.string()", "z.string().min(3)"),
+    );
+    const r = await a.cli(["upgrade", "--json"]);
+    expect(r.code).toBe(3);
+    expect((r.json().reconcile as { stale: string[] }).stale).toEqual([ADD]);
+    expect(await a.read(".speeq/generated/tools.ts")).not.toContain("addItem");
+    expect(JSON.parse(await a.read(".speeq/decisions.json")).capabilities[ADD].review).toBe(
+      "approved",
+    );
+  });
+  it("an invalid decisions file is an error, never silently reset", async () => {
+    const a = await make("next-app-minimal");
+    await a.write(".speeq/decisions.json", "{ nope");
+    const r = await a.cli(["scan", "--json"]);
+    expect(r.code).toBe(1);
+    expect(await a.read(".speeq/decisions.json")).toBe("{ nope");
+  });
+  it("disable stops wrapping", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    await a.cli(["init"]);
+    expect(await a.read(".speeq/generated/routes.ts")).toContain("/subjects");
+    await a.cli(["capabilities", "disable", ROUTE]);
+    await a.cli(["upgrade"]);
+    expect(await a.read(".speeq/generated/routes.ts")).not.toContain("/subjects");
+  });
+});
+
+describe("interactive and CI mode", () => {
+  it("never prompts without a terminal, with --yes, --ci or CI set", async () => {
+    const a = await make("next-app-minimal");
+    for (const [args, over] of [
+      [["init"], { isTTY: false }],
+      [["init", "--yes"], { isTTY: true }],
+      [["init", "--ci"], { isTTY: true }],
+      [["init"], { isTTY: true, env: { CI: "true" } }],
+      [["init", "--json"], { isTTY: true }],
+    ] as const) {
+      const r = await a.cli([...args], { ...over, prompts: noPrompts });
+      expect([0, 3]).toContain(r.code);
+    }
+  });
+  it("init in a terminal asks, approves only what was selected, and applies", async () => {
+    const a = await make("next-app-minimal");
+    const prompts = scripted(["mock", ["audit"], [ROUTE], true, false]);
+    const r = await a.cli(["init"], { isTTY: true, prompts });
+    expect(r.code).toBe(0);
+    expect(prompts.asked).toHaveLength(5);
+    const d = JSON.parse(await a.read(".speeq/decisions.json"));
+    expect(Object.keys(d.capabilities)).toEqual([ROUTE]);
+    expect(await a.read("speeq.config.ts")).toContain("createMockLLMProvider");
+    expect(await a.read("speeq.config.ts")).toContain("audit:");
+    expect(await a.read("speeq.config.ts")).not.toContain("telemetry:");
+  });
+  it("answering no to the apply question writes nothing but decisions", async () => {
+    const a = await make("next-app-minimal");
+    const r = await a.cli(["init"], { isTTY: true, prompts: scripted(["mock", [], [], false]) });
+    expect(r.code).toBe(1);
+    const files = Object.keys(await a.snapshot());
+    expect(files).not.toContain("speeq.config.ts");
+    expect(files).not.toContain(".speeq/generated/tools.ts");
+  });
+  it("installs dependencies only on request, with exact versions and no scripts", async () => {
+    const a = await make("next-app-minimal");
+    await a.cli(["capabilities", "enable", ROUTE]);
+    const calls: string[][] = [];
+    const exec = async (c: string, args: string[]) => (calls.push([c, ...args]), 0);
+    await a.cli(["init"], { exec });
+    expect(calls).toEqual([]);
+    await a.cli(["rollback"]);
+    await a.cli(["init", "--install", "--json"], { exec });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toEqual(
+      expect.arrayContaining(["--ignore-scripts", `speeq@${SPEEQ_PACKAGE_VERSION}`]),
+    );
+    expect(calls[0]?.join(" ")).toMatch(/--save-exact|--exact/);
+  });
+  it("configure without a terminal only reports", async () => {
+    const a = await make("next-app-minimal");
+    const before = await a.snapshot();
+    const r = await a.cli([], { prompts: noPrompts });
+    expect([0, 3]).toContain(r.code);
+    expect(await a.snapshot()).toEqual(before);
+  });
+});

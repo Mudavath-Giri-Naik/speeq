@@ -189,3 +189,36 @@ export async function rollback(
   }
   return { status: "none" };
 }
+/** What {@link rollback} would do, without changing anything. */
+export async function previewRollback(
+  fs: ProjectFs,
+  prefix: string,
+): Promise<
+  | {
+      id: string;
+      files: { path: string; action: "restore" | "remove" | "skip"; reason?: string }[];
+    }
+  | undefined
+> {
+  for (const id of (await fs.list(backupsDir(prefix))).sort().reverse()) {
+    const text = await fs.read(`${backupsDir(prefix)}/${id}/journal.json`);
+    if (!text) continue;
+    let journal: Journal;
+    try {
+      journal = JSON.parse(text) as Journal;
+    } catch {
+      continue;
+    }
+    if (journal.state !== "applied" || journal.files.every((f) => f.restored)) continue;
+    const files: { path: string; action: "restore" | "remove" | "skip"; reason?: string }[] = [];
+    for (const f of [...journal.files].reverse()) {
+      if (f.restored) continue;
+      const current = await fs.read(f.path);
+      if (f.afterHash !== undefined && current !== undefined && sha256(current) !== f.afterHash)
+        files.push({ path: f.path, action: "skip", reason: "Changed since speeq wrote it." });
+      else files.push({ path: f.path, action: f.action === "create" ? "remove" : "restore" });
+    }
+    return { id, files };
+  }
+  return undefined;
+}

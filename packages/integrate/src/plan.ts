@@ -264,6 +264,21 @@ function owned(path: string, current: string | undefined, body: string): Planned
       };
 }
 
+/** Reconciliation plus the lists the CLI reports: capabilities waiting for review and stale approvals. */
+export function reviewState(manifest: Manifest, decisions: DecisionsFile | undefined) {
+  const r = reconcile(manifest, decisions, () => ({
+    binding: "bound",
+    verification: "unverified",
+  }));
+  const wrappable = (id: string) => WRAPPABLE.has(id.slice(0, id.indexOf(":")));
+  const pending = r.entries
+    .filter(
+      (e) =>
+        wrappable(e.id) && !e.decision && e.status.support !== "unsupported" && !e.status.blocked,
+    )
+    .map((e) => e.id);
+  return { ...r, pending, stale: r.stale.filter(wrappable) };
+}
 /** Build the plan for one project. Pure with respect to the file system: it only reads. */
 export async function buildPlan(input: {
   manifest: Manifest;
@@ -273,10 +288,7 @@ export async function buildPlan(input: {
 }): Promise<IntegrationPlan> {
   const { manifest, decisions, fs, options } = input;
   const prefix = options.prefix;
-  const r = reconcile(manifest, decisions, () => ({
-    binding: "bound",
-    verification: "unverified",
-  }));
+  const r = reviewState(manifest, decisions);
   const status = new Map(r.entries.map((e) => [e.id, e]));
   const toolNames = new Set<string>();
   const routeIds = new Set<string>();
@@ -284,7 +296,6 @@ export async function buildPlan(input: {
   const routes: RouteSpec[] = [];
   const wrapped: IntegrationPlan["wrapped"] = [];
   const skipped: IntegrationPlan["skipped"] = [];
-  const pending: string[] = [];
   const generated = `${prefix}.speeq/generated`;
 
   for (const c of manifest.capabilities) {
@@ -297,7 +308,6 @@ export async function buildPlan(input: {
         skipped.push({ id: c.id, reason: "Forms and filters are discovered, not operated." });
       continue;
     }
-    if (!decision && s.support !== "unsupported" && !s.blocked) pending.push(c.id);
     if (!s.executable) {
       if (
         decision?.review === "approved" &&
@@ -337,7 +347,7 @@ export async function buildPlan(input: {
     wrapped.push({ id: c.id, tool: "call" in spec ? spec.name : spec.id });
   }
 
-  const stale = r.stale.filter((id) => WRAPPABLE.has(id.slice(0, id.indexOf(":"))));
+  const { stale, pending } = r;
   const changes: PlannedChange[] = [];
   const read = (p: string) => fs.read(p);
 
