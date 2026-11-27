@@ -52,6 +52,8 @@ describe("dependency direction", () => {
       "speeq",
     ]) {
       for (const tool of ["@speeq/compiler", "@speeq/integrate", "@speeq/cli"]) {
+        // The umbrella ships the `speeq` executable, a shim over the CLI (ADR-0014).
+        if (name === "speeq" && tool === "@speeq/cli") continue;
         expect(
           checkPackage({
             dir: "x",
@@ -68,9 +70,19 @@ describe("dependency direction", () => {
       checkPackage({
         dir: "x",
         manifest: { name: "speeq", optionalDependencies: { "@speeq/compiler": "*" } },
-        sources: [{ file: "x.ts", code: 'require("@speeq/cli");' }],
+        sources: [{ file: "x.ts", code: 'require("@speeq/integrate");' }],
       }),
     ).toHaveLength(2);
+  });
+
+  it("lets the umbrella depend on and import only the CLI for its executable", () => {
+    expect(
+      checkPackage({
+        dir: "x",
+        manifest: { name: "speeq", dependencies: { "@speeq/cli": "workspace:*" } },
+        sources: [{ file: "src/bin.ts", code: 'await import("@speeq/cli");' }],
+      }),
+    ).toEqual([]);
   });
 
   it("flags core depending on server", () => {

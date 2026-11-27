@@ -1,4 +1,5 @@
 ---
+
 "speeq": minor
 "@speeq/cli": minor
 "@speeq/integrate": minor

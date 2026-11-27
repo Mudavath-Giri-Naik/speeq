@@ -34,3 +34,11 @@ dependency (`typescript`). The runtime packages must stay small, browser-safe an
 
 Apps that only use the SDK pay nothing at runtime. `npx speeq init` becomes documented only after
 a packed-tarball test in a clean app passes (task 022). `docs` must not advertise it earlier.
+
+## Outcome (task 018)
+
+The executable shipped as decided: `speeq` has `bin: speeq`, a shim that checks Node 22.12 and imports
+`@speeq/cli`, which is a regular dependency. `@speeq/cli`, `@speeq/integrate` and `@speeq/compiler` are
+public and versioned in lockstep with the SDK. Measured install size of `speeq` plus `zod`: 33.08 MB, of
+which 24.75 MB is dev-time (TypeScript 23.22 MB). The fallback in point 6 was not needed to ship and stays
+available. The packed-tarball test passed, so `npx speeq init` may now be documented.

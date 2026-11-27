@@ -174,5 +174,5 @@ only after the previous phase gate passes.
 ## 9. Open items needing evidence (not decisions)
 
 1. ts-morph versus raw TypeScript API on TS 6.0.x (task 015 evidence).
-2. Umbrella install size with `@speeq/cli` (task 022 measurement; fallback in ADR-0014).
+2. Umbrella install size with `@speeq/cli`: measured in task 018 (33.08 MB, 24.75 MB dev-time); see `phase-1-report.md` and the ADR-0014 outcome.
 3. Which three external apps (licences) for 022. The developer's own app (SwaSeekh) is one candidate, never the only tuning target.

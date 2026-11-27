@@ -156,30 +156,62 @@ async function cli(args: string[], cwd: string) {
 
 async function validate(app: { id: string; repo: string; rev: string }) {
   const upstream = fetchApp(app);
-  const upstreamBefore = await treeHash(upstream);
+  const before = await treeHash(upstream);
+  const result = await validateCopy(app);
+  if ((await treeHash(upstream)) !== before) throw new Error(`${app.id}: upstream copy changed`);
+  return result;
+}
+async function validateCopy(app: { id: string; repo: string; rev: string }) {
+  const upstream = fetchApp(app);
   const work = await mkdtemp(join(tmpdir(), `speeq-real-${app.id}-`));
   try {
-    await cp(upstream, work, { recursive: true, filter: (s) => !/[\\/](\.git|node_modules)([\\/]|$)/.test(s) });
+    await cp(upstream, work, {
+      recursive: true,
+      filter: (s) => !/[\\/](\.git|node_modules)([\\/]|$)/.test(s),
+    });
     const lic = licence(work);
     if (!["MIT", "Apache-2.0", "BSD"].includes(lic.spdx))
-      return { id: app.id, rev: app.rev, repo: app.repo, license: lic, status: "licence-not-accepted" };
+      return {
+        id: app.id,
+        rev: app.rev,
+        repo: app.repo,
+        license: lic,
+        status: "licence-not-accepted",
+      };
     const base = await baseline(work);
     const t0 = performance.now();
     const result = await scan({ root: work });
     const scanMs = Math.round(performance.now() - t0);
     const rss = Math.round(process.memoryUsage().rss / 1048576);
     if (result.status !== "ok")
-      return { id: app.id, rev: app.rev, repo: app.repo, license: lic, status: result.status, files: base.files };
+      return {
+        id: app.id,
+        rev: app.rev,
+        repo: app.repo,
+        license: lic,
+        status: result.status,
+        files: base.files,
+      };
     const m: Manifest = result.manifest;
-    const routes = new Set(m.capabilities.flatMap((c) => (c.kind === "route" ? [canon(c.path)] : [])));
+    const routes = new Set(
+      m.capabilities.flatMap((c) => (c.kind === "route" ? [canon(c.path)] : [])),
+    );
     const endpoints = new Set(
-      m.capabilities.flatMap((c) => (c.kind === "endpoint" ? c.methods.map((x) => `${x} ${canon(c.path)}`) : [])),
+      m.capabilities.flatMap((c) =>
+        c.kind === "endpoint" ? c.methods.map((x) => `${x} ${canon(c.path)}`) : [],
+      ),
     );
     const actions = new Set(
-      m.capabilities.flatMap((c) => (c.kind === "function" && c.export.isServerAction ? [`${c.export.file}#${c.export.name}`] : [])),
+      m.capabilities.flatMap((c) =>
+        c.kind === "function" && c.export.isServerAction
+          ? [`${c.export.file}#${c.export.name}`]
+          : [],
+      ),
     );
     const byKind: Record<string, number> = {};
     for (const c of m.capabilities) byKind[c.kind] = (byKind[c.kind] ?? 0) + 1;
+    const bySupport: Record<string, number> = {};
+    for (const c of m.capabilities) bySupport[c.support] = (bySupport[c.support] ?? 0) + 1;
     const diagnostics: Record<string, number> = {};
     for (const d of m.diagnostics) diagnostics[d.code] = (diagnostics[d.code] ?? 0) + 1;
 
@@ -193,7 +225,10 @@ async function validate(app: { id: string; repo: string; rev: string }) {
           decisions = setDecision(decisions, m, c.id, "enable");
           approved++;
         } else if ((c.kind === "function" || c.kind === "endpoint") && fnLeft > 0) {
-          decisions = setDecision(decisions, m, c.id, "enable", { access: "read", auth: { requirement: "authenticated" } });
+          decisions = setDecision(decisions, m, c.id, "enable", {
+            access: "read",
+            auth: { requirement: "authenticated" },
+          });
           fnLeft--;
           approved++;
         }
@@ -208,12 +243,20 @@ async function validate(app: { id: string; repo: string; rev: string }) {
     const init = await cli(["init", "--ci"], work);
     const afterInit = await treeHash(work, true);
     const init2 = await cli(["init", "--ci"], work);
-    const idempotent = (await treeHash(work, true)) === afterInit && init2.json.applied !== "applied";
+    const idempotent =
+      (await treeHash(work, true)) === afterInit && init2.json.applied !== "applied";
     const verify = await cli(["verify"], work);
-    const checks = (verify.json.checks ?? []) as { id: string; level: string; status: string; detail?: string }[];
+    const checks = (verify.json.checks ?? []) as {
+      id: string;
+      level: string;
+      status: string;
+      detail?: string;
+    }[];
     const rollback = await cli(["rollback"], work);
     const restored = (await treeHash(work, true)) === beforeInit;
-    const plan = init.json.plan as { wrapped?: unknown[]; skipped?: { id: string; reason: string }[]; manual?: unknown[] } | undefined;
+    const plan = init.json.plan as
+      | { wrapped?: unknown[]; skipped?: { id: string; reason: string }[]; manual?: unknown[] }
+      | undefined;
     return {
       id: app.id,
       repo: app.repo,
@@ -224,29 +267,48 @@ async function validate(app: { id: string; repo: string; rev: string }) {
       files: base.files,
       scanMs,
       rssMbAfterScan: rss,
-      capabilities: { total: m.capabilities.length, byKind, bySupport: m.capabilities.reduce<Record<string, number>>((a, c) => ((a[c.support] = (a[c.support] ?? 0) + 1), a), {}) },
+      capabilities: {
+        total: m.capabilities.length,
+        byKind,
+        bySupport,
+      },
       diagnostics,
       // Route files the baseline could not read a method from (re-exports, wrappers): did the compiler say so?
       unrecognisedRouteFiles: base.routeFilesWithoutMethod.map((f) => ({
         file: f,
         compilerDiagnostics: m.diagnostics.filter((d) => d.file === f).map((d) => d.code),
-        compilerEndpoints: m.capabilities.filter((c) => c.kind === "endpoint" && c.source.file === f).length,
+        compilerEndpoints: m.capabilities.filter(
+          (c) => c.kind === "endpoint" && c.source.file === f,
+        ).length,
       })),
-      accuracy: { routes: compare(base.routes, routes), endpoints: compare(base.endpoints, endpoints), serverActions: compare(base.actions, actions) },
-      init: { exit: init.code, ms: init.ms, approved, wrapped: plan?.wrapped?.length ?? 0, skipped: plan?.skipped?.length ?? 0, skippedReasons: [...new Set((plan?.skipped ?? []).map((s) => s.reason))].slice(0, 6), manualSteps: plan?.manual?.length ?? 0 },
+      accuracy: {
+        routes: compare(base.routes, routes),
+        endpoints: compare(base.endpoints, endpoints),
+        serverActions: compare(base.actions, actions),
+      },
+      init: {
+        exit: init.code,
+        ms: init.ms,
+        approved,
+        wrapped: plan?.wrapped?.length ?? 0,
+        skipped: plan?.skipped?.length ?? 0,
+        skippedReasons: [...new Set((plan?.skipped ?? []).map((s) => s.reason))].slice(0, 6),
+        manualSteps: plan?.manual?.length ?? 0,
+      },
       repeatedInit: { exit: init2.code, ms: init2.ms, noop: idempotent },
       verify: {
         exit: verify.code,
         ms: verify.ms,
         readiness: verify.json.readiness,
-        failing: checks.filter((c) => c.status === "fail").map((c) => ({ id: c.id, detail: c.detail })),
+        failing: checks
+          .filter((c) => c.status === "fail")
+          .map((c) => ({ id: c.id, detail: c.detail })),
         runtime: checks.filter((c) => c.level === "runtime").map((c) => `${c.id}:${c.status}`),
       },
       rollback: { exit: rollback.code, ms: rollback.ms, restoredTree: restored },
     };
   } finally {
     await rm(work, { recursive: true, force: true });
-    if ((await treeHash(upstream)) !== upstreamBefore) throw new Error(`${app.id}: upstream copy changed`);
   }
 }
 
@@ -260,10 +322,25 @@ for (const app of list.apps) {
     console.log("done");
   } catch (e) {
     console.log("FAILED", e instanceof Error ? e.message : e);
-    results.push({ id: app.id, rev: app.rev, status: "error", error: e instanceof Error ? e.message : String(e) });
+    results.push({
+      id: app.id,
+      rev: app.rev,
+      status: "error",
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 }
-const machine = { os: `${platform()} ${release()}`, cpu: cpus()[0]?.model.trim(), cores: cpus().length, ramGb: Math.round(totalmem() / 1073741824), node: process.versions.node };
+const machine = {
+  os: `${platform()} ${release()}`,
+  cpu: cpus()[0]?.model.trim(),
+  cores: cpus().length,
+  ramGb: Math.round(totalmem() / 1073741824),
+  node: process.versions.node,
+};
 const out = { generatedAt: new Date().toISOString().slice(0, 10), machine, apps: results };
-if (!only.length) writeFileSync(join(repoRoot, "docs/maintainers/real-app-results.json"), `${JSON.stringify(out, null, 2)}\n`);
+if (!only.length)
+  writeFileSync(
+    join(repoRoot, "docs/maintainers/real-app-results.json"),
+    `${JSON.stringify(out, null, 2)}\n`,
+  );
 console.log(JSON.stringify(out, null, 2));

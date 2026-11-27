@@ -21,3 +21,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 015 | Compiler foundation: manifest contracts, jailed fs, research evidence, eval harness          | reviewed-accepted | task/015-compiler-contracts |
 | 016 | The whole compiler: discovery, schemas, forms, filters, manifest, reconcile, incremental     | reviewed-accepted | task/016-compiler-discovery |
 | 017 | CLI and integration engine: @speeq/integrate, @speeq/cli, bindEndpoint, registries, rollback | reviewed-accepted | task/017-cli-integration    |
+| 018 | Verification, doctor, real-app validation, umbrella executable, packed tarball               | reviewed-accepted | task/018-verification-release |

@@ -80,9 +80,7 @@
         "approved": 10,
         "wrapped": 8,
         "skipped": 2,
-        "skippedReasons": [
-          "Blocked: sensitive-not-allowed."
-        ],
+        "skippedReasons": ["Blocked: sensitive-not-allowed."],
         "manualSteps": 1
       },
       "repeatedInit": {
@@ -104,15 +102,7 @@
             "detail": "Missing: speeq@0.4.0"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
@@ -191,10 +181,7 @@
         "approved": 11,
         "wrapped": 7,
         "skipped": 4,
-        "skippedReasons": [
-          "The input is not an object schema.",
-          "Blocked: sensitive-not-allowed."
-        ],
+        "skippedReasons": ["The input is not an object schema.", "Blocked: sensitive-not-allowed."],
         "manualSteps": 1
       },
       "repeatedInit": {
@@ -216,15 +203,7 @@
             "detail": "Missing: speeq@0.4.0, zod@4.6.7"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
@@ -303,9 +282,7 @@
         "approved": 16,
         "wrapped": 14,
         "skipped": 2,
-        "skippedReasons": [
-          "Blocked: sensitive-not-allowed."
-        ],
+        "skippedReasons": ["Blocked: sensitive-not-allowed."],
         "manualSteps": 1
       },
       "repeatedInit": {
@@ -327,15 +304,7 @@
             "detail": "Missing: speeq@0.4.0"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
@@ -419,10 +388,7 @@
         "approved": 5,
         "wrapped": 2,
         "skipped": 3,
-        "skippedReasons": [
-          "Blocked: sensitive-not-allowed.",
-          "The input is not an object schema."
-        ],
+        "skippedReasons": ["Blocked: sensitive-not-allowed.", "The input is not an object schema."],
         "manualSteps": 1
       },
       "repeatedInit": {
@@ -444,15 +410,7 @@
             "detail": "Missing: speeq@0.4.0, zod@4.6.7"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
@@ -532,10 +490,7 @@
         "approved": 24,
         "wrapped": 18,
         "skipped": 6,
-        "skippedReasons": [
-          "The input is not an object schema.",
-          "Blocked: sensitive-not-allowed."
-        ],
+        "skippedReasons": ["The input is not an object schema.", "Blocked: sensitive-not-allowed."],
         "manualSteps": 1
       },
       "repeatedInit": {
@@ -557,15 +512,7 @@
             "detail": "Missing: speeq@0.4.0"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
@@ -616,9 +563,7 @@
       "unrecognisedRouteFiles": [
         {
           "file": "app/(auth)/api/auth/[...nextauth]/route.ts",
-          "compilerDiagnostics": [
-            "SQ0270"
-          ],
+          "compilerDiagnostics": ["SQ0270"],
           "compilerEndpoints": 0
         }
       ],
@@ -679,15 +624,7 @@
             "detail": "Missing: speeq@0.4.0"
           }
         ],
-        "runtime": [
-          "R1:pass",
-          "R2:pass",
-          "R3:pass",
-          "R4:pass",
-          "R5:pass",
-          "R6:pass",
-          "R7:pass"
-        ]
+        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,

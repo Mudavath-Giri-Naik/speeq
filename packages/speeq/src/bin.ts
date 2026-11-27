@@ -10,3 +10,5 @@ if (major < 22 || (major === 22 && minor < 12)) {
   const { main } = await import("@speeq/cli");
   await main();
 }
+
+export {};

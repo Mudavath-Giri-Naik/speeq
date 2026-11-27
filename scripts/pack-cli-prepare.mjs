@@ -15,7 +15,8 @@ for (const parent of ["packages", "packages/adapters"]) {
     if (!fs.existsSync(path.join(root, file))) continue;
     const pkg = read(file);
     if (pkg.private) continue;
-    overrides[pkg.name] = `file:./packs/${pkg.name.replace(/^@/, "").replace("/", "-")}-${pkg.version}.tgz`;
+    overrides[pkg.name] =
+      `file:./packs/${pkg.name.replace(/^@/, "").replace("/", "-")}-${pkg.version}.tgz`;
   }
 }
 const app = {
