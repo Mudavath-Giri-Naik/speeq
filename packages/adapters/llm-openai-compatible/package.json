@@ -1,6 +1,6 @@
 {
   "name": "@speeq/llm-openai-compatible",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "OpenAI-compatible chat completions LLMProvider for speeq (Groq, OpenRouter, Ollama, OpenAI) using plain fetch.",
   "license": "MIT",
   "type": "module",
