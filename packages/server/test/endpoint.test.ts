@@ -138,13 +138,13 @@ describe("bindEndpoint responses", () => {
       () =>
         new Response(null, { status: 302, headers: { location: "https://evil.example/secret" } }),
     );
-    const error = await run({ id: "1" }, ctx()).catch((e) => e);
+    const error = (await run({ id: "1" }, ctx()).catch((e) => e)) as Error;
     expect(error).toMatchObject({ code: "TOOL_ERROR" });
     expect(error.message).not.toContain("evil");
   });
   it("reports status only, never the body", async () => {
     const { run } = setup({}, () => new Response("secret-body-token", { status: 500 }));
-    const error = await run({ id: "1" }, ctx()).catch((e) => e);
+    const error = (await run({ id: "1" }, ctx()).catch((e) => e)) as Error;
     expect(error).toMatchObject({ code: "TOOL_ERROR" });
     expect(error.message).toContain("500");
     expect(error.message).not.toContain("secret");
