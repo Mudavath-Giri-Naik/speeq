@@ -17,7 +17,13 @@ export interface ProjectFs {
 function clean(path: string): string {
   const parts = path.split("/");
   // biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting control characters is the point.
-  if (!path || path.includes("\\") || /[\u0000-\u001f]/.test(path) || isAbsolute(path))
+  if (
+    !path ||
+    /^[A-Za-z]:/.test(path) ||
+    path.includes("\\") ||
+    /[\u0000-\u001f]/.test(path) ||
+    isAbsolute(path)
+  )
     throw new Error(`Unsafe path: ${path}`);
   if (parts.some((p) => !p || p === "." || p === "..")) throw new Error(`Unsafe path: ${path}`);
   return path;
