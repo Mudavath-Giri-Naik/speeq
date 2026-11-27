@@ -1,5 +1,11 @@
 # @speeq/speech
 
+## 0.10.0
+
+### Patch Changes
+
+- @speeq/core@0.10.0
+
 ## 0.9.0
 
 ### Patch Changes

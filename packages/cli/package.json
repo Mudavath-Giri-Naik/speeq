@@ -1,6 +1,6 @@
 {
   "name": "@speeq/cli",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "The speeq command: init, scan, verify, doctor, rollback.",
   "license": "MIT",
   "type": "module",
