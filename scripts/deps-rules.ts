@@ -21,6 +21,16 @@ export const RULES: Readonly<Record<string, PackageRule>> = {
     internalImports: ["@speeq/core"],
     externalDeps: ["typescript", "ignore"],
   },
+  "@speeq/integrate": {
+    internalDeps: ["@speeq/core", "@speeq/compiler"],
+    internalImports: ["@speeq/core", "@speeq/compiler"],
+    externalDeps: ["typescript"],
+  },
+  "@speeq/cli": {
+    internalDeps: ["@speeq/core", "@speeq/compiler", "@speeq/integrate"],
+    internalImports: ["@speeq/core", "@speeq/compiler", "@speeq/integrate"],
+    externalDeps: ["@clack/prompts", "picocolors"],
+  },
   "@speeq/core": { internalDeps: [], internalImports: [], externalDeps: ["zod"] },
   "@speeq/server": {
     internalDeps: ["@speeq/core"],
