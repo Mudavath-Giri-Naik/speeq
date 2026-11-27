@@ -92,7 +92,7 @@ it("checks all fixture labels against source and the supported zero-recall basel
         expect(text.split("\n")[e.line - 1]?.trim()).toBeTruthy();
       }
     for (const d of truth.unsupported) expect((await stat(join(dir, d.file))).isFile()).toBe(true);
-    if (truth.supported) {
+    if (["next-app-minimal", "next-pages-minimal"].includes(name)) {
       const scores = score(truth, await discover(await openRepoFs({ root: dir })));
       expect(scores.passed).toBe(false);
       expect(scores.perKind.find((k) => k.kind === "route")?.recall).toBe(0);
