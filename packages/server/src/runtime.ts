@@ -32,15 +32,36 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
       : null;
   }
 
-  /** Calls `resolveUser`, treating a throw as "not signed in" (logged). */
-  async resolveUser(request: Request): Promise<TUser | null> {
-    if (!this.config.raw.resolveUser) return null;
+  /**
+   * Calls `resolveUser`. `failed` is true when it threw or returned a malformed user (logged);
+   * `user` is then `null`. Callers decide whether a failure may be treated as anonymous.
+   */
+  async lookupUser(request: Request): Promise<{ user: TUser | null; failed: boolean }> {
+    if (!this.config.raw.resolveUser) return { user: null, failed: false };
     try {
-      return (await this.config.raw.resolveUser(request)) ?? null;
+      const user = (await this.config.raw.resolveUser(request)) ?? null;
+      if (
+        user !== null &&
+        (typeof user.id !== "string" ||
+          user.id === "" ||
+          (user.tenantId !== undefined &&
+            (typeof user.tenantId !== "string" || user.tenantId === "")))
+      ) {
+        this.config.logger.error(
+          "resolveUser returned a user without a valid string `id`/`tenantId`",
+        );
+        return { user: null, failed: true };
+      }
+      return { user, failed: false };
     } catch (error) {
-      this.config.logger.error("resolveUser threw; treating the request as anonymous", error);
-      return null;
+      this.config.logger.error("resolveUser threw", error);
+      return { user: null, failed: true };
     }
+  }
+
+  /** Calls `resolveUser`, treating a failure as "not signed in". */
+  async resolveUser(request: Request): Promise<TUser | null> {
+    return (await this.lookupUser(request)).user;
   }
 
   /**
@@ -55,9 +76,12 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
     if (!token) throw new SpeeqError("UNAUTHENTICATED");
     const claims = await verifySessionToken(token, this.config.secret);
     if (claims.sid !== sessionId) throw new SpeeqError("FORBIDDEN");
-    const user = await this.resolveUser(request);
-    if ((user?.id ?? null) !== claims.uid) {
-      throw new SpeeqError("FORBIDDEN", { message: "This session belongs to a different user." });
+    const { user, failed } = await this.lookupUser(request);
+    // A signed-in session never degrades to anonymous because the host's auth is down.
+    if (failed && claims.uid !== null) throw new SpeeqError("AUTH_UNAVAILABLE");
+    // Logout, host-session expiry, account switch and tenant switch all end this session.
+    if ((user?.id ?? null) !== claims.uid || (user?.tenantId ?? null) !== claims.tid) {
+      throw new SpeeqError("IDENTITY_CHANGED");
     }
     return { claims, user };
   }

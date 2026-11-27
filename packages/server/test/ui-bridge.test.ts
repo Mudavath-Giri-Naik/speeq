@@ -181,13 +181,13 @@ describe("UI bridge: claims and replay", () => {
     expect((await post(speeq, attacker, { callId: "uia_nope", status: "done" })).status).toBe(404);
   });
 
-  it("refuses a different signed-in user (403)", async () => {
+  it("refuses a different signed-in user (401 IDENTITY_CHANGED)", async () => {
     const { speeq } = makeSpeeq([callOpen()], { uiActions, resolveUser: userResolver });
     const alice = { "x-test-user": "alice" };
     const s = await startSession(speeq.handler, { ...optIn, headers: alice });
     const id = uiEvent(await s.turn("open", { headers: alice })).callId;
     const res = await post(speeq, s, { callId: id, status: "done" }, { "x-test-user": "mallory" });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
   });
 
   it("refuses a missing or invalid token and malformed bodies", async () => {

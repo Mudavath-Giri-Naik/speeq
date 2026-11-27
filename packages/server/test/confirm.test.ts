@@ -88,7 +88,7 @@ describe("confirmation flow", () => {
     expect(bookmarks).toEqual([]);
   });
 
-  it("refuses a confirmation from a different signed-in user (403)", async () => {
+  it("refuses a confirmation from a different signed-in user (401 IDENTITY_CHANGED)", async () => {
     const { speeq } = makeSpeeq([askToBookmark], { resolveUser: userResolver });
     const s = await startSession(speeq.handler, { headers: { "x-test-user": "alice" } });
     const id = confirmationId(
@@ -101,7 +101,7 @@ describe("confirmation flow", () => {
         headers: { "x-test-user": "mallory" },
       }),
     );
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
     expect(bookmarks).toEqual([]);
   });
 

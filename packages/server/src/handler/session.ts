@@ -36,7 +36,8 @@ export async function handleCreateSession<TUser extends AgentUser>(
   headers: Record<string, string>,
 ): Promise<Response> {
   const body = await readJson(request, CreateSessionRequestSchema, rt.config.maxRequestBytes);
-  const user = await rt.resolveUser(request);
+  const { user, failed } = await rt.lookupUser(request);
+  if (failed && !rt.config.allowAnonymous) throw new SpeeqError("AUTH_UNAVAILABLE");
   if (!user && !rt.config.allowAnonymous) throw new SpeeqError("UNAUTHENTICATED");
   const userId = user?.id ?? null;
   rt.limitSession(request, userId);
@@ -65,7 +66,10 @@ export async function handleCreateSession<TUser extends AgentUser>(
   const response: CreateSessionResponse = {
     protocolVersion: PROTOCOL_VERSION,
     sessionId,
-    sessionToken: await signSessionToken({ sid: sessionId, uid: userId, exp }, rt.config.secret),
+    sessionToken: await signSessionToken(
+      { sid: sessionId, uid: userId, tid: user?.tenantId ?? null, exp },
+      rt.config.secret,
+    ),
     expiresAt: new Date(exp * 1000).toISOString(),
     config: clientConfig(rt as Runtime<AgentUser>),
   };

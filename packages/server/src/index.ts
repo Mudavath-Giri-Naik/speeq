@@ -95,6 +95,7 @@ export {
 export type { SpeeqHandler } from "./handler/index.js";
 export {
   type SessionClaims,
+  type SessionClaimsInput,
   signSessionToken,
   timingSafeEqual,
   verifySessionToken,

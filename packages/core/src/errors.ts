@@ -20,6 +20,8 @@ export const ERROR_CODES = [
   "SESSION_EXPIRED",
   "NOT_CONFIGURED",
   "INTERNAL",
+  "IDENTITY_CHANGED",
+  "AUTH_UNAVAILABLE",
 ] as const;
 
 /** A stable, machine-readable error code. */
@@ -42,6 +44,8 @@ export const ERROR_HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   SESSION_EXPIRED: 401,
   NOT_CONFIGURED: 500,
   INTERNAL: 500,
+  IDENTITY_CHANGED: 401,
+  AUTH_UNAVAILABLE: 503,
 };
 
 /** Friendly default messages that are always safe to show to end users. */
@@ -61,6 +65,8 @@ export const DEFAULT_ERROR_MESSAGES: Readonly<Record<ErrorCode, string>> = {
   SESSION_EXPIRED: "Your session expired. Starting a new one.",
   NOT_CONFIGURED: "The assistant is not configured correctly.",
   INTERNAL: "Something went wrong.",
+  IDENTITY_CHANGED: "Your account changed. Starting a fresh conversation.",
+  AUTH_UNAVAILABLE: "Sign-in is temporarily unavailable. Please try again in a moment.",
 };
 
 const RETRYABLE: ReadonlySet<ErrorCode> = new Set([
@@ -68,6 +74,7 @@ const RETRYABLE: ReadonlySet<ErrorCode> = new Set([
   "PROVIDER_ERROR",
   "TOOL_TIMEOUT",
   "SESSION_EXPIRED",
+  "AUTH_UNAVAILABLE",
 ]);
 
 /** Options for constructing a {@link SpeeqError}. */
