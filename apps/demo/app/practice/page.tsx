@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PracticeFilters } from "@/components/practice-filters";
 import { repo } from "@/lib/data/repository";
 import { DIFFICULTIES } from "@/lib/data/subjects";
 import { difficulty, subjectSlug } from "@/lib/routes";
@@ -15,41 +16,13 @@ export default async function Practice({ searchParams }: { searchParams: Promise
   return (
     <>
       <h1>Practice</h1>
-      <form method="get" action="/practice" className="card filters">
-        <label>
-          Subject
-          <select name="subject" defaultValue={subject ?? ""}>
-            <option value="">All subjects</option>
-            {repo.listSubjects().map((item) => (
-              <option key={item.slug} value={item.slug}>
-                {item.name.en}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Difficulty
-          <select name="difficulty" defaultValue={level ?? ""}>
-            <option value="">All levels</option>
-            {DIFFICULTIES.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Search
-          <input
-            type="search"
-            name="q"
-            defaultValue={q}
-            maxLength={100}
-            placeholder="e.g. motion"
-          />
-        </label>
-        <button type="submit">Apply filters</button>
-      </form>
+      <PracticeFilters
+        subjects={repo.listSubjects().map((item) => ({ slug: item.slug, name: item.name.en }))}
+        difficulties={DIFFICULTIES}
+        subject={subject ?? ""}
+        difficulty={level ?? ""}
+        q={q}
+      />
       <p className="muted">
         {questions.length} {questions.length === 1 ? "question" : "questions"}
       </p>

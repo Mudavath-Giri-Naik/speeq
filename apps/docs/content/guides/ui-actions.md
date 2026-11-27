@@ -76,6 +76,51 @@ await resolveUiAction(pendingUiAction.callId, true); // or false to decline
 
 The handler never runs before approval. A declined action tells the assistant "declined" and it stops trying more page actions in that turn. You can reuse the same dialog you built for [confirmations](/docs/concepts/confirmations).
 
+## Fill a form (draft only)
+
+The assistant can fill in a form on the page for the visitor, but it **never submits it**. The visitor reviews the draft and presses your own button.
+
+1. Run `npx speeq init` (or `npx speeq capabilities enable "form:app/contact/page.tsx#contact"`). Forms are offered separately in the review, and none is selected for you. Protected fields (passwords, tokens, card and OTP fields) and file or hidden inputs can never be filled.
+2. speeq writes `.speeq/generated/ui.ts` with a fill action for each approved form. Pass it to `createSpeeq({ uiActions })` (a new `speeq.config.ts` already does).
+3. Tell speeq how to write into your form, in the component that renders it:
+
+```tsx
+"use client";
+import { useSpeeqForm } from "speeq/react";
+
+export function ContactForm() {
+  const edited = useRef(new Set<string>());
+  const form = useRef<HTMLFormElement>(null);
+  useSpeeqForm("form:app/contact/page.tsx#contact", {
+    isDirty: (name) => edited.current.has(name), // true when the visitor typed in it
+    setValues: (values) => {
+      for (const [name, value] of Object.entries(values))
+        (form.current?.elements.namedItem(name) as HTMLInputElement | null)?.setAttribute(
+          "value",
+          String(value),
+        );
+    },
+  });
+  return (
+    <form ref={form} onInput={(e) => edited.current.add((e.target as HTMLInputElement).name)}>
+      {/* fields */}
+    </form>
+  );
+}
+```
+
+What speeq guarantees:
+
+- Fields the server does not know, protected fields and fields of the wrong type are rejected **before** anything reaches the page, with a message that names the field (`FIELD_NOT_ALLOWED`). Nothing is written.
+- A field the visitor already edited is never overwritten. The assistant is told it was left alone (`FIELD_DIRTY`) and can say so.
+- Prototype keys (`__proto__`, `constructor`, `prototype`) are ignored, at most 30 fields are accepted, and text is capped at 2,000 characters.
+- Submitting stays with the visitor, or with the form's server action as a normal [write tool](/docs/guides/tools) that asks for confirmation.
+- `npx speeq verify` checks that each generated fill action refuses protected and unknown fields.
+
+## Filters
+
+A filter that lives in the URL (`/practice?subject=physics&difficulty=easy`) needs nothing extra. When the scanner finds a page that reads `searchParams` through a Zod schema, it adds those parameters to the page's route, and the assistant's `navigate` tool validates them. Approve the route and the filters work.
+
 ## Rules and limits
 
 - **Register handlers when the page mounts.** The session tells the server whether any handler exists. A handler added later is used from the next session.

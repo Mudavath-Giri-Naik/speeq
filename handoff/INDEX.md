@@ -23,5 +23,7 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 017 | CLI and integration engine: @speeq/integrate, @speeq/cli, bindEndpoint, registries, rollback | reviewed-accepted | task/017-cli-integration      |
 | 018 | Verification, doctor, real-app validation, umbrella executable, packed tarball               | reviewed-accepted | task/018-verification-release |
 | 019 | UI bridge: contract, server runtime, client registry, React hook, feature entry              | reviewed-accepted | task/019-ui-bridge            |
+| 020 | Forms and filters: draft-only form fill, generated UI descriptors, filter application        | reviewed-accepted | task/020-forms-filters        |
+| 021 | Zero-code onboarding: provider choice, env names, generated chat UI with voice               | briefed           | task/021-zero-code-onboarding |
 
-Tasks 020 to 022 (forms and filters; page context and universal agent; workflows and the Phase 2 gate) are planned in `docs/maintainers/phase-2-plan.md` and are briefed one at a time after the previous task is accepted.
+Tasks 022 and 023 (page context and universal agent; workflows and the Phase 2 gate) are planned in `docs/maintainers/phase-2-plan.md` and are briefed one at a time after the previous task is accepted.

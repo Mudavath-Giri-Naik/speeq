@@ -41,4 +41,8 @@ useSpeeqAction("ui_open_cart", () => {
 - Both events appear in the audit log (`ui.action.requested`, `ui.action.resolved`), with arguments redacted like tool arguments. No telemetry is sent about them.
 - Approval for `write` actions is enforced by the client you ship. It protects the user from the model, not from a user who edits their own browser, so never use a UI action for anything that needs server authority: use a write tool, which runs on your server with the server-side confirmation flow.
 
+## Forms
+
+An approved form becomes a UI action that fills a **draft** (`defineFormFill`, generated into `.speeq/generated/ui.ts`). The page binds it with `useSpeeqForm(formId, { setValues, isDirty })`. The assistant never submits; protected, unknown and wrongly typed fields are rejected before they reach the page, and fields the visitor edited are not overwritten. See [ADR-0018](../decisions/0018-form-filling-and-filters.md).
+
 Design record: [ADR-0017](../decisions/0017-ui-bridge-contract.md).

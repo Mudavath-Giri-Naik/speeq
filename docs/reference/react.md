@@ -4,6 +4,7 @@
 
 | Hook                          | Result                                                                                                                                                         |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| useSpeeqForm(formId, binding) | Fill a draft of one form; never submits; skips fields the visitor edited.                                                                                      |
 | useSpeeq()                    | Live snapshot, client, sendText, startListening, stopListening, cancel, setLanguage, confirm, resolveUiAction and speak, plus pendingUiAction in the snapshot. |
 | useSpeeqEvent(event, handler) | Subscribes to one public client event for the component lifetime.                                                                                              |
 | useSpeeqContext(data)         | Merges mounted page data into requests on a provider-owned client. Later registrations take precedence.                                                        |

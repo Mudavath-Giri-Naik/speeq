@@ -94,6 +94,10 @@ async function baseline(dir: string) {
   const endpoints = new Set<string>();
   const actions = new Set<string>();
   const routeFilesWithoutMethod: string[] = [];
+  // Forms and filters, counted straight from the files: `<form` tags, and pages that read search params.
+  let formTags = 0;
+  const formFiles = new Set<string>();
+  const filterPages = new Set<string>();
   for (const f of all) {
     const m = /^((?:src\/)?app)\/(.*)$/.exec(f);
     if (m?.[2] !== undefined) {
@@ -117,6 +121,13 @@ async function baseline(dir: string) {
     }
     if (/\.(ts|tsx|js|jsx)$/.test(f)) {
       const text = await readFile(join(dir, f), "utf8");
+      const tags = (text.match(/<form[\s>]/g) ?? []).length;
+      if (tags) {
+        formTags += tags;
+        formFiles.add(f);
+      }
+      if (/(?:^|\/)page\.(?:tsx|jsx|ts|js)$/.test(f) && /searchParams/.test(text))
+        filterPages.add(f);
       if (!USE_SERVER.test(text)) continue;
       for (const x of text.matchAll(
         /export\s+async\s+function\s+(\w+)|export\s+const\s+(\w+)\s*=\s*async/g,
@@ -124,7 +135,16 @@ async function baseline(dir: string) {
         actions.add(`${f}#${x[1] ?? x[2]}`);
     }
   }
-  return { files: all.length, routes, endpoints, actions, routeFilesWithoutMethod };
+  return {
+    files: all.length,
+    routes,
+    endpoints,
+    actions,
+    routeFilesWithoutMethod,
+    formTags,
+    formFiles: formFiles.size,
+    filterPages: filterPages.size,
+  };
 }
 function compare(base: Set<string>, found: Set<string>) {
   const matched = [...base].filter((x) => found.has(x));
@@ -219,8 +239,14 @@ async function validateCopy(app: { id: string; repo: string; rev: string }) {
     let decisions: ReturnType<typeof setDecision> | undefined;
     let approved = 0;
     let fnLeft = 12;
+    let formsApproved = 0;
     for (const c of m.capabilities) {
       try {
+        if (c.kind === "form" || c.kind === "filter-set") {
+          decisions = setDecision(decisions, m, c.id, "enable");
+          formsApproved++;
+          continue;
+        }
         if (c.kind === "route" && c.dynamic !== "catch-all" && c.dynamic !== "optional-catch-all") {
           decisions = setDecision(decisions, m, c.id, "enable");
           approved++;
@@ -255,7 +281,11 @@ async function validateCopy(app: { id: string; repo: string; rev: string }) {
     const rollback = await cli(["rollback"], work);
     const restored = (await treeHash(work, true)) === beforeInit;
     const plan = init.json.plan as
-      | { wrapped?: unknown[]; skipped?: { id: string; reason: string }[]; manual?: unknown[] }
+      | {
+          wrapped?: { id: string; tool: string }[];
+          skipped?: { id: string; reason: string }[];
+          manual?: unknown[];
+        }
       | undefined;
     return {
       id: app.id,
@@ -281,6 +311,37 @@ async function validateCopy(app: { id: string; repo: string; rev: string }) {
           (c) => c.kind === "endpoint" && c.source.file === f,
         ).length,
       })),
+      // Phase 2 (forms and filters): independent baseline versus what the compiler found and the plan did.
+      forms: {
+        baselineFormTags: base.formTags,
+        baselineFilesWithForms: base.formFiles,
+        found: byKind.form ?? 0,
+        bySupport: Object.fromEntries(
+          ["proven", "needs-review", "unsupported"].map((s) => [
+            s,
+            m.capabilities.filter((c) => c.kind === "form" && c.support === s).length,
+          ]),
+        ),
+        withFillableField: m.capabilities.filter(
+          (c) => c.kind === "form" && c.fields.some((f) => !f.sensitive),
+        ).length,
+        approvedForFilling: formsApproved,
+        fillActionsGenerated: (plan?.wrapped ?? []).filter((w) => w.tool.startsWith("ui_fill_"))
+          .length,
+        skipped: (plan?.skipped ?? []).filter((s) => s.id.startsWith("form:")).length,
+        skippedReasons: [
+          ...new Set(
+            (plan?.skipped ?? []).filter((s) => s.id.startsWith("form:")).map((s) => s.reason),
+          ),
+        ].slice(0, 4),
+      },
+      filters: {
+        baselinePagesReadingSearchParams: base.filterPages,
+        found: byKind["filter-set"] ?? 0,
+        appliedThroughApprovedRoute: (plan?.wrapped ?? []).filter((w) =>
+          w.id.startsWith("filter-set:"),
+        ).length,
+      },
       accuracy: {
         routes: compare(base.routes, routes),
         endpoints: compare(base.endpoints, endpoints),

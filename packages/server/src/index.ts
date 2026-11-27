@@ -86,6 +86,12 @@ export {
   type UiActionDefinition,
 } from "./define.js";
 export { bindEndpoint, type EndpointBindingOptions } from "./endpoint.js";
+export {
+  defineFormFill,
+  type FormFieldSpec,
+  type FormFillAction,
+  protectedReason,
+} from "./forms.js";
 export type { SpeeqHandler } from "./handler/index.js";
 export {
   type SessionClaims,

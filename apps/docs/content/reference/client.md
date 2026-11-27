@@ -25,19 +25,20 @@ Use this when you do not use React. Import it from `speeq/client` and call `crea
 
 ## Methods
 
-| Method                                 | What it does                                                                                                                       |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `getSnapshot()`, `subscribe(listener)` | Read the current state, or watch it. `subscribe` returns a function to stop.                                                       |
-| `on(event, callback)`                  | Listen to `change`, `state`, `event`, `navigate`, or `error`.                                                                      |
-| `sendText(text, options?)`             | Send a message. Creates a session if needed.                                                                                       |
-| `startListening()`, `stopListening()`  | Control the microphone for one phrase.                                                                                             |
-| `startCall()`, `endCall()`             | Start or end a hands-free call. See [Voice and languages](/docs/guides/voice).                                                     |
-| `getMicLevel()`                        | Visitor loudness from 0 to 1 during a call, otherwise 0.                                                                           |
-| `setLanguage(tag)`, `speak(text)`      | Change language, or say something aloud.                                                                                           |
-| `confirm(confirmationId, approved)`    | Answer a pending approval.                                                                                                         |
-| `registerUiAction(name, handler)`      | Mount browser code for a [UI action](/docs/guides/ui-actions). Returns a function that removes it. Register before the first turn. |
-| `resolveUiAction(callId, approved)`    | Approve or decline `pendingUiAction`. Ignores an id that is not pending.                                                           |
-| `cancel()`, `destroy()`                | Stop current work, or clean up.                                                                                                    |
+| Method                                          | What it does                                                                                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `getSnapshot()`, `subscribe(listener)`          | Read the current state, or watch it. `subscribe` returns a function to stop.                                                       |
+| `on(event, callback)`                           | Listen to `change`, `state`, `event`, `navigate`, or `error`.                                                                      |
+| `sendText(text, options?)`                      | Send a message. Creates a session if needed.                                                                                       |
+| `startListening()`, `stopListening()`           | Control the microphone for one phrase.                                                                                             |
+| `startCall()`, `endCall()`                      | Start or end a hands-free call. See [Voice and languages](/docs/guides/voice).                                                     |
+| `getMicLevel()`                                 | Visitor loudness from 0 to 1 during a call, otherwise 0.                                                                           |
+| `setLanguage(tag)`, `speak(text)`               | Change language, or say something aloud.                                                                                           |
+| `confirm(confirmationId, approved)`             | Answer a pending approval.                                                                                                         |
+| `registerUiAction(name, handler)`               | Mount browser code for a [UI action](/docs/guides/ui-actions). Returns a function that removes it. Register before the first turn. |
+| `createFormFillHandler({ setValues, isDirty })` | Without React: returns the handler for the form fill action `formFillActionName(formId)`. Pass it to `registerUiAction`.           |
+| `resolveUiAction(callId, approved)`             | Approve or decline `pendingUiAction`. Ignores an id that is not pending.                                                           |
+| `cancel()`, `destroy()`                         | Stop current work, or clean up.                                                                                                    |
 
 ## The snapshot
 

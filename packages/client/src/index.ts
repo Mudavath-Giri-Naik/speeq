@@ -1,4 +1,5 @@
 export { isSpeeqError, SpeeqError } from "@speeq/core/errors";
+export { formFillActionName } from "@speeq/core/utils";
 export type {
   AuditClient,
   AuditClientOptions,
@@ -11,6 +12,7 @@ export type {
 } from "./audit.js";
 export { createAuditClient } from "./audit.js";
 export { createSpeeqClient } from "./client.js";
+export { createFormFillHandler, type FormBinding } from "./form-fill.js";
 export type {
   AudioContextLike,
   MicMonitor,

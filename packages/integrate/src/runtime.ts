@@ -1,9 +1,15 @@
 import type { AgentContext, LLMMessage } from "@speeq/core";
-import { createSpeeq, type RouteDefinition, type ToolDefinition } from "@speeq/server";
+import {
+  createSpeeq,
+  type FormFillAction,
+  protectedReason,
+  type RouteDefinition,
+  type ToolDefinition,
+} from "@speeq/server";
 import { createMemoryStore } from "@speeq/store-memory";
 import { assistantText, FakeLLMProvider, startSession } from "@speeq/testing";
 import * as zod from "zod";
-import type { ToolSpec } from "./render.js";
+import type { FormSpec, ToolSpec } from "./render.js";
 import { type HostCall, loadGenerated } from "./sandbox.js";
 import type { Check } from "./verify.js";
 
@@ -73,6 +79,9 @@ const ctxFor = (user: AgentContext<{ id: string }>["user"]) =>
 export async function runtimeChecks(input: {
   tools: string | undefined;
   routes: string | undefined;
+  /** `ui.ts` when owned, else `undefined`. */
+  ui?: string | undefined;
+  forms?: readonly FormSpec[];
   specs: readonly ToolSpec[];
 }): Promise<Check[]> {
   const out: Check[] = [];
@@ -282,8 +291,51 @@ export async function runtimeChecks(input: {
     "No write tool has confirmation turned off",
     open.length ? `Confirmation is disabled by your decision for: ${open.join(", ")}` : undefined,
   );
+  const forms = input.forms ?? [];
+  if (forms.length) {
+    if (input.ui === undefined)
+      add(
+        "R8",
+        "skip",
+        FORM_TITLE,
+        "ui.ts is edited, missing or not owned by speeq, so it is not run.",
+      );
+    else {
+      const problems: string[] = [];
+      try {
+        const actions = loadGenerated(input.ui).exports.uiActions as FormFillAction[];
+        for (const spec of forms) {
+          const action = actions.find((a) => a.form?.id === spec.id);
+          if (!action) {
+            problems.push(`${spec.id} (missing)`);
+            continue;
+          }
+          const accepts = (values: Record<string, unknown>) =>
+            action.input.safeParse({ values }).success;
+          if (accepts({ __speeq_probe__: "x" }))
+            problems.push(`${spec.id} (accepts unknown fields)`);
+          for (const f of spec.fields) {
+            if (protectedReason(f) && accepts({ [f.name]: "x" }))
+              problems.push(`${spec.id} (accepts protected field ${f.name})`);
+          }
+          if (action.risk !== "read" || action.confirm !== false)
+            problems.push(`${spec.id} (not a draft-only action)`);
+        }
+      } catch (e) {
+        problems.push(e instanceof Error ? e.message : "ui.ts did not load");
+      }
+      add(
+        "R8",
+        problems.length ? "fail" : "pass",
+        FORM_TITLE,
+        problems.length ? problems.join("; ") : `${forms.length} forms checked`,
+        problems.length ? "Run `speeq upgrade` to regenerate .speeq/generated/ui.ts." : undefined,
+      );
+    }
+  }
   return out;
 }
+const FORM_TITLE = "Form fill actions refuse protected and unknown fields";
 const RUNTIME_TITLES: [string, string][] = [
   ["R1", "Generated tools and routes load"],
   ["R2", "The speeq server accepts the generated tools and routes"],

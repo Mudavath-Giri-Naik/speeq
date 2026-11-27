@@ -2,6 +2,7 @@ import { createMockLLMProvider, type MockAfterToolInput, type MockRuleInput } fr
 import { z } from "zod";
 import type { QuestionRepository } from "./data/repository";
 import { localizedReply } from "./mock-replies";
+import { practiceFormFill } from "./ui-actions";
 
 const bookmark = /bookmark|బుక్[‌ ]?మార్క్|बुकमार्क/u;
 const count = /how many|\bcount\b|ఎన్ని|कितने/u;
@@ -10,6 +11,7 @@ const navigation = /go to|take me|\bopen\b|\bshow\b|తీసుకెళ్ళ�
 const textSize = /\b(?:larger|bigger|large)\s+text\b|\btext\s+(?:size|larger|bigger)\b/u;
 const normalText = /\b(?:normal|smaller|regular)\s+text\b/u;
 const resetPrefs = /\breset\s+(?:my\s+)?(?:preferences|settings)\b/u;
+const fillPractice = /\bfill\b.*\bpractice\b/u;
 const knowledge = /tell me about|what is|explain|గురించి|के बारे में/u;
 
 const pages = [
@@ -59,6 +61,27 @@ function afterTool(repo: QuestionRepository, { toolName, result, request }: Mock
   const reply = (value: string) => ({ text: value });
   if (toolName.startsWith("ui_")) {
     const status = z.object({ status: z.string() }).safeParse(decode(result));
+    const filled = z
+      .object({
+        status: z.literal("done"),
+        result: z.object({
+          applied: z.array(z.string()),
+          rejected: z.array(z.object({ field: z.string(), reason: z.string() })),
+        }),
+      })
+      .safeParse(decode(result));
+    if (filled.success) {
+      const { applied, rejected } = filled.data.result;
+      const kept = rejected.filter((r) => r.reason === "FIELD_DIRTY").map((r) => r.field);
+      return reply(
+        [
+          applied.length ? `I filled ${applied.join(", ")}. Press Apply filters to use it.` : "",
+          kept.length ? `I left ${kept.join(", ")} alone because you already typed in it.` : "",
+        ]
+          .filter(Boolean)
+          .join(" ") || "Nothing was changed.",
+      );
+    }
     if (status.success && status.data.status === "done") return reply("Done.");
     if (status.success && status.data.status === "declined")
       return reply("Okay, I did not change anything.");
@@ -146,6 +169,15 @@ export function createDemoMockLlm({
           const system = firstSystem(input.request);
           const { text } = localizedReply(system);
           const subject = subjectFor(query);
+          if (fillPractice.test(query)) {
+            const values: Record<string, string> = {};
+            if (subject) values.subject = subject.slug;
+            const level = query.match(/\b(easy|medium|hard)\b/u)?.[1];
+            if (level) values.difficulty = level;
+            const search = query.match(/\bsearch(?: for)?\s+(.+)$/u)?.[1];
+            if (search) values.q = search.trim();
+            return tool(practiceFormFill.name, { values });
+          }
           if (resetPrefs.test(query)) return tool("ui_reset_preferences", {});
           if (normalText.test(query)) return tool("ui_set_text_size", { size: "normal" });
           if (textSize.test(query)) return tool("ui_set_text_size", { size: "large" });

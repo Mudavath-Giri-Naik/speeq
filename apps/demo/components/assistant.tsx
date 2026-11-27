@@ -2,7 +2,7 @@
 
 import { SpeeqProvider } from "@speeq/react";
 import { useRouter } from "next/navigation";
-import { type JSX, useEffect } from "react";
+import { type JSX, type ReactNode, useEffect } from "react";
 import type { LlmMode } from "../lib/llm";
 import { AssistantQuestionContext } from "./question-context";
 import { UiActions } from "./ui-actions";
@@ -16,9 +16,11 @@ const ownerKey = "vidya:session-owner";
 export function Assistant({
   llmMode,
   viewerId,
+  children,
 }: {
   llmMode: LlmMode;
   viewerId?: string;
+  children?: ReactNode;
 }): JSX.Element {
   const router = useRouter();
   const owner = viewerId ?? "anonymous";
@@ -44,6 +46,7 @@ export function Assistant({
       persistSession="sessionStorage"
       onNavigate={(action) => router.push(action.href)}
     >
+      {children}
       <AssistantQuestionContext />
       <UiActions />
       <Widget llmMode={llmMode} />

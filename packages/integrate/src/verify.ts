@@ -127,7 +127,8 @@ async function staticChecks(
             },
   );
   const gens = plan.changes.filter(
-    (c) => c.path === `${gen}/tools.ts` || c.path === `${gen}/routes.ts`,
+    (c) =>
+      c.path === `${gen}/tools.ts` || c.path === `${gen}/routes.ts` || c.path === `${gen}/ui.ts`,
   );
   const stale = gens.filter((c) => c.ownership === "owned" && c.action === "update");
   add({
@@ -304,6 +305,8 @@ export async function verifyProject(input: VerifyInput): Promise<VerifyReport> {
       ...(await runtimeChecks({
         tools: await read("tools"),
         routes: await read("routes"),
+        ui: await read("ui"),
+        forms: stat.plan.forms,
         specs: stat.plan.toolSpecs,
       })),
     );

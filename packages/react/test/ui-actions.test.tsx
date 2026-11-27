@@ -1,8 +1,8 @@
-import { createSpeeqClient } from "@speeq/client";
+import { createSpeeqClient, formFillActionName } from "@speeq/client";
 import { act, cleanup, render, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
-import { SpeeqProvider, useSpeeq, useSpeeqAction } from "../src/index.js";
+import { SpeeqProvider, useSpeeq, useSpeeqAction, useSpeeqForm } from "../src/index.js";
 
 afterEach(cleanup);
 
@@ -110,4 +110,63 @@ it("stops handling after unmount", async () => {
   view.unmount();
   await client.sendText("open");
   expect(unmountedHandler).not.toHaveBeenCalled();
+});
+
+it("fills a form draft through useSpeeqForm and skips dirty fields", async () => {
+  const formId = "form:app/contact/page.tsx#form1";
+  const name = formFillActionName(formId);
+  let turns = 0;
+  const posts: unknown[] = [];
+  const fetch = vi.fn<typeof globalThis.fetch>(async (url, init) => {
+    if (String(url).endsWith("/session"))
+      return Response.json({
+        sessionId: "s",
+        sessionToken: "t",
+        expiresAt: new Date(Date.now() + 100_000).toISOString(),
+        config: {
+          agentName: "H",
+          languages: ["en-IN"],
+          defaultLanguage: "en-IN",
+          features: { navigation: false, knowledge: false, tools: false, audit: false },
+          routes: [],
+        },
+      });
+    if (String(url).endsWith("/ui-result")) posts.push(JSON.parse(String(init?.body)));
+    const events =
+      String(url).endsWith("/turn") && turns++ === 0
+        ? [
+            {
+              type: "ui.action",
+              callId: "u1",
+              name,
+              args: { values: { subject: "physics", q: "typed by agent" } },
+              summary: "Fill",
+              confirm: false,
+            },
+            { type: "turn.finished", reason: "ui_action_required", latencyMs: 1 },
+          ]
+        : [{ type: "turn.finished", reason: "completed", latencyMs: 1 }];
+    return new Response(frames(events));
+  });
+  const client = makeClient(fetch);
+  const written: Array<Record<string, unknown>> = [];
+  renderHook(
+    () =>
+      useSpeeqForm(formId, {
+        setValues: (v) => void written.push(v),
+        isDirty: (field) => field === "q",
+      }),
+    { wrapper: wrapperFor(client) },
+  );
+  await act(async () => {
+    await client.sendText("fill it");
+  });
+  expect(written).toEqual([{ subject: "physics" }]);
+  expect(posts).toEqual([
+    {
+      callId: "u1",
+      status: "done",
+      result: { applied: ["subject"], rejected: [{ field: "q", reason: "FIELD_DIRTY" }] },
+    },
+  ]);
 });

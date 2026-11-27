@@ -46,8 +46,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
             )}
           </div>
         </header>
-        <main className="shell content">{children}</main>
-        <Assistant llmMode={llmMode} viewerId={user?.id} />
+        <Assistant llmMode={llmMode} viewerId={user?.id}>
+          <main className="shell content">{children}</main>
+        </Assistant>
         <footer className="shell site-footer">
           <Link href="/about">About Vidya Study</Link>
         </footer>

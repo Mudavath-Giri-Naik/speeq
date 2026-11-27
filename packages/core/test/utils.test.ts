@@ -74,3 +74,19 @@ describe("utils", () => {
     await expect(sleep(1000, t)).rejects.toBeDefined();
   });
 });
+
+describe("formFillActionName", () => {
+  const valid = /^ui_[a-z0-9_]{1,60}$/;
+  it("is stable and a valid UI action name", async () => {
+    const { formFillActionName } = await import("../src/utils/index.js");
+    const id = "form:app/contact/page.tsx#form1";
+    expect(formFillActionName(id)).toBe(formFillActionName(id));
+    expect(formFillActionName(id)).toMatch(valid);
+    expect(formFillActionName(`form:${"a/".repeat(200)}`)).toMatch(valid);
+    expect(formFillActionName("form:///")).toMatch(valid);
+  });
+  it("differs for ids that only differ in punctuation", async () => {
+    const { formFillActionName } = await import("../src/utils/index.js");
+    expect(formFillActionName("form:a/b#form1")).not.toBe(formFillActionName("form:a-b#form1"));
+  });
+});

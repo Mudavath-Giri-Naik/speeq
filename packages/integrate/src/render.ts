@@ -19,6 +19,12 @@ export interface ToolSpec {
   timeoutMs?: number;
   call: ToolCall;
 }
+/** One approved form, ready to render as a draft-fill UI action. */
+export interface FormSpec {
+  id: string;
+  title: string;
+  fields: { name: string; type: string; required: boolean; sensitive: boolean }[];
+}
 /** One approved route, ready to render. */
 export interface RouteSpec {
   id: string;
@@ -135,6 +141,26 @@ export function renderRoutes(routes: readonly RouteSpec[]): string {
     : "export const routes: RouteDefinition[] = [];";
   return `${head.join("\n")}\n\n${body}\n`;
 }
+/** Source of `.speeq/generated/ui.ts` (without the ownership header). */
+export function renderUi(forms: readonly FormSpec[]): string {
+  if (!forms.length)
+    return `${NOTE}\n${imp("type { UiActionDefinition }", "speeq/server")}\n\nexport const uiActions: UiActionDefinition[] = [];\n`;
+  const items = forms.map((f) =>
+    [
+      "  defineFormFill({",
+      `    id: ${q(f.id)},`,
+      `    title: ${q(f.title.replace(/\p{Cc}/gu, " ").slice(0, 80))},`,
+      "    fields: [",
+      ...f.fields.map(
+        (x) =>
+          `      { name: ${q(x.name)}, type: ${q(x.type)}, required: ${x.required}, sensitive: ${x.sensitive} },`,
+      ),
+      "    ],",
+      "  }),",
+    ].join("\n"),
+  );
+  return `${NOTE}\n${imp("{ defineFormFill }", "speeq/server")}\n\nexport const uiActions = [\n${items.join("\n")}\n];\n`;
+}
 /** Source of the App Router handler (without the ownership header). */
 export function renderHandler(file: string, configFile: string): string {
   return [
@@ -154,6 +180,8 @@ export function renderConfig(o: {
   features: readonly FeatureEntry[];
   generatedDir: string;
   configFile: string;
+  /** Generated UI actions exist: import and pass them. */
+  ui?: boolean;
 }): string {
   const imports = new Map<string, Set<string>>([["speeq/server", new Set(["createSpeeq"])]]);
   imports.set("speeq/store-memory", new Set(["createMemoryStore"]));
@@ -168,6 +196,7 @@ export function renderConfig(o: {
     ...lines,
     `import { routes } from ${gen("routes")};`,
     `import { tools } from ${gen("tools")};`,
+    ...(o.ui ? [`import { uiActions } from ${gen("ui")};`] : []),
     "",
     "export const speeq = createSpeeq({",
     "  secret: process.env.SPEEQ_SECRET,",
@@ -179,7 +208,8 @@ export function renderConfig(o: {
     "  // resolveUser: async (request) => null,",
     "  routes,",
     "  tools,",
-    ...o.features.flatMap((f) => f.config),
+    ...(o.ui ? ["  uiActions,"] : []),
+    ...o.features.flatMap((f) => f.config).filter((l) => !(o.ui && l.startsWith("  uiActions:"))),
     "});",
     "",
   ].join("\n");

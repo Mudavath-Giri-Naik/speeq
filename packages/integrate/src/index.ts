@@ -40,6 +40,7 @@ export {
   type ProviderEntry,
   provider,
 } from "./registry.js";
+export type { FormSpec } from "./render.js";
 export { isSecretName, renderZod } from "./schema.js";
 export {
   type Check,

@@ -22,7 +22,7 @@ npx speeq init
 `init` does these steps, and prints a line only for work it really did:
 
 1. **Scan.** It finds pages, API route handlers, server actions, their Zod input schemas, forms and filters.
-2. **Review.** In a terminal it asks what to enable. Nothing is approved for you.
+2. **Review.** In a terminal it asks what to enable, and separately which forms the assistant may fill as a draft. Nothing is approved for you.
 3. **Write.** It creates the handler route, `speeq.config.ts`, and files under `.speeq/`.
 
 Running `init` a second time changes nothing unless your code or your decisions changed.

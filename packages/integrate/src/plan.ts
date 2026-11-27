@@ -1,4 +1,5 @@
 import { reconcile } from "@speeq/compiler";
+import { formFillActionName } from "@speeq/core";
 import type {
   Capability,
   CapabilityDecision,
@@ -8,12 +9,14 @@ import type {
   Manifest,
   RouteCapability,
 } from "@speeq/core/manifest";
+import { defineFormFill } from "@speeq/server";
 import { manifestPath } from "./decisions.js";
 import type { ProjectFs } from "./fsx.js";
 import { snake, uniqueName } from "./names.js";
 import { type Ownership, ownership, seal } from "./owned.js";
 import { FEATURES, provider as findProvider, PROVIDERS } from "./registry.js";
 import {
+  type FormSpec,
   imp,
   layoutSnippet,
   type RouteSpec,
@@ -21,6 +24,7 @@ import {
   renderHandler,
   renderRoutes,
   renderTools,
+  renderUi,
   type ToolSpec,
 } from "./render.js";
 import { renderObject, renderZod } from "./schema.js";
@@ -59,6 +63,8 @@ export interface IntegrationPlan {
   wrapped: { id: string; tool: string }[];
   /** The approved tools as rendered, for verification. Not part of the JSON summary. */
   toolSpecs: ToolSpec[];
+  /** The approved forms as rendered into `ui.ts`, for verification. */
+  forms: FormSpec[];
   skipped: { id: string; reason: string }[];
   stale: string[];
   pending: string[];
@@ -280,7 +286,8 @@ export function reviewState(manifest: Manifest, decisions: DecisionsFile | undef
         wrappable(e.id) && !e.decision && e.status.support !== "unsupported" && !e.status.blocked,
     )
     .map((e) => e.id);
-  return { ...r, pending, stale: r.stale.filter(wrappable) };
+  // Forms are never "pending" (most are not meant for the assistant), but an approved form that changed is stale.
+  return { ...r, pending, stale: r.stale.filter((id) => wrappable(id) || id.startsWith("form:")) };
 }
 /** Build the plan for one project. Pure with respect to the file system: it only reads. */
 export async function buildPlan(input: {
@@ -297,6 +304,8 @@ export async function buildPlan(input: {
   const routeIds = new Set<string>();
   const tools: ToolSpec[] = [];
   const routes: RouteSpec[] = [];
+  const forms: FormSpec[] = [];
+  const filterSets: { id: string; routeId?: string }[] = [];
   const wrapped: IntegrationPlan["wrapped"] = [];
   const skipped: IntegrationPlan["skipped"] = [];
   const generated = `${prefix}.speeq/generated`;
@@ -306,11 +315,28 @@ export async function buildPlan(input: {
     const decision = e?.decision;
     const s = e?.status;
     if (!s) continue;
-    if (!WRAPPABLE.has(c.kind)) {
-      if (decision?.review === "approved")
-        skipped.push({ id: c.id, reason: "Forms and filters are discovered, not operated." });
+    if (c.kind === "form") {
+      if (!s.executable) {
+        if (decision?.review === "approved" && s.blocked)
+          skipped.push({ id: c.id, reason: `Blocked: ${s.blocked.reason}.` });
+        continue;
+      }
+      const spec = { id: c.id, title: strip(decision?.title ?? c.title), fields: c.fields };
+      try {
+        defineFormFill(spec);
+      } catch {
+        skipped.push({ id: c.id, reason: "No field of this form can be filled." });
+        continue;
+      }
+      forms.push(spec);
+      wrapped.push({ id: c.id, tool: formFillActionName(c.id) });
       continue;
     }
+    if (c.kind === "filter-set") {
+      if (s.executable) filterSets.push({ id: c.id, ...(c.routeId ? { routeId: c.routeId } : {}) });
+      continue;
+    }
+    if (!WRAPPABLE.has(c.kind)) continue;
     if (!s.executable) {
       if (
         decision?.review === "approved" &&
@@ -350,6 +376,18 @@ export async function buildPlan(input: {
     wrapped.push({ id: c.id, tool: "call" in spec ? spec.name : spec.id });
   }
 
+  // Filters are applied by navigation: the compiler already folds a filter-set's parameters into its
+  // route's query parameters, and `navigate` validates them. They need an approved route.
+  for (const f of filterSets) {
+    const through = wrapped.find((w) => w.id === f.routeId);
+    if (through) wrapped.push({ id: f.id, tool: through.tool });
+    else
+      skipped.push({
+        id: f.id,
+        reason: `Approve ${f.routeId ?? "its route"} so these filters can be applied by navigation.`,
+      });
+  }
+
   const { stale, pending } = r;
   const changes: PlannedChange[] = [];
   const read = (p: string) => fs.read(p);
@@ -368,6 +406,10 @@ export async function buildPlan(input: {
   const routesPath = `${generated}/routes.ts`;
   changes.push(owned(toolsPath, await read(toolsPath), renderTools(tools, toolsPath)));
   changes.push(owned(routesPath, await read(routesPath), renderRoutes(routes)));
+  const uiPath = `${generated}/ui.ts`;
+  const uiCurrent = await read(uiPath);
+  if (forms.length || uiCurrent !== undefined)
+    changes.push(owned(uiPath, uiCurrent, renderUi(forms)));
 
   const manual: IntegrationPlan["manual"] = [];
   const configPath = `${prefix}speeq.config.ts`;
@@ -398,6 +440,7 @@ export async function buildPlan(input: {
         features,
         generatedDir: generated,
         configFile: configPath,
+        ui: forms.length > 0,
       }),
     });
   } else {
@@ -408,6 +451,11 @@ export async function buildPlan(input: {
       reason: "Exists; speeq never overwrites your config.",
     });
     configExports = /export\s+(?:const|let|var)\s+speeq\b/.test(existing);
+    if (forms.length && !/generated\/ui/.test(existing))
+      manual.push({
+        title: `Pass the generated UI actions in ${configFile}`,
+        snippet: `import { uiActions } from "./.speeq/generated/ui";\n// then pass uiActions to createSpeeq({ ..., uiActions })`,
+      });
     if (!/\.speeq\/generated\//.test(existing))
       manual.push({
         title: `Use the generated tools and routes in ${configFile}`,
@@ -453,6 +501,19 @@ export async function buildPlan(input: {
     });
   }
 
+  for (const f of forms)
+    manual.push({
+      title: `Bind the form ${f.id} in the client component that renders it`,
+      snippet: [
+        imp("{ useSpeeqForm }", "speeq/react"),
+        `// fields the assistant may fill: ${f.fields.map((x) => x.name).join(", ")}`,
+        `useSpeeqForm(${JSON.stringify(f.id)}, {`,
+        "  setValues: (values) => { /* write the draft values into your form */ },",
+        "  isDirty: (name) => false, // return true when the visitor edited this field",
+        "});",
+      ].join("\n"),
+    });
+
   const pkg = await readJson(fs, `${prefix}package.json`);
   const declared = new Set([
     ...Object.keys((pkg?.dependencies as object | undefined) ?? {}),
@@ -475,6 +536,7 @@ export async function buildPlan(input: {
     changes,
     wrapped,
     toolSpecs: tools,
+    forms,
     skipped,
     stale,
     pending,

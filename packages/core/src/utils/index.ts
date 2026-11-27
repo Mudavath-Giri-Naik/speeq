@@ -6,6 +6,7 @@
 export { baseLanguage, guessLanguageFromScript } from "../language.js";
 export { combineSignals, sleep } from "./async.js";
 export { type Listener, TypedEmitter } from "./emitter.js";
+export { formFillActionName } from "./form-fill.js";
 export { createId } from "./ids.js";
 export {
   type SafeJsonResult,

@@ -1,6 +1,6 @@
 # ADR-0018 — Form filling is draft-only; filters are validated navigation
 
-Status: Proposed (owner confirms in Phase 2 plan section 9)
+Status: Accepted (owner accepted 2026-11-27; implemented in task 020, see the revision note under point 8)
 
 ## Context
 
@@ -30,10 +30,10 @@ optional `actionRef`) and `filter-set` capabilities (typed query parameters). Th
 6. **Headless binding.** `useSpeeqForm(formId, { getValues, setValues, isDirty })` is the only touchpoint
    with the host form library. No DOM queries. Integrate prints the one-line binding snippet as a manual
    step; it does not splice into component files unless the shape is one of the documented anchors.
-7. **Filters are navigation.** A `filter-set` is applied by building the route URL with validated query
+7. **Filters are navigation** (implemented: the compiler already folds a filter-set's parameters into its route's `queryParams`, so an approved route validates them; an approved filter-set is reported as applied through its route, or skipped with that reason). A `filter-set` is applied by building the route URL with validated query
    values and emitting the existing `navigate` event through `resolveNavigation`. Unknown parameters are
    rejected, enum-like values checked against the discovered parameter type. No bridge handler is needed.
-8. **Manifest change.** `FormCapability.runtimeBinding` widens from `"none"` to `"none" | "ui"`.
+8. **Manifest change (revised in task 020: none).** The original plan was to widen `runtimeBinding`; it was dropped, because `runtimeBinding` is the scanner's observation ("no binding found in source") and whether a form is bound is decided by the integration plan (a descriptor is generated) and at runtime by `useSpeeqForm`. The manifest and fingerprints are unchanged, which also avoids a `manifestVersion` bump now that 0.5.0 and 0.6.0 are published. Original text: **Manifest change.** `FormCapability.runtimeBinding` widens from `"none"` to `"none" | "ui"`.
    `manifestVersion` stays 1 because the manifest first ships in 0.5.0 (npm serves 0.2.0 today). If 0.5.0
    is published before task 020, bump to 2 and keep a reader for 1 (plan open question 6). The fingerprint
    does not include `runtimeBinding`, so approvals are unaffected.

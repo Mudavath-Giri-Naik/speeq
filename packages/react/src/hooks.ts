@@ -1,4 +1,12 @@
-import type { SpeeqClient, SpeeqClientEvents, SpeeqSnapshot, UiActionHandler } from "@speeq/client";
+import {
+  createFormFillHandler,
+  type FormBinding,
+  formFillActionName,
+  type SpeeqClient,
+  type SpeeqClientEvents,
+  type SpeeqSnapshot,
+  type UiActionHandler,
+} from "@speeq/client";
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { useProvider } from "./provider.js";
 
@@ -66,6 +74,26 @@ export function useSpeeqAction(name: string, handler: UiActionHandler): void {
     () => client.registerUiAction(name, (args, signal) => current.current(args, signal)),
     [client, name],
   );
+}
+
+/**
+ * Lets the assistant fill a **draft** of one of your forms. `formId` is the form's capability id from
+ * `.speeq/manifest.json` (for example `form:app/contact/page.tsx#form1`). The assistant never submits:
+ * the visitor presses your button. Fields the visitor already edited are not overwritten, and the
+ * latest `binding` is always used.
+ */
+export function useSpeeqForm(formId: string, binding: FormBinding): void {
+  const current = useRef(binding);
+  current.current = binding;
+  const handler = useMemo(
+    () =>
+      createFormFillHandler({
+        setValues: (values) => current.current.setValues(values),
+        isDirty: (name) => current.current.isDirty(name),
+      }),
+    [],
+  );
+  useSpeeqAction(formFillActionName(formId), handler);
 }
 
 /** Subscribes to a client event and calls the latest handler. */

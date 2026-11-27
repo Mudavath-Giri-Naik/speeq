@@ -25,8 +25,8 @@
         "language": "typescript"
       },
       "files": 55,
-      "scanMs": 227,
-      "rssMbAfterScan": 155,
+      "scanMs": 222,
+      "rssMbAfterScan": 174,
       "capabilities": {
         "total": 22,
         "byKind": {
@@ -45,6 +45,26 @@
         "SQ0160": 1
       },
       "unrecognisedRouteFiles": [],
+      "forms": {
+        "baselineFormTags": 9,
+        "baselineFilesWithForms": 6,
+        "found": 9,
+        "bySupport": {
+          "proven": 3,
+          "needs-review": 6,
+          "unsupported": 0
+        },
+        "withFillableField": 3,
+        "approvedForFilling": 8,
+        "fillActionsGenerated": 0,
+        "skipped": 8,
+        "skippedReasons": ["No field of this form can be filled."]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 0,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 8,
@@ -76,21 +96,24 @@
       },
       "init": {
         "exit": 0,
-        "ms": 206,
+        "ms": 227,
         "approved": 10,
         "wrapped": 8,
-        "skipped": 2,
-        "skippedReasons": ["Blocked: sensitive-not-allowed."],
+        "skipped": 10,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed.",
+          "No field of this form can be filled."
+        ],
         "manualSteps": 1
       },
       "repeatedInit": {
         "exit": 0,
-        "ms": 157,
+        "ms": 148,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 213,
+        "ms": 227,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -99,14 +122,14 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0"
+            "detail": "Missing: speeq@0.6.0"
           }
         ],
         "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
-        "ms": 151,
+        "ms": 140,
         "restoredTree": true
       }
     },
@@ -127,8 +150,8 @@
         "language": "typescript"
       },
       "files": 78,
-      "scanMs": 193,
-      "rssMbAfterScan": 217,
+      "scanMs": 224,
+      "rssMbAfterScan": 231,
       "capabilities": {
         "total": 18,
         "byKind": {
@@ -146,6 +169,26 @@
         "SQ0222": 3
       },
       "unrecognisedRouteFiles": [],
+      "forms": {
+        "baselineFormTags": 7,
+        "baselineFilesWithForms": 7,
+        "found": 7,
+        "bySupport": {
+          "proven": 0,
+          "needs-review": 7,
+          "unsupported": 0
+        },
+        "withFillableField": 0,
+        "approvedForFilling": 7,
+        "fillActionsGenerated": 0,
+        "skipped": 4,
+        "skippedReasons": ["No field of this form can be filled."]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 2,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 5,
@@ -177,21 +220,25 @@
       },
       "init": {
         "exit": 0,
-        "ms": 187,
+        "ms": 216,
         "approved": 11,
         "wrapped": 7,
-        "skipped": 4,
-        "skippedReasons": ["The input is not an object schema.", "Blocked: sensitive-not-allowed."],
+        "skipped": 8,
+        "skippedReasons": [
+          "No field of this form can be filled.",
+          "The input is not an object schema.",
+          "Blocked: sensitive-not-allowed."
+        ],
         "manualSteps": 1
       },
       "repeatedInit": {
         "exit": 0,
-        "ms": 324,
+        "ms": 167,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 331,
+        "ms": 188,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -200,14 +247,14 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0, zod@4.6.7"
+            "detail": "Missing: speeq@0.6.0, zod@4.6.7"
           }
         ],
         "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
-        "ms": 311,
+        "ms": 164,
         "restoredTree": true
       }
     },
@@ -228,8 +275,8 @@
         "language": "typescript"
       },
       "files": 188,
-      "scanMs": 615,
-      "rssMbAfterScan": 255,
+      "scanMs": 320,
+      "rssMbAfterScan": 289,
       "capabilities": {
         "total": 28,
         "byKind": {
@@ -247,6 +294,29 @@
         "SQ0150": 1
       },
       "unrecognisedRouteFiles": [],
+      "forms": {
+        "baselineFormTags": 5,
+        "baselineFilesWithForms": 5,
+        "found": 5,
+        "bySupport": {
+          "proven": 3,
+          "needs-review": 2,
+          "unsupported": 0
+        },
+        "withFillableField": 3,
+        "approvedForFilling": 4,
+        "fillActionsGenerated": 2,
+        "skipped": 2,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed.",
+          "No field of this form can be filled."
+        ]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 4,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 14,
@@ -278,21 +348,24 @@
       },
       "init": {
         "exit": 3,
-        "ms": 654,
+        "ms": 326,
         "approved": 16,
-        "wrapped": 14,
-        "skipped": 2,
-        "skippedReasons": ["Blocked: sensitive-not-allowed."],
-        "manualSteps": 1
+        "wrapped": 16,
+        "skipped": 4,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed.",
+          "No field of this form can be filled."
+        ],
+        "manualSteps": 3
       },
       "repeatedInit": {
         "exit": 3,
-        "ms": 521,
+        "ms": 300,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 970,
+        "ms": 304,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -301,14 +374,23 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0"
+            "detail": "Missing: speeq@0.6.0"
           }
         ],
-        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass",
+          "R8:pass"
+        ]
       },
       "rollback": {
         "exit": 0,
-        "ms": 534,
+        "ms": 277,
         "restoredTree": true
       }
     },
@@ -329,8 +411,8 @@
         "language": "typescript"
       },
       "files": 90,
-      "scanMs": 260,
-      "rssMbAfterScan": 292,
+      "scanMs": 219,
+      "rssMbAfterScan": 300,
       "capabilities": {
         "total": 27,
         "byKind": {
@@ -353,6 +435,26 @@
         "SQ0222": 1
       },
       "unrecognisedRouteFiles": [],
+      "forms": {
+        "baselineFormTags": 9,
+        "baselineFilesWithForms": 9,
+        "found": 9,
+        "bySupport": {
+          "proven": 9,
+          "needs-review": 0,
+          "unsupported": 0
+        },
+        "withFillableField": 8,
+        "approvedForFilling": 3,
+        "fillActionsGenerated": 2,
+        "skipped": 1,
+        "skippedReasons": ["No field of this form can be filled."]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 1,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 4,
@@ -384,21 +486,25 @@
       },
       "init": {
         "exit": 0,
-        "ms": 261,
+        "ms": 164,
         "approved": 5,
-        "wrapped": 2,
-        "skipped": 3,
-        "skippedReasons": ["Blocked: sensitive-not-allowed.", "The input is not an object schema."],
-        "manualSteps": 1
+        "wrapped": 4,
+        "skipped": 4,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed.",
+          "No field of this form can be filled.",
+          "The input is not an object schema."
+        ],
+        "manualSteps": 3
       },
       "repeatedInit": {
         "exit": 0,
-        "ms": 256,
+        "ms": 159,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 283,
+        "ms": 161,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -407,14 +513,23 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0, zod@4.6.7"
+            "detail": "Missing: speeq@0.6.0, zod@4.6.7"
           }
         ],
-        "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass",
+          "R8:pass"
+        ]
       },
       "rollback": {
         "exit": 0,
-        "ms": 267,
+        "ms": 150,
         "restoredTree": true
       }
     },
@@ -435,8 +550,8 @@
         "language": "typescript"
       },
       "files": 224,
-      "scanMs": 660,
-      "rssMbAfterScan": 287,
+      "scanMs": 1263,
+      "rssMbAfterScan": 318,
       "capabilities": {
         "total": 31,
         "byKind": {
@@ -455,6 +570,26 @@
         "SQ0231": 2
       },
       "unrecognisedRouteFiles": [],
+      "forms": {
+        "baselineFormTags": 2,
+        "baselineFilesWithForms": 2,
+        "found": 2,
+        "bySupport": {
+          "proven": 0,
+          "needs-review": 2,
+          "unsupported": 0
+        },
+        "withFillableField": 0,
+        "approvedForFilling": 1,
+        "fillActionsGenerated": 0,
+        "skipped": 1,
+        "skippedReasons": ["No field of this form can be filled."]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 5,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 23,
@@ -486,21 +621,25 @@
       },
       "init": {
         "exit": 3,
-        "ms": 424,
+        "ms": 483,
         "approved": 24,
         "wrapped": 18,
-        "skipped": 6,
-        "skippedReasons": ["The input is not an object schema.", "Blocked: sensitive-not-allowed."],
+        "skipped": 7,
+        "skippedReasons": [
+          "No field of this form can be filled.",
+          "The input is not an object schema.",
+          "Blocked: sensitive-not-allowed."
+        ],
         "manualSteps": 1
       },
       "repeatedInit": {
         "exit": 3,
-        "ms": 387,
+        "ms": 434,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 395,
+        "ms": 454,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -509,14 +648,14 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0"
+            "detail": "Missing: speeq@0.6.0"
           }
         ],
         "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
-        "ms": 432,
+        "ms": 429,
         "restoredTree": true
       }
     },
@@ -537,8 +676,8 @@
         "language": "mixed"
       },
       "files": 183,
-      "scanMs": 775,
-      "rssMbAfterScan": 303,
+      "scanMs": 384,
+      "rssMbAfterScan": 321,
       "capabilities": {
         "total": 26,
         "byKind": {
@@ -567,6 +706,26 @@
           "compilerEndpoints": 0
         }
       ],
+      "forms": {
+        "baselineFormTags": 1,
+        "baselineFilesWithForms": 1,
+        "found": 1,
+        "bySupport": {
+          "proven": 0,
+          "needs-review": 1,
+          "unsupported": 0
+        },
+        "withFillableField": 0,
+        "approvedForFilling": 1,
+        "fillActionsGenerated": 0,
+        "skipped": 1,
+        "skippedReasons": ["No field of this form can be filled."]
+      },
+      "filters": {
+        "baselinePagesReadingSearchParams": 0,
+        "found": 0,
+        "appliedThroughApprovedRoute": 0
+      },
       "accuracy": {
         "routes": {
           "baseline": 4,
@@ -598,21 +757,21 @@
       },
       "init": {
         "exit": 3,
-        "ms": 509,
+        "ms": 388,
         "approved": 14,
         "wrapped": 14,
-        "skipped": 0,
-        "skippedReasons": [],
+        "skipped": 1,
+        "skippedReasons": ["No field of this form can be filled."],
         "manualSteps": 1
       },
       "repeatedInit": {
         "exit": 3,
-        "ms": 481,
+        "ms": 363,
         "noop": true
       },
       "verify": {
         "exit": 1,
-        "ms": 399,
+        "ms": 375,
         "readiness": {
           "static": "fail",
           "runtime": "pass",
@@ -621,14 +780,14 @@
         "failing": [
           {
             "id": "S9",
-            "detail": "Missing: speeq@0.4.0"
+            "detail": "Missing: speeq@0.6.0"
           }
         ],
         "runtime": ["R1:pass", "R2:pass", "R3:pass", "R4:pass", "R5:pass", "R6:pass", "R7:pass"]
       },
       "rollback": {
         "exit": 0,
-        "ms": 358,
+        "ms": 373,
         "restoredTree": true
       }
     }

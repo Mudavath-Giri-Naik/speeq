@@ -2,7 +2,7 @@ import type { CapabilityDecision, DecisionsFile } from "@speeq/core/manifest";
 import { reviewState, setDecision, writeDecisions } from "@speeq/integrate";
 import type { Ctx, Loaded } from "./types.js";
 
-/** Kinds that become tools or routes. Forms and filters are only reported. */
+/** Kinds that become tools or routes. Forms are offered separately; filters ride on their route. */
 const REVIEWABLE = new Set(["route", "endpoint", "function"]);
 
 /**
@@ -16,18 +16,20 @@ export async function reviewPending(ctx: Ctx, loaded: Loaded): Promise<Decisions
   const state = reviewState(loaded.manifest, loaded.decisions);
   const byId = new Map(loaded.manifest.capabilities.map((c) => [c.id, c]));
   const pending = state.pending.filter((id) => REVIEWABLE.has(byId.get(id)?.kind ?? ""));
-  if (pending.length === 0) return loaded.decisions;
-  const chosen = await prompts.multiselect(
-    "Which capabilities may the assistant use?",
-    pending.map((id) => {
-      const c = byId.get(id);
-      return { value: id, label: id, hint: `${c?.support ?? ""}, ${c?.access ?? ""}` };
-    }),
-    pending.filter((id) => {
-      const c = byId.get(id);
-      return c?.kind === "route" && c.support === "proven";
-    }),
-  );
+  const chosen =
+    pending.length === 0
+      ? []
+      : await prompts.multiselect(
+          "Which capabilities may the assistant use?",
+          pending.map((id) => {
+            const c = byId.get(id);
+            return { value: id, label: id, hint: `${c?.support ?? ""}, ${c?.access ?? ""}` };
+          }),
+          pending.filter((id) => {
+            const c = byId.get(id);
+            return c?.kind === "route" && c.support === "proven";
+          }),
+        );
   let decisions = loaded.decisions;
   for (const id of chosen) {
     const c = byId.get(id);
@@ -62,6 +64,32 @@ export async function reviewPending(ctx: Ctx, loaded: Loaded): Promise<Decisions
         );
     }
     decisions = setDecision(decisions, loaded.manifest, id, "enable", extra);
+  }
+  // Forms are offered separately: filling is draft-only, so nothing is submitted or changed.
+  const forms = state.entries
+    .filter((e) => {
+      const c = byId.get(e.id);
+      return (
+        c?.kind === "form" &&
+        !e.decision &&
+        !e.status.blocked &&
+        e.status.support !== "unsupported" &&
+        c.fields.some((f) => !f.sensitive)
+      );
+    })
+    .map((e) => e.id);
+  if (forms.length) {
+    const fill = await prompts.multiselect(
+      "Which forms may the assistant fill as a draft? (it never submits them)",
+      forms.map((id) => {
+        const c = byId.get(id);
+        const names =
+          c?.kind === "form" ? c.fields.filter((f) => !f.sensitive).map((f) => f.name) : [];
+        return { value: id, label: id, hint: names.slice(0, 5).join(", ") };
+      }),
+      [],
+    );
+    for (const id of fill) decisions = setDecision(decisions, loaded.manifest, id, "enable", {});
   }
   if (decisions && decisions !== loaded.decisions && !ctx.flags.dryRun)
     await writeDecisions(loaded.fs, loaded.prefix, decisions);
