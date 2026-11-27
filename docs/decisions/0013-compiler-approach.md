@@ -1,6 +1,6 @@
 # ADR-0013 — Compiler: TypeScript compiler API, syntactic first, no code execution
 
-Status: Accepted (ts-morph rejection is provisional until the task 015 evidence is reviewed)
+Status: Accepted. Task 015 evidence (2026-11-27): ts-morph 28.0.0 installs and parses TSX, but bundles its own TypeScript 6.0.2 (repo: 6.0.3), so its nodes are not the repo's `ts` types. The rejection stands for that reason and for needing no wrapper when edits are range splices.
 
 ## Context
 

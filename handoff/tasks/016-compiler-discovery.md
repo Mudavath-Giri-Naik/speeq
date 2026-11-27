@@ -208,6 +208,18 @@ Reconcile and incremental scan
   `ANALYZER_VERSION` or with a different `appDir` is ignored. The result with a cache must equal the
   result without one (tested on every fixture).
 
+## 3b. Fix required in the 015 foundation (found in review, do this first as commit `fix(compiler): F1`)
+
+`fs/deny.ts` ignores `dist`, `build`, `out` and `coverage` at **every nesting level**, so real routes such as
+`app/build/page.tsx`, `app/coverage/page.tsx`, `app/out/page.tsx` or `pages/dist/...` are silently dropped:
+a false negative with no diagnostic. Required behaviour: `node_modules`, `.next`, `.turbo`, `.vercel`,
+`.pnpm-store` stay ignored at every level; `dist`, `build`, `out`, `coverage` are ignored **only when the
+directory containing them also contains a `package.json`** (a project root), and are otherwise normal
+directories. Apply it in both `listFiles` and direct reads. Add a fixture `fixtures/compiler/build-named-routes`
+(routes `/build`, `/out`, `/coverage` under `app/`, plus a real `dist/` and `build/` next to the app's
+`package.json` that must stay ignored, plus `packages/lib/dist/x.ts` that must stay ignored) and tests.
+Modify `packages/compiler/src/fs/{deny,repo-fs}.ts` and their tests for this fix only.
+
 ## 4. Scope
 
 Create (under `packages/compiler/src` unless stated; split files by the ~200-line guide):
