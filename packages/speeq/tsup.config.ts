@@ -22,3 +22,13 @@ for (const [subpath, entry] of Object.entries(pkg.exports)) {
     target: "es2022",
   });
 }
+
+// The executable: ESM only, no declarations. `@speeq/cli` stays an external dependency.
+await build({
+  config: false,
+  entry: { bin: "src/bin.ts" },
+  format: ["esm"],
+  clean: false,
+  sourcemap: true,
+  target: "es2022",
+});

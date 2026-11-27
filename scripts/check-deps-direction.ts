@@ -43,8 +43,9 @@ const packageRules = {
     externalDeps: [],
   },
   speeq: {
-    internalDeps: runtimePackageNames,
-    internalImports: runtimePackageNames,
+    // The umbrella also ships the `speeq` executable, a shim over the CLI (ADR-0014).
+    internalDeps: [...runtimePackageNames, "@speeq/cli"],
+    internalImports: [...runtimePackageNames, "@speeq/cli"],
     externalDeps: ["zod", "react", "mongodb"],
   },
 };

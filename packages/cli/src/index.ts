@@ -3,6 +3,7 @@
  * @packageDocumentation
  */
 export { parseCommandLine } from "./args.js";
+export { main } from "./main.js";
 export { run } from "./run.js";
 export { type CliEnv, EXIT, type Flags, type Prompter } from "./types.js";
 export { SPEEQ_PACKAGE_VERSION } from "./version.js";

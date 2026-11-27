@@ -1,0 +1,42 @@
+{
+  "note": "Real external Next.js apps used for Phase 1 validation. Pinned revisions; copied to temporary directories, never modified upstream. Licence is read from the cloned LICENSE by the validation script.",
+  "apps": [
+    {
+      "id": "saas-starter",
+      "repo": "https://github.com/nextjs/saas-starter.git",
+      "rev": "6e33e58b1e553a41fe22e6b941a7229a002de361"
+    },
+    {
+      "id": "commerce",
+      "repo": "https://github.com/vercel/commerce.git",
+      "rev": "f7521d57d29f0eb3d23c1399cf9bb299d61fcd21"
+    },
+    {
+      "id": "taxonomy",
+      "repo": "https://github.com/shadcn-ui/taxonomy.git",
+      "rev": "298a8857c7128a0d121e7f699dfd729f23b3966d"
+    },
+    {
+      "id": "nextjs-subscription-payments",
+      "repo": "https://github.com/vercel/nextjs-subscription-payments.git",
+      "rev": "bdd0813206e47e6b218d42f15a7976c8a0d3c3eb"
+    },
+    {
+      "id": "next-saas-stripe-starter",
+      "repo": "https://github.com/mickasmt/next-saas-stripe-starter.git",
+      "rev": "c6df229ae73c207e87356d5e592779c511a9b56d"
+    },
+    {
+      "id": "ai-chatbot",
+      "repo": "https://github.com/vercel/ai-chatbot.git",
+      "rev": "a8989b522fa3672a2ae52f053105e40993b36ca1"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "platforms",
+      "repo": "https://github.com/vercel/platforms.git",
+      "reason": "No LICENSE file in the repository at the pinned revision."
+    }
+  ]
+}

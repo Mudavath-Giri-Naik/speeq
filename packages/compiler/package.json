@@ -1,5 +1,28 @@
 {
+  "name": "@speeq/compiler",
+  "version": "0.4.0",
+  "description": "Read-only discovery of what a Next.js app can expose to a speeq agent.",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mudavath-Giri-Naik/speeq.git",
+    "directory": "packages/compiler"
+  },
+  "homepage": "https://github.com/Mudavath-Giri-Naik/speeq#readme",
+  "keywords": [
+    "speeq",
+    "nextjs",
+    "cli",
+    "conversational-ai"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "@speeq/source": "./src/index.ts",
@@ -14,6 +37,9 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
@@ -25,12 +51,6 @@
     "@speeq/core": "workspace:*",
     "typescript": "6.0.3",
     "ignore": "7.0.17"
-  },
-  "name": "@speeq/compiler",
-  "private": true,
-  "license": "MIT",
-  "engines": {
-    "node": ">=22.12"
   },
   "devDependencies": {
     "@speeq/tsconfig": "workspace:*",

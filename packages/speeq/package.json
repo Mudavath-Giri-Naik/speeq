@@ -182,7 +182,8 @@
     "@speeq/llm-gemini": "workspace:*",
     "@speeq/store-memory": "workspace:*",
     "@speeq/store-mongodb": "workspace:*",
-    "@speeq/speech": "workspace:*"
+    "@speeq/speech": "workspace:*",
+    "@speeq/cli": "workspace:*"
   },
   "peerDependencies": {
     "zod": "^4.0.0",
@@ -200,5 +201,8 @@
     "mongodb": {
       "optional": true
     }
+  },
+  "bin": {
+    "speeq": "./dist/bin.js"
   }
 }

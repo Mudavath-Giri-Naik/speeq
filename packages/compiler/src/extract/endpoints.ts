@@ -102,9 +102,16 @@ export async function endpointDrafts(
     ctx.diags.push(diagnostic("SQ0270", file, line));
   }
   if (role.role === "route-handler") {
+    let unresolved: number | undefined;
     for (const m of METHODS) {
       const hit = await ctx.graph.exported(file, m, walkFor(ctx));
-      if (hit.kind !== "binding") continue;
+      if (hit.kind !== "binding") {
+        // Exported under a method name but not resolvable to a handler (a re-export of a destructured
+        // value such as Auth.js `handlers`): report it, never guess and never stay silent.
+        const exported = table.exports.get(m)?.at;
+        if (exported && unresolved === undefined) unresolved = lineOf(exported);
+        continue;
+      }
       const at = table.exports.get(m)?.at;
       const line = at ? lineOf(at) : 1;
       const fn = await functionOf(hit.binding, ctx);
@@ -132,7 +139,8 @@ export async function endpointDrafts(
         ),
       );
     }
-    if (!out.length && table.stars.length) ctx.diags.push(diagnostic("SQ0270", file, 1));
+    if (unresolved !== undefined) ctx.diags.push(diagnostic("SQ0270", file, unresolved));
+    else if (!out.length && table.stars.length) ctx.diags.push(diagnostic("SQ0270", file, 1));
     return out;
   }
   const def = await ctx.graph.exported(file, "default", walkFor(ctx));

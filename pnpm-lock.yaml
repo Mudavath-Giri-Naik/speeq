@@ -615,6 +615,15 @@ importers:
       '@speeq/core':
         specifier: workspace:*
         version: link:../core
+      '@speeq/server':
+        specifier: workspace:*
+        version: link:../server
+      '@speeq/store-memory':
+        specifier: workspace:*
+        version: link:../adapters/store-memory
+      '@speeq/testing':
+        specifier: workspace:*
+        version: link:../testing
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -625,9 +634,6 @@ importers:
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
-      speeq:
-        specifier: workspace:*
-        version: link:../speeq
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -684,6 +690,9 @@ importers:
 
   packages/speeq:
     dependencies:
+      '@speeq/cli':
+        specifier: workspace:*
+        version: link:../cli
       '@speeq/client':
         specifier: workspace:*
         version: link:../client

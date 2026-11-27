@@ -36,6 +36,10 @@
     },
     {
       "code": "SQ0270",
+      "file": "app/api/auth/route.ts"
+    },
+    {
+      "code": "SQ0270",
       "file": "app/star/route.ts"
     },
     {

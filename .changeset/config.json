@@ -14,7 +14,10 @@
       "@speeq/llm-gemini",
       "@speeq/store-memory",
       "@speeq/store-mongodb",
-      "speeq"
+      "speeq",
+      "@speeq/compiler",
+      "@speeq/integrate",
+      "@speeq/cli"
     ]
   ],
   "linked": [],

@@ -1,0 +1,699 @@
+{
+  "generatedAt": "2026-11-27",
+  "machine": {
+    "os": "win32 10.0.26300",
+    "cpu": "11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz",
+    "cores": 8,
+    "ramGb": 8,
+    "node": "24.15.0"
+  },
+  "apps": [
+    {
+      "id": "saas-starter",
+      "repo": "https://github.com/nextjs/saas-starter.git",
+      "rev": "6e33e58b1e553a41fe22e6b941a7229a002de361",
+      "license": {
+        "file": "LICENSE",
+        "firstLine": "MIT License",
+        "spdx": "MIT"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "typescript"
+      },
+      "files": 55,
+      "scanMs": 227,
+      "rssMbAfterScan": 155,
+      "capabilities": {
+        "total": 22,
+        "byKind": {
+          "endpoint": 4,
+          "form": 9,
+          "function": 1,
+          "route": 8
+        },
+        "bySupport": {
+          "needs-review": 8,
+          "proven": 14
+        }
+      },
+      "diagnostics": {
+        "SQ0230": 2,
+        "SQ0160": 1
+      },
+      "unrecognisedRouteFiles": [],
+      "accuracy": {
+        "routes": {
+          "baseline": 8,
+          "found": 8,
+          "matched": 8,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 4,
+          "found": 4,
+          "matched": 4,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 1,
+          "found": 1,
+          "matched": 1,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 0,
+        "ms": 206,
+        "approved": 10,
+        "wrapped": 8,
+        "skipped": 2,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed."
+        ],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 0,
+        "ms": 157,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 213,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 151,
+        "restoredTree": true
+      }
+    },
+    {
+      "id": "commerce",
+      "repo": "https://github.com/vercel/commerce.git",
+      "rev": "f7521d57d29f0eb3d23c1399cf9bb299d61fcd21",
+      "license": {
+        "file": "LICENSE.md",
+        "firstLine": "The MIT License (MIT)",
+        "spdx": "MIT"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "typescript"
+      },
+      "files": 78,
+      "scanMs": 193,
+      "rssMbAfterScan": 217,
+      "capabilities": {
+        "total": 18,
+        "byKind": {
+          "endpoint": 1,
+          "form": 7,
+          "function": 5,
+          "route": 5
+        },
+        "bySupport": {
+          "proven": 8,
+          "needs-review": 10
+        }
+      },
+      "diagnostics": {
+        "SQ0222": 3
+      },
+      "unrecognisedRouteFiles": [],
+      "accuracy": {
+        "routes": {
+          "baseline": 5,
+          "found": 5,
+          "matched": 5,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 1,
+          "found": 1,
+          "matched": 1,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 5,
+          "found": 5,
+          "matched": 5,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 0,
+        "ms": 187,
+        "approved": 11,
+        "wrapped": 7,
+        "skipped": 4,
+        "skippedReasons": [
+          "The input is not an object schema.",
+          "Blocked: sensitive-not-allowed."
+        ],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 0,
+        "ms": 324,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 331,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0, zod@4.6.7"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 311,
+        "restoredTree": true
+      }
+    },
+    {
+      "id": "taxonomy",
+      "repo": "https://github.com/shadcn-ui/taxonomy.git",
+      "rev": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "license": {
+        "file": "LICENSE.md",
+        "firstLine": "MIT License",
+        "spdx": "MIT"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "typescript"
+      },
+      "files": 188,
+      "scanMs": 615,
+      "rssMbAfterScan": 255,
+      "capabilities": {
+        "total": 28,
+        "byKind": {
+          "endpoint": 9,
+          "form": 5,
+          "route": 14
+        },
+        "bySupport": {
+          "needs-review": 11,
+          "proven": 17
+        }
+      },
+      "diagnostics": {
+        "SQ0230": 4,
+        "SQ0150": 1
+      },
+      "unrecognisedRouteFiles": [],
+      "accuracy": {
+        "routes": {
+          "baseline": 14,
+          "found": 14,
+          "matched": 14,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 8,
+          "found": 8,
+          "matched": 8,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 0,
+          "found": 0,
+          "matched": 0,
+          "recall": null,
+          "precision": null,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 3,
+        "ms": 654,
+        "approved": 16,
+        "wrapped": 14,
+        "skipped": 2,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed."
+        ],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 3,
+        "ms": 521,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 970,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 534,
+        "restoredTree": true
+      }
+    },
+    {
+      "id": "nextjs-subscription-payments",
+      "repo": "https://github.com/vercel/nextjs-subscription-payments.git",
+      "rev": "bdd0813206e47e6b218d42f15a7976c8a0d3c3eb",
+      "license": {
+        "file": "LICENSE",
+        "firstLine": "The MIT License (MIT)",
+        "spdx": "MIT"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "typescript"
+      },
+      "files": 90,
+      "scanMs": 260,
+      "rssMbAfterScan": 292,
+      "capabilities": {
+        "total": 27,
+        "byKind": {
+          "endpoint": 3,
+          "form": 9,
+          "function": 11,
+          "route": 4
+        },
+        "bySupport": {
+          "needs-review": 14,
+          "proven": 13
+        }
+      },
+      "diagnostics": {
+        "SQ0230": 3,
+        "SQ0160": 1,
+        "SQ0260": 1,
+        "SQ0231": 2,
+        "SQ0221": 8,
+        "SQ0222": 1
+      },
+      "unrecognisedRouteFiles": [],
+      "accuracy": {
+        "routes": {
+          "baseline": 4,
+          "found": 4,
+          "matched": 4,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 3,
+          "found": 3,
+          "matched": 3,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 11,
+          "found": 11,
+          "matched": 11,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 0,
+        "ms": 261,
+        "approved": 5,
+        "wrapped": 2,
+        "skipped": 3,
+        "skippedReasons": [
+          "Blocked: sensitive-not-allowed.",
+          "The input is not an object schema."
+        ],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 0,
+        "ms": 256,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 283,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0, zod@4.6.7"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 267,
+        "restoredTree": true
+      }
+    },
+    {
+      "id": "next-saas-stripe-starter",
+      "repo": "https://github.com/mickasmt/next-saas-stripe-starter.git",
+      "rev": "c6df229ae73c207e87356d5e592779c511a9b56d",
+      "license": {
+        "file": "LICENSE.md",
+        "firstLine": "MIT License",
+        "spdx": "MIT"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "typescript"
+      },
+      "files": 224,
+      "scanMs": 660,
+      "rssMbAfterScan": 287,
+      "capabilities": {
+        "total": 31,
+        "byKind": {
+          "endpoint": 3,
+          "form": 2,
+          "function": 3,
+          "route": 23
+        },
+        "bySupport": {
+          "needs-review": 7,
+          "proven": 24
+        }
+      },
+      "diagnostics": {
+        "SQ0230": 2,
+        "SQ0231": 2
+      },
+      "unrecognisedRouteFiles": [],
+      "accuracy": {
+        "routes": {
+          "baseline": 23,
+          "found": 23,
+          "matched": 23,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 3,
+          "found": 3,
+          "matched": 3,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 3,
+          "found": 3,
+          "matched": 3,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 3,
+        "ms": 424,
+        "approved": 24,
+        "wrapped": 18,
+        "skipped": 6,
+        "skippedReasons": [
+          "The input is not an object schema.",
+          "Blocked: sensitive-not-allowed."
+        ],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 3,
+        "ms": 387,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 395,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 432,
+        "restoredTree": true
+      }
+    },
+    {
+      "id": "ai-chatbot",
+      "repo": "https://github.com/vercel/ai-chatbot.git",
+      "rev": "a8989b522fa3672a2ae52f053105e40993b36ca1",
+      "license": {
+        "file": "LICENSE",
+        "firstLine": "Copyright 2024 Vercel, Inc.",
+        "spdx": "Apache-2.0"
+      },
+      "status": "ok",
+      "project": {
+        "framework": "nextjs-app",
+        "packageManager": "pnpm",
+        "appDir": ".",
+        "language": "mixed"
+      },
+      "files": 183,
+      "scanMs": 775,
+      "rssMbAfterScan": 303,
+      "capabilities": {
+        "total": 26,
+        "byKind": {
+          "endpoint": 15,
+          "form": 1,
+          "function": 6,
+          "route": 4
+        },
+        "bySupport": {
+          "needs-review": 19,
+          "proven": 7
+        }
+      },
+      "diagnostics": {
+        "SQ0221": 2,
+        "SQ0270": 1,
+        "SQ0230": 12,
+        "SQ0231": 4,
+        "SQ0220": 1,
+        "SQ0160": 1
+      },
+      "unrecognisedRouteFiles": [
+        {
+          "file": "app/(auth)/api/auth/[...nextauth]/route.ts",
+          "compilerDiagnostics": [
+            "SQ0270"
+          ],
+          "compilerEndpoints": 0
+        }
+      ],
+      "accuracy": {
+        "routes": {
+          "baseline": 4,
+          "found": 4,
+          "matched": 4,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "endpoints": {
+          "baseline": 15,
+          "found": 15,
+          "matched": 15,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        },
+        "serverActions": {
+          "baseline": 6,
+          "found": 6,
+          "matched": 6,
+          "recall": 1,
+          "precision": 1,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "init": {
+        "exit": 3,
+        "ms": 509,
+        "approved": 14,
+        "wrapped": 14,
+        "skipped": 0,
+        "skippedReasons": [],
+        "manualSteps": 1
+      },
+      "repeatedInit": {
+        "exit": 3,
+        "ms": 481,
+        "noop": true
+      },
+      "verify": {
+        "exit": 1,
+        "ms": 399,
+        "readiness": {
+          "static": "fail",
+          "runtime": "pass",
+          "host": "not-run"
+        },
+        "failing": [
+          {
+            "id": "S9",
+            "detail": "Missing: speeq@0.4.0"
+          }
+        ],
+        "runtime": [
+          "R1:pass",
+          "R2:pass",
+          "R3:pass",
+          "R4:pass",
+          "R5:pass",
+          "R6:pass",
+          "R7:pass"
+        ]
+      },
+      "rollback": {
+        "exit": 0,
+        "ms": 358,
+        "restoredTree": true
+      }
+    }
+  ]
+}

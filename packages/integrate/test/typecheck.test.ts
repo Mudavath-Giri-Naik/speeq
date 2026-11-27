@@ -11,6 +11,8 @@ const fixtures = join(here, "../../../fixtures/compiler");
 const norm = (s: string) => s.split("\\").join("/");
 
 /** Generated code must compile against the real speeq packages, or `next build` would break. */
+const umbrella = join(here, "..", "..", "speeq", "src");
+
 describe("generated code", () => {
   it("type-checks against the real packages", async () => {
     const dir = await mkdtemp(join(here, "..", ".gen-"));
@@ -47,6 +49,11 @@ describe("generated code", () => {
         module: ts.ModuleKind.ESNext,
         moduleResolution: ts.ModuleResolutionKind.Bundler,
         customConditions: ["@speeq/source"],
+        // The umbrella is not a dependency of this package (it depends on the CLI): map it by path.
+        paths: {
+          "speeq/server/next": [join(umbrella, "server-next.ts")],
+          "speeq/*": [join(umbrella, "*.ts")],
+        },
         types: ["node"],
         lib: ["lib.es2023.d.ts", "lib.dom.d.ts"],
       });
