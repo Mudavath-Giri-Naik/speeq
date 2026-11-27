@@ -1,0 +1,195 @@
+{
+  "fixture": "forms",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "form:app/contact/page.tsx#contact",
+      "kind": "form",
+      "support": "proven",
+      "access": "write",
+      "evidence": [
+        {
+          "file": "app/contact/page.tsx",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "form:app/dynamic/page.tsx#form1",
+      "kind": "form",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/dynamic/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "form:app/login/page.tsx#form1",
+      "kind": "form",
+      "support": "proven",
+      "access": "write",
+      "evidence": [
+        {
+          "file": "app/login/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "form:app/pay/page.tsx#form1",
+      "kind": "form",
+      "support": "proven",
+      "access": "write",
+      "evidence": [
+        {
+          "file": "app/pay/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "form:app/rhf/page.tsx#form1",
+      "kind": "form",
+      "support": "proven",
+      "access": "write",
+      "evidence": [
+        {
+          "file": "app/rhf/page.tsx",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "form:app/two/page.tsx#form1",
+      "kind": "form",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/two/page.tsx",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "form:app/two/page.tsx#form2",
+      "kind": "form",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/two/page.tsx",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#sendMessage",
+      "kind": "function",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/contact",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/contact/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/dynamic",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/dynamic/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/login",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/login/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/pay",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/pay/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/rhf",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/rhf/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/two",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/two/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0240",
+      "file": "app/dynamic/page.tsx"
+    }
+  ],
+  "forbidden": []
+}

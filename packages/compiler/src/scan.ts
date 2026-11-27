@@ -59,7 +59,12 @@ export type ScanResult =
       cache: ScanCache;
       stats: ScanStats;
     }
-  | { status: "needs-selection"; candidates: AppCandidate[]; project: ProjectInfo }
+  | {
+      status: "needs-selection";
+      candidates: AppCandidate[];
+      diagnostics: Diagnostic[];
+      project: ProjectInfo;
+    }
   | { status: "unsupported"; reason: string; diagnostics: Diagnostic[]; project: ProjectInfo };
 
 const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|mts|cts)$/;
@@ -98,7 +103,12 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
     });
     if (!info.chosen) {
       if (options.appDir === undefined && info.apps.length > 1)
-        return { status: "needs-selection", candidates: info.apps, project };
+        return {
+          status: "needs-selection",
+          candidates: info.apps,
+          diagnostics: [diagnostic("SQ0101", "package.json")],
+          project,
+        };
       return unsupported(
         "No Next.js application was found.",
         "SQ0102",

@@ -1,0 +1,177 @@
+{
+  "fixture": "zod-schemas",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "function:app/actions.ts#disc",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 12
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#fromConst",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 20
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:app/actions.ts#good",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 7
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:app/actions.ts#lazy",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 10
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#mini",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 21
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#missing",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 22
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#panel",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 14
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:app/actions.ts#picked",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 18
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:app/actions.ts#pinCode",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 16
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#rec",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 11
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#refined",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 8
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#transformed",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 9
+        }
+      ],
+      "executableWhenApproved": false
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0211",
+      "file": "app/actions.ts"
+    },
+    {
+      "code": "SQ0210",
+      "file": "app/actions.ts"
+    },
+    {
+      "code": "SQ0212",
+      "file": "app/actions.ts"
+    }
+  ],
+  "forbidden": []
+}

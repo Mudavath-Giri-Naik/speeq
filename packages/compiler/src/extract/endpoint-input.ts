@@ -161,9 +161,10 @@ export async function analyzeInput(
     );
   const out: NonNullable<EndpointCapability["input"]> = { source: "none" };
   let sensitive = false;
+  const bodyReads = mode === "app" ? jsonReads : bodyParses.length;
   if (jsonReads > 0 || bodyParses.length) {
     const only = bodyParses[0];
-    if (jsonReads !== 1 || bodyParses.length !== 1 || !only)
+    if (bodyReads !== 1 || bodyParses.length !== 1 || !only)
       return review("The request body is read without exactly one schema parse.");
     const r = await sc(only);
     if (!r.ok) return review(r.detail, r.code);

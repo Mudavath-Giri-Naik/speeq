@@ -132,6 +132,7 @@ export async function endpointDrafts(
         ),
       );
     }
+    if (!out.length && table.stars.length) ctx.diags.push(diagnostic("SQ0270", file, 1));
     return out;
   }
   const def = await ctx.graph.exported(file, "default", walkFor(ctx));

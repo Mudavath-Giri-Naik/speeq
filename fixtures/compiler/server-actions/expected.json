@@ -1,0 +1,147 @@
+{
+  "fixture": "server-actions",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "function:app/actions.ts#addItem",
+      "kind": "function",
+      "support": "proven",
+      "access": "write",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:app/actions.ts#arrow",
+      "kind": "function",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 12
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#formAction",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 7
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#noInput",
+      "kind": "function",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 11
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#parsed",
+      "kind": "function",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 6
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#twoArgs",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 8
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/actions.ts#untyped",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/actions.ts",
+          "line": 14
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "function:app/lib/tagged.ts#tagged",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/lib/tagged.ts",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/inline",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/inline/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0221",
+      "file": "app/actions.ts"
+    },
+    {
+      "code": "SQ0222",
+      "file": "app/actions.ts"
+    },
+    {
+      "code": "SQ0231",
+      "file": "app/actions.ts"
+    },
+    {
+      "code": "SQ0220",
+      "file": "app/inline/page.tsx"
+    }
+  ],
+  "forbidden": [
+    "function:app/lib/helpers.ts#helper",
+    "function:app/lib/tagged.ts#untagged",
+    "function:app/actions.ts#ignored",
+    "function:app/actions.ts#constant"
+  ]
+}

@@ -1,6 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import type { DiscoveryResult } from "../adapter.js";
+import { openRepoFs } from "../fs/repo-fs.js";
 import { scan } from "../scan.js";
 import { type GroundTruth, loadGroundTruth } from "./ground-truth.js";
 import { score } from "./score.js";
@@ -19,12 +18,12 @@ export async function discoverWithScan(
     };
   if (r.status === "unsupported")
     return { status: r.status, capabilities: [], diagnostics: r.diagnostics };
-  return { status: r.status, capabilities: [], diagnostics: [] };
+  return { status: r.status, capabilities: [], diagnostics: r.diagnostics };
 }
 /** Score one fixture directory. Fixtures with a `selection` map are scored once per selectable app. */
 export async function evaluateFixture(dir: string) {
   const truth = await loadGroundTruth(dir);
-  const raw = JSON.parse(await readFile(join(dir, "expected.json"), "utf8")) as {
+  const raw = JSON.parse(await (await openRepoFs({ root: dir })).readText("expected.json")) as {
     selection?: Record<string, GroundTruth["capabilities"]>;
   };
   if (!raw.selection) return [score(truth, await discoverWithScan(dir))];

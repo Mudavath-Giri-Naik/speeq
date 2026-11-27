@@ -1,0 +1,13 @@
+import { z } from "zod";
+const KINDS = ["x", "y"] as const;
+export const Good = z.object({ name: z.string().min(1).max(20), age: z.number().int().positive().optional(), email: z.string().email(), role: z.enum(["a", "b"]), tags: z.array(z.string()), n: z.coerce.number().gte(0).lte(10), flag: z.boolean().default(false), lit: z.literal("x"), u: z.union([z.string(), z.number()]).nullable(), note: z.string().nullish().describe("A note") });
+export const Refined = z.object({ a: z.string() }).refine((v) => v.a.length > 0);
+export const Transformed = z.string().transform((s) => s.trim());
+export const Lazy = z.lazy(() => z.string());
+export const Rec = z.record(z.string(), z.string());
+export const Disc = z.discriminatedUnion("t", [z.object({ t: z.literal("a") })]);
+export const Panel = z.object({ panel: z.string(), pinterestUrl: z.string() });
+export const PinCode = z.object({ pinCode: z.string() });
+const Parts = z.object({ id: z.string(), city: z.string() });
+export const Picked = Parts.pick({ id: true }).extend({ extra: z.number() });
+export const FromConst = z.object({ kind: z.enum(KINDS) });

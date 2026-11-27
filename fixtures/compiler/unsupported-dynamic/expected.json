@@ -1,0 +1,53 @@
+{
+  "fixture": "unsupported-dynamic",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "endpoint:GET /cond",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/cond/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/ok",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/ok/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0270",
+      "file": "app/api/computed/route.ts"
+    },
+    {
+      "code": "SQ0270",
+      "file": "app/star/route.ts"
+    },
+    {
+      "code": "SQ0260",
+      "file": "app/bad/page.tsx"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/cond/route.ts"
+    }
+  ],
+  "forbidden": [
+    "route:/bad"
+  ]
+}

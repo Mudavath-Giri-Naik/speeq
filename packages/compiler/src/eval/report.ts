@@ -1,8 +1,7 @@
-import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { DiscoveryResult } from "../adapter.js";
-import type { RepoFs } from "../fs/repo-fs.js";
+import { openRepoFs, type RepoFs } from "../fs/repo-fs.js";
 import { evaluateFixture } from "./run.js";
 import type { score } from "./score.js";
 /** Render per-kind metrics and concrete mismatches as a terminal table. */
@@ -40,8 +39,11 @@ export async function emptyDiscover(_fs: RepoFs): Promise<DiscoveryResult> {
 async function run() {
   const root = fileURLToPath(new URL("../../../../fixtures/compiler/", import.meta.url)),
     scores: ReturnType<typeof score>[] = [];
-  for (const name of (await readdir(root)).sort())
-    scores.push(...(await evaluateFixture(join(root, name))));
+  const listing = await (await openRepoFs({ root })).listFiles();
+  const names = listing
+    .filter((f) => f.endsWith("/expected.json") && f.split("/").length === 2)
+    .map((f) => f.split("/")[0] as string);
+  for (const name of names) scores.push(...(await evaluateFixture(join(root, name))));
   console.log(renderReport(scores));
   if (scores.some((s) => s.supported && !s.passed)) process.exitCode = 1;
 }

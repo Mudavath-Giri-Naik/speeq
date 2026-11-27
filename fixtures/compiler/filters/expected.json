@@ -1,0 +1,150 @@
+{
+  "fixture": "filters",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "filter-set:/awaited",
+      "kind": "filter-set",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/awaited/page.tsx",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "filter-set:/badschema",
+      "kind": "filter-set",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/badschema/page.tsx",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "filter-set:/hooked",
+      "kind": "filter-set",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/hooked/page.tsx",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "filter-set:/practice",
+      "kind": "filter-set",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/practice/page.tsx",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/awaited",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/awaited/page.tsx",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/badschema",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/badschema/page.tsx",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/hooked",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/hooked/page.tsx",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/other",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/other/page.tsx",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/plain",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/plain/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/practice",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/practice/page.tsx",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0250",
+      "file": "app/hooked/page.tsx"
+    },
+    {
+      "code": "SQ0250",
+      "file": "app/badschema/page.tsx"
+    }
+  ],
+  "forbidden": [
+    "filter-set:/other",
+    "filter-set:/plain"
+  ]
+}

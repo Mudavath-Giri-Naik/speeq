@@ -1,0 +1,245 @@
+{
+  "fixture": "endpoints-input",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "endpoint:ANY /api/nomethod",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "pages/api/nomethod.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/delete-me",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/delete-me/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/hello",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "pages/api/hello.ts",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/items/[id]",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/items/[id]/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/lit",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/lit/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/none",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/none/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/query",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/query/route.ts",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:GET /api/wrapped",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/wrapped/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/body",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/body/route.ts",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/create",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "pages/api/create.ts",
+          "line": 4
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/dynamic",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/dynamic/route.ts",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/dynamic-body",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/dynamic-body/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/form",
+      "kind": "endpoint",
+      "support": "needs-review",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/form/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/hello",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "pages/api/hello.ts",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/pay",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/pay/route.ts",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/search",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/search/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0230",
+      "file": "app/api/lit/route.ts"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/api/form/route.ts"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/api/dynamic/route.ts"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/api/items/[id]/route.ts"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/api/wrapped/route.ts"
+    },
+    {
+      "code": "SQ0230",
+      "file": "app/api/dynamic-body/route.ts"
+    },
+    {
+      "code": "SQ0150",
+      "file": "pages/api/nomethod.ts"
+    }
+  ],
+  "forbidden": []
+}

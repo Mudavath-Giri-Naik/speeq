@@ -1,0 +1,65 @@
+{
+  "fixture": "alias-barrel",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "function:src/app/actions.ts#viaCycle",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "src/app/actions.ts",
+          "line": 9
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:src/app/actions.ts#viaDeep",
+      "kind": "function",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "src/app/actions.ts",
+          "line": 11
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:src/app/actions.ts#viaRename",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "src/app/actions.ts",
+          "line": 7
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "function:src/app/actions.ts#viaStar",
+      "kind": "function",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "src/app/actions.ts",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0213",
+      "file": "src/app/actions.ts"
+    }
+  ],
+  "forbidden": []
+}
