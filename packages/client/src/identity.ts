@@ -1,4 +1,4 @@
-import type { IdentitySummary } from "@speeq/core";
+import type { ClientGreeting, IdentitySummary } from "@speeq/core";
 
 /** Minimum time between automatic identity checks (focus, visibility). */
 export const PROBE_THROTTLE_MS = 5000;
@@ -17,6 +17,25 @@ export function validIdentity(value: unknown): value is IdentitySummary {
   );
 }
 
+/** True for a well-formed greeting from the server. */
+export function validGreeting(value: unknown): value is ClientGreeting {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.text === "string" &&
+    Array.isArray(v.starters) &&
+    v.starters.every(
+      (s) =>
+        typeof s === "object" &&
+        s !== null &&
+        typeof (s as { label?: unknown }).label === "string" &&
+        typeof (s as { prompt?: unknown }).prompt === "string",
+    ) &&
+    (v.frequency === "once-per-session" || v.frequency === "every-open") &&
+    typeof v.delayMs === "number"
+  );
+}
+
 /**
  * Asks the server who is signed in (`GET {endpoint}/identity`, cookies only). Returns `null` when the
  * server is older than 0.12, unreachable, rate limited or answers anything unexpected: a failed check
@@ -25,17 +44,23 @@ export function validIdentity(value: unknown): value is IdentitySummary {
 export async function fetchIdentity(
   fetcher: typeof fetch,
   endpoint: string,
-): Promise<IdentitySummary | null> {
+  path?: string,
+): Promise<{ identity: IdentitySummary; greeting: ClientGreeting | null } | null> {
   try {
-    const response = await fetcher(`${endpoint}/identity`, {
+    const query = path ? `?path=${encodeURIComponent(path)}` : "";
+    const response = await fetcher(`${endpoint}/identity${query}`, {
       method: "GET",
       headers: { accept: "application/json" },
       credentials: "same-origin",
       cache: "no-store",
     });
     if (!response.ok) return null;
-    const identity = ((await response.json()) as { identity?: unknown } | null)?.identity;
-    return validIdentity(identity) ? identity : null;
+    const body = (await response.json()) as { identity?: unknown; greeting?: unknown } | null;
+    if (!validIdentity(body?.identity)) return null;
+    return {
+      identity: body.identity,
+      greeting: validGreeting(body.greeting) ? body.greeting : null,
+    };
   } catch {
     return null;
   }

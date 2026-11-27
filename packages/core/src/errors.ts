@@ -27,6 +27,51 @@ export const ERROR_CODES = [
 /** A stable, machine-readable error code. */
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
+/**
+ * Stable refinements of an error code (ADR-0026), e.g. `RATE_LIMITED` + `quota_exhausted`. Never
+ * renamed. They pick the customer-facing message and tell developers what to fix.
+ */
+export const ERROR_REASONS = [
+  "invalid_key",
+  "not_configured",
+  "rate_limited",
+  "busy",
+  "quota_exhausted",
+  "model_unavailable",
+  "unsupported_language",
+  "network",
+  "timeout",
+  "speech_unavailable",
+  "storage_unavailable",
+  "auth_required",
+  "context_unavailable",
+] as const;
+
+/** A stable reason, see {@link ERROR_REASONS}. */
+export type ErrorReason = (typeof ERROR_REASONS)[number];
+
+/** Customer-safe messages per reason. Never mention keys, providers or internals. */
+export const DEFAULT_REASON_MESSAGES: Readonly<Record<ErrorReason, string>> = {
+  invalid_key: "The assistant is not available right now. Please try again later.",
+  not_configured: "The assistant is not available right now. Please try again later.",
+  rate_limited: "The assistant is busy right now. Please try again in a moment.",
+  busy: "The assistant is temporarily busy. Please try again in a moment.",
+  quota_exhausted: "The assistant has reached its limit for now. Please try again later.",
+  model_unavailable: "The assistant is not available right now. Please try again later.",
+  unsupported_language: "That language is not supported here. Please try another one.",
+  network: "The assistant could not reach its service. Check your connection and try again.",
+  timeout: "That took too long. Please try again.",
+  speech_unavailable: "Voice is not available right now. You can type instead.",
+  storage_unavailable: "The assistant could not save this conversation. Please try again.",
+  auth_required: "Please sign in to continue.",
+  context_unavailable: "Some of your information could not be loaded right now.",
+};
+
+/** True if `value` is one of the known {@link ERROR_REASONS}. */
+export function isErrorReason(value: unknown): value is ErrorReason {
+  return typeof value === "string" && (ERROR_REASONS as readonly string[]).includes(value);
+}
+
 /** HTTP status used when an error with this code is returned as a plain JSON response. */
 export const ERROR_HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   UNAUTHENTICATED: 401,
@@ -85,6 +130,8 @@ export interface SpeeqErrorOptions {
   retryable?: boolean;
   /** Suggested wait before retrying, in milliseconds. */
   retryAfterMs?: number;
+  /** Stable refinement of the code. Picks the default message when `message` is not given. */
+  reason?: ErrorReason;
   /** The underlying error. Kept for server logs, never serialized to clients. */
   cause?: unknown;
   /** Extra structured detail for logs (never sent to clients). */
@@ -99,9 +146,15 @@ export class SpeeqError extends Error {
   readonly retryable: boolean;
   readonly retryAfterMs: number | undefined;
   readonly details: Record<string, unknown> | undefined;
+  readonly reason: ErrorReason | undefined;
 
   constructor(code: ErrorCode, options: SpeeqErrorOptions = {}) {
-    super(options.message ?? DEFAULT_ERROR_MESSAGES[code], { cause: options.cause });
+    super(
+      options.message ??
+        (options.reason ? DEFAULT_REASON_MESSAGES[options.reason] : DEFAULT_ERROR_MESSAGES[code]),
+      { cause: options.cause },
+    );
+    this.reason = options.reason;
     this.name = "SpeeqError";
     this.code = code;
     this.retryable = options.retryable ?? RETRYABLE.has(code);
@@ -136,6 +189,8 @@ export interface PublicError {
   message: string;
   retryable: boolean;
   retryAfterMs?: number;
+  /** Stable refinement of `code`, when known. */
+  reason?: ErrorReason;
 }
 
 /**
@@ -154,6 +209,7 @@ export function toPublicError(error: unknown): PublicError {
   const e = toSpeeqError(error);
   const out: PublicError = { code: e.code, message: e.message, retryable: e.retryable };
   if (e.retryAfterMs !== undefined) out.retryAfterMs = e.retryAfterMs;
+  if (e.reason !== undefined) out.reason = e.reason;
   return out;
 }
 

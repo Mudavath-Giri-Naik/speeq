@@ -3,7 +3,9 @@ import {
   type IdentityResponse,
   type IdentitySummary,
   PROTOCOL_VERSION,
+  redactPath,
 } from "@speeq/core";
+import { buildGreeting } from "../greeting.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { identityFingerprint } from "../security/token.js";
@@ -63,9 +65,18 @@ export async function handleIdentity<TUser extends AgentUser>(
 ): Promise<Response> {
   const { user } = await rt.lookupUser(request);
   rt.limitIdentity(request, user?.id ?? null);
+  const rawPath = new URL(request.url).searchParams.get("path");
+  const path = rawPath?.startsWith("/") ? redactPath(rawPath.slice(0, 2048)) : undefined;
+  const greeting = await buildGreeting(rt.config, {
+    request,
+    user,
+    language: rt.config.defaultLanguage,
+    ...(path ? { path } : {}),
+  });
   const body: IdentityResponse = {
     protocolVersion: PROTOCOL_VERSION,
     identity: await identitySummary(rt.config as ResolvedConfig, user),
+    ...(greeting ? { greeting } : {}),
   };
   return json(body, 200, { ...headers, "cache-control": "no-store" });
 }

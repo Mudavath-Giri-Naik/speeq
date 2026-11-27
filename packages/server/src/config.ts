@@ -40,11 +40,87 @@ export interface AgentConfig {
   languages?: string[];
   /** Default `languages[0]`. */
   defaultLanguage?: string;
+  /** What the assistant is for, in one or two sentences (shown in the prompt). */
+  description?: string;
+  /** Tone and length. Absent: the default warm, short spoken style. */
+  style?: AgentStyle;
   /** Maximum LLM calls per turn (tool round-trips). Default 5. */
   maxSteps?: number;
   /** How many previous user turns are sent to the model. Default 8. */
   historyTurns?: number;
   temperature?: number;
+}
+
+/** How the agent sounds. Every option maps to fixed prompt lines; none can turn off safety rules. */
+export interface AgentStyle {
+  personality?:
+    | "professional"
+    | "friendly"
+    | "conversational"
+    | "educational"
+    | "concise"
+    | "formal"
+    | "custom";
+  /** `short` (default): one to three sentences. `detailed`: complete answers when asked. */
+  responseLength?: "short" | "medium" | "detailed";
+  explanationDepth?: "simple" | "standard" | "expert";
+  /** How often to use the customer's name. Default `rarely`. */
+  nameUsage?: "never" | "rarely" | "greeting-only";
+  /** `suggest` (default): end with one natural next step when it helps. */
+  followUps?: "suggest" | "none";
+}
+
+/** What the business is, so the agent talks about it like it works there. Developer-written data. */
+export interface BusinessProfile {
+  name?: string;
+  description?: string;
+  industry?: string;
+  audience?: string;
+  offerings?: string[];
+  /** Words the business uses, e.g. `["PYQ", "mock test"]`. */
+  terminology?: string[];
+  /** Where people get human help, e.g. `support@example.com or the Help page`. */
+  support?: string;
+  policies?: string;
+  /** Healthcare, finance and similar: never volunteer account details, no data in greetings. */
+  sensitive?: boolean;
+}
+
+/**
+ * Greeting templates, chosen deterministically on the server (no model call). Placeholders:
+ * `{name}` (exposed preferred or display name), `{business}`, `{agent}`, and `{source.field}` for
+ * a context source field listed in that source's `greeting`. A template whose placeholder has no
+ * value is skipped, so nothing is ever invented.
+ */
+export interface GreetingConfig {
+  /** Default true. */
+  enabled?: boolean;
+  guest?: string[];
+  member?: string[];
+  /** Signed-in users who have talked to the assistant before. */
+  returning?: string[];
+  /** Per route id, tried first on that page. */
+  pages?: Record<string, string[]>;
+  /** Default `once-per-session`: not repeated on every page. */
+  frequency?: "once-per-session" | "every-open";
+  /** Milliseconds before the generated chat box shows the greeting. Default 600. */
+  delayMs?: number;
+  /** Show starter prompts with the greeting. Default true. */
+  showStarters?: boolean;
+}
+
+/** A suggestion chip. Shown only when its conditions hold and every required capability exists. */
+export interface StarterDefinition {
+  label: string;
+  /** What is sent when tapped. Default `label`. */
+  prompt?: string;
+  when?: {
+    auth?: "guest" | "member";
+    /** Route ids where it is shown. */
+    routes?: string[];
+    /** Capability ids that must exist: route ids, tool or UI action names, context source ids, `navigation`, `knowledge`. */
+    requires?: string[];
+  };
 }
 
 /** Audit-log options. */
@@ -168,6 +244,12 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   resolveUser?(request: Request): TUser | null | Promise<TUser | null>;
   /** What may be shared about the signed-in user. */
   identity?: IdentityConfig;
+  /** What the business is. */
+  business?: BusinessProfile;
+  /** Greeting shown by the chat box. Absent: the chat box's own greeting. */
+  greeting?: GreetingConfig;
+  /** Starter prompts, filtered per visitor, page and available capabilities. */
+  starters?: StarterDefinition[];
   /** Page context and customer context sources. */
   context?: ContextConfig<TUser>;
   /** Allow sessions without a user. Default: `true` if `resolveUser` is not set, else `false`. */

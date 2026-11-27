@@ -58,7 +58,7 @@ const JWT = /^eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}$/;
 const HEX = /^[a-f0-9]{32,}$/i;
 const OPAQUE = /^[A-Za-z0-9+/_=-]{40,}$/;
 const KEY_PREFIX =
-  /^(sk|rk|pk_live|sk_live|ghp|gho|github_pat|xox[abp]|AKIA|AIza)[-_A-Za-z0-9]{12,}$/;
+  /^(sk|rk|gsk|pk_live|sk_live|ghp|gho|github_pat|hf|xai|xox[abp]|AKIA|AIza)[-_A-Za-z0-9]{12,}$/;
 
 function luhn(digits: string): boolean {
   let sum = 0;

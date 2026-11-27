@@ -65,6 +65,7 @@ it("constructs a stable, idle snapshot in Node and ignores blank text", async ()
     config: null,
     sessionId: null,
     identity: null,
+    greeting: null,
     inputLanguage: null,
     voice: { input: "browser", output: "browser", streaming: "native", processing: "remote" },
   });

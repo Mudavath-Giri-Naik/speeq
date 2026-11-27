@@ -9,7 +9,7 @@ import {
   TypedEmitter,
 } from "@speeq/core/utils";
 import { pageContext } from "./context.js";
-import { fetchIdentity, watchIdentity } from "./identity.js";
+import { fetchIdentity, validGreeting, watchIdentity } from "./identity.js";
 import { LanguageMode } from "./language-mode.js";
 import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
 import { ServerSpeechInput, type SpeechRequest } from "./server-speech-input.js";
@@ -123,6 +123,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     config: null,
     sessionId: null,
     identity: null,
+    greeting: null,
   } satisfies SpeeqSnapshot);
   const emitter = new TypedEmitter<{ [K in keyof SpeeqClientEvents]: SpeeqClientEvents[K] }>();
   const speech = new SpeechQueue(output, options.speakReplies !== false);
@@ -241,6 +242,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     options,
     ({ sessionId, config, identity }) => {
       if (identity) setIdentity(identity);
+      if (config.greeting && validGreeting(config.greeting)) update({ greeting: config.greeting });
       if (input instanceof ServerSpeechInput)
         input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
       const languages =
@@ -311,14 +313,17 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     if (destroyed) return Promise.resolve(null);
     probing ??= (async () => {
       const endpoint = options.endpoint.replace(/\/+$/, "");
-      const identity = await fetchIdentity(
+      const found = await fetchIdentity(
         (url, init) => (options.fetch ?? globalThis.fetch)(url, init),
         endpoint,
+        pageContext(options.getContext)?.path,
       );
-      if (!identity || destroyed) return identity;
+      if (!found || destroyed) return found?.identity ?? null;
+      const { identity, greeting } = found;
       const known = request.current()?.identity?.fingerprint ?? snapshot.identity?.fingerprint;
       if (known && known !== identity.fingerprint) resetIdentity();
       setIdentity(identity);
+      if (greeting) update({ greeting });
       return identity;
     })().finally(() => {
       probing = undefined;
@@ -879,6 +884,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       else if (snapshot.state === "listening") input?.stop();
     },
     refreshIdentity,
+    newConversation() {
+      if (destroyed) return;
+      // Same person, fresh start: nothing of the current conversation is sent again.
+      resetIdentity();
+    },
     async confirm(confirmationId, approved) {
       if (!destroyed) await run(null, { confirmationId, approved });
     },

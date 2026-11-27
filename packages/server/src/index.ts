@@ -68,13 +68,17 @@ export type { AgentContext, AgentUser, AgentUserProfile, IdentitySummary } from 
 export { SpeeqError } from "@speeq/core";
 export type {
   AgentConfig,
+  AgentStyle,
   AuditConfig,
+  BusinessProfile,
   ContextConfig,
+  GreetingConfig,
   GuardrailsConfig,
   IdentityConfig,
   SpeechConfig,
   SpeeqConfig,
   SpeeqLogger,
+  StarterDefinition,
   TelemetryConfig,
 } from "./config.js";
 export {

@@ -51,6 +51,15 @@ export {
   ZOD_VERSION,
 } from "./plan.js";
 export {
+  type AgentPreset,
+  guessPreset,
+  PRESETS,
+  type PresetGuess,
+  type PresetId,
+  type PresetStarter,
+  presetById,
+} from "./presets.js";
+export {
   type EnvVar,
   FEATURES,
   type FeatureEntry,

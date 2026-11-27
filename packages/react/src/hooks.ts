@@ -26,6 +26,7 @@ export interface UseSpeeqResult extends SpeeqSnapshot {
   resolveUiAction: SpeeqClient["resolveUiAction"];
   speak: SpeeqClient["speak"];
   refreshIdentity: SpeeqClient["refreshIdentity"];
+  newConversation: SpeeqClient["newConversation"];
 }
 
 /** Reads the current snapshot and actions of the provider's client. */
@@ -48,6 +49,7 @@ export function useSpeeq(): UseSpeeqResult {
         resolveUiAction: client.resolveUiAction.bind(client),
         speak: client.speak.bind(client),
         refreshIdentity: client.refreshIdentity.bind(client),
+        newConversation: client.newConversation.bind(client),
       },
     }),
     [client],

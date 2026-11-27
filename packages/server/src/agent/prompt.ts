@@ -45,9 +45,14 @@ export interface PromptInput {
  */
 export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): string {
   const lang = languageName(input.language);
+  const business = config.raw.business;
+  const style = config.raw.agent.style;
+  const where = business?.name ? `the ${oneLine(business.name, 80)} website` : "this website";
   const sections: string[] = [
-    `You are ${config.agentName}, a voice and text assistant built into this website.`,
+    `You are ${config.agentName}, a voice and text assistant built into ${where}.`,
+    config.raw.agent.description ? oneLine(config.raw.agent.description, 400) : "",
     config.instructions.trim(),
+    businessSection(business),
     [
       "## How you talk",
       "Sound like a warm, relaxed person who knows this site well, not a bot or a help-desk script.",
@@ -57,13 +62,20 @@ export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): s
       "- If you are not sure what they mean, ask one short, specific question, ideally with two options.",
       "- If something cannot be done, say so plainly and offer the closest thing you can do.",
       "- Remember the whole conversation. Use names, preferences and earlier requests naturally, and never ask again for something you already know.",
-      "- When it helps, end with one natural next step, not a menu of options.",
+      style?.followUps === "none"
+        ? "- Do not add follow-up suggestions; answer and stop."
+        : "- When it helps, end with one natural next step, not a menu of options.",
+      ...styleLines(style),
     ].join("\n"),
     [
       "## Language",
       `Always reply in ${lang} (${input.language}), even if earlier messages used another language.`,
       `Speak ${lang} the way people actually speak it in conversation, not like a translation from English: common everyday words, natural sentence order, friendly register. Keep English words that people normally say in English (page names, product words, GATE, login). Do not switch language part way through a reply.`,
-      "Replies may be read aloud: keep them short, usually one to three sentences.",
+      style?.responseLength === "detailed"
+        ? "Replies may be read aloud: keep simple answers short, and give a complete, well-ordered explanation when the visitor asks for one."
+        : style?.responseLength === "medium"
+          ? "Replies may be read aloud: usually two to five sentences; longer only when asked."
+          : "Replies may be read aloud: keep them short, usually one to three sentences.",
       "Do not use markdown, tables, emoji or raw URLs in replies.",
     ].join("\n"),
   ];
@@ -186,4 +198,61 @@ function describeParams(schema: z.ZodObject): string {
   } catch {
     return "see tool schema";
   }
+}
+
+/** One line of developer text, trimmed and cut. */
+function oneLine(text: string, max: number): string {
+  return text.replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+const PERSONALITY: Record<string, string> = {
+  professional: "Be professional and precise: clear, courteous, no slang.",
+  friendly: "Be friendly and encouraging, like a helpful person at the front desk.",
+  conversational: "Be relaxed and conversational, like talking to a friend who knows the site.",
+  educational:
+    "Be a patient teacher: explain step by step, check understanding, use small examples.",
+  concise: "Be brief: answer in as few words as possible, no small talk.",
+  formal: "Be formal and respectful. Avoid contractions and casual phrases.",
+};
+const DEPTH: Record<string, string> = {
+  simple: "Explain in simple words for a beginner; avoid jargon.",
+  expert: "The audience is expert: use precise terms and skip the basics.",
+};
+
+/** Fixed lines for each style setting. Settings never add or remove safety rules. */
+function styleLines(style: ResolvedConfig["raw"]["agent"]["style"]): string[] {
+  if (!style) return [];
+  const out: string[] = [];
+  const p = style.personality && PERSONALITY[style.personality];
+  if (p) out.push(`- ${p}`);
+  const d = style.explanationDepth && DEPTH[style.explanationDepth];
+  if (d) out.push(`- ${d}`);
+  if (style.nameUsage === "never" || style.nameUsage === "greeting-only")
+    out.push("- Do not address the visitor by name in replies.");
+  return out;
+}
+
+/** The business profile as trusted, developer-written context, bounded in size. */
+function businessSection(b: ResolvedConfig["raw"]["business"]): string {
+  if (!b) return "";
+  const list = (xs: string[] | undefined, n: number) =>
+    (xs ?? [])
+      .map((x) => oneLine(x, 80))
+      .filter(Boolean)
+      .slice(0, n)
+      .join(", ");
+  const lines = ["## About this business"];
+  if (b.name) lines.push(`Name: ${oneLine(b.name, 80)}`);
+  if (b.description) lines.push(`What it does: ${oneLine(b.description, 400)}`);
+  if (b.industry) lines.push(`Industry: ${oneLine(b.industry, 60)}`);
+  if (b.audience) lines.push(`Audience: ${oneLine(b.audience, 160)}`);
+  if (b.offerings?.length) lines.push(`Offers: ${list(b.offerings, 12)}`);
+  if (b.terminology?.length) lines.push(`Terms people use here: ${list(b.terminology, 20)}`);
+  if (b.support) lines.push(`For human help: ${oneLine(b.support, 160)}`);
+  if (b.policies) lines.push(`Policies: ${oneLine(b.policies, 400)}`);
+  if (b.sensitive)
+    lines.push(
+      "This is a sensitive domain. Never volunteer private account, health or financial details; share them only when the signed-in user asks for them directly.",
+    );
+  return lines.length > 1 ? lines.join("\n") : "";
 }

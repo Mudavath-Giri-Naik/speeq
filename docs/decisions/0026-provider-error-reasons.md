@@ -1,6 +1,6 @@
 # ADR-0026 — Provider errors carry a stable reason; customers get a sentence, developers a diagnosis
 
-Status: Proposed (accepted with task 024).
+Status: Accepted (task 024). Decision 3 ships as the development log line only; the doctor reads no runtime file.
 
 ## Decision
 

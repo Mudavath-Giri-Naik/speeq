@@ -271,3 +271,48 @@ describe("watchIdentity", () => {
     expect(server.fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("greeting and fresh conversations", () => {
+  const greeting = {
+    text: "Welcome back, Alice!",
+    starters: [{ label: "Show my cart", prompt: "Show my cart" }],
+    frequency: "once-per-session",
+    delayMs: 600,
+  };
+
+  it("takes the greeting from the identity check, with the current path", async () => {
+    vi.stubGlobal("location", { pathname: "/pricing", search: "?token=abc" });
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({ protocolVersion: 1, identity: ALICE, greeting }),
+    );
+    const client = createSpeeqClient({ endpoint: "/api/speeq", fetch });
+    await client.refreshIdentity();
+    expect(client.getSnapshot().greeting).toEqual(greeting);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      `/api/speeq/identity?path=${encodeURIComponent("/pricing?token=[REDACTED]")}`,
+    );
+  });
+
+  it("ignores a malformed greeting", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({ protocolVersion: 1, identity: ALICE, greeting: { text: 5 } }),
+    );
+    const client = createSpeeqClient({ endpoint: "/api/speeq", fetch });
+    await client.refreshIdentity();
+    expect(client.getSnapshot().greeting).toBeNull();
+    expect(client.getSnapshot().identity).toEqual(ALICE);
+  });
+
+  it("newConversation clears the transcript and opens a new session for the same person", async () => {
+    const server = fakeServer();
+    const client = createSpeeqClient({ endpoint: "/api/speeq", fetch: server.fetch });
+    await client.sendText("first");
+    client.newConversation();
+    expect(client.getSnapshot().messages).toEqual([]);
+    await client.sendText("second");
+    const snap = client.getSnapshot();
+    expect(snap.sessionId).toBe("s2");
+    expect(snap.messages.map((m) => m.text).join(" ")).not.toContain("first");
+    expect(snap.identity).toEqual(ALICE);
+  });
+});

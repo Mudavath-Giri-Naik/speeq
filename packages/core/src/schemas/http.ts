@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PROTOCOL_VERSION } from "../constants.js";
+import { ERROR_REASONS } from "../errors.js";
 import {
   ErrorCodeSchema,
   InputModeSchema,
@@ -22,6 +23,19 @@ export const CreateSessionRequestSchema = z.object({
 /** Body of `POST /session`. */
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
 
+/**
+ * Greeting and starter prompts for one visitor, computed by the server from configured templates
+ * and approved values (0.12+). `text` may be empty when only starters are configured.
+ */
+export const ClientGreetingSchema = z.object({
+  text: z.string().max(300),
+  starters: z.array(z.object({ label: z.string().max(60), prompt: z.string().max(300) })).max(6),
+  frequency: z.enum(["once-per-session", "every-open"]),
+  delayMs: z.number().int().nonnegative().max(10_000),
+});
+/** Greeting and starter prompts for one visitor. */
+export type ClientGreeting = z.infer<typeof ClientGreetingSchema>;
+
 /** Public configuration the client receives when a session starts. */
 export const ClientConfigSchema = z.object({
   speech: z
@@ -38,6 +52,8 @@ export const ClientConfigSchema = z.object({
   }),
   /** Routes the agent can open (id + title only), for UI hints such as "try saying…". */
   routes: z.array(z.object({ id: z.string(), title: z.string() })),
+  /** Absent when the server configures no greeting or starters, or is older than 0.12. */
+  greeting: ClientGreetingSchema.optional(),
 });
 /** Public configuration the client receives when a session starts. */
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
@@ -65,6 +81,8 @@ export type IdentitySummary = z.infer<typeof IdentitySummarySchema>;
 export const IdentityResponseSchema = z.object({
   protocolVersion: z.literal(PROTOCOL_VERSION),
   identity: IdentitySummarySchema,
+  /** Greeting for this visitor and page (`?path=`), when configured. */
+  greeting: ClientGreetingSchema.optional(),
 });
 /** Response of `GET /identity`. */
 export type IdentityResponse = z.infer<typeof IdentityResponseSchema>;
@@ -129,6 +147,8 @@ export const ErrorResponseSchema = z.object({
     message: z.string(),
     retryable: z.boolean(),
     retryAfterMs: z.number().optional(),
+    /** Stable refinement of `code` (0.12+). */
+    reason: z.enum(ERROR_REASONS).optional(),
   }),
 });
 /** JSON error body for non-streaming endpoints. */

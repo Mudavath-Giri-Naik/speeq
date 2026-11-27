@@ -36,6 +36,7 @@ const snapshot: UseSpeeqResult = {
   resolveUiAction: vi.fn(async () => {}),
   speak: vi.fn(async () => {}),
   refreshIdentity: vi.fn(async () => null),
+  newConversation: vi.fn(),
 };
 
 beforeAll(() => {

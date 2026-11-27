@@ -112,7 +112,14 @@ describe("the generated chat box", () => {
     expect(widget).toContain('const SUGGESTIONS: string[] = ["Open Pricing","Open \\"Docs\\""];');
     expect(widget).toContain("What are you after?");
 
-    expect(widget).toContain("chat.sendText(s)");
+    expect(widget).toContain("chat.sendText(s.prompt)");
+  });
+  it("uses the server greeting and starters when the app configures them", () => {
+    expect(widget).toContain("greeting?.text || hello");
+    expect(widget).toContain("greeting.starters");
+    expect(widget).toContain("chat.refreshIdentity()");
+    expect(widget).toContain("chat.newConversation()");
+    expect(widget).toContain("this is a fresh conversation");
   });
   it("scrolls to the newest message and keeps the log scrollable", () => {
     expect(widget).toContain("el.scrollTo({ top: el.scrollHeight })");

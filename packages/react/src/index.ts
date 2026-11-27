@@ -4,6 +4,7 @@ export type {
   AuditClientOptions,
   AuditListParams,
   ChatMessage,
+  ClientGreeting,
   ConversationEvent,
   FormBinding,
   IdentitySummary,

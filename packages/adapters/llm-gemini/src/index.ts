@@ -217,7 +217,8 @@ export function createGeminiProvider(options: GeminiOptions): LLMProvider {
         const text = await res.text().catch(() => "");
         if (BAD_KEY_RE.test(text)) {
           throw new SpeeqError("NOT_CONFIGURED", {
-            message: "The AI provider rejected the API key.",
+            reason: "invalid_key",
+            details: { provider: "gemini", status: res.status, reason: "invalid_key" },
           });
         }
         throw mapProviderHttpError("gemini", res.status, text, res.headers.get("retry-after"));

@@ -5,10 +5,12 @@ import {
   type CreateSessionResponse,
   createId,
   PROTOCOL_VERSION,
+  redactPath,
   SpeeqError,
 } from "@speeq/core";
 import { AuditRecorder } from "../audit/recorder.js";
 import { sanitizePageContext, storedPageContext } from "../context/page.js";
+import { buildGreeting } from "../greeting.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { signSessionToken } from "../security/token.js";
@@ -87,5 +89,13 @@ export async function handleCreateSession<TUser extends AgentUser>(
     config: clientConfig(rt as Runtime<AgentUser>),
     identity: await identitySummary(rt.config as ResolvedConfig, user),
   };
+  const greeting = await buildGreeting(rt.config, {
+    request,
+    user,
+    sessionId,
+    language,
+    ...(body.context?.path ? { path: redactPath(body.context.path) } : {}),
+  });
+  if (greeting) response.config.greeting = greeting;
   return json(response, 200, headers);
 }

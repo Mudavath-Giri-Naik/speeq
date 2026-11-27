@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PROTOCOL_VERSION } from "../constants.js";
+import { ERROR_REASONS } from "../errors.js";
 import {
   ErrorCodeSchema,
   LanguageSchema,
@@ -102,6 +103,8 @@ export const ErrorEventSchema = z.object({
   message: z.string(),
   retryable: z.boolean(),
   retryAfterMs: z.number().int().nonnegative().optional(),
+  /** Stable refinement of `code` (0.12+). */
+  reason: z.enum(ERROR_REASONS).optional(),
 });
 
 /** Last event of every stream. */

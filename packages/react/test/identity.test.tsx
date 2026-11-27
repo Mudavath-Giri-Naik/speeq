@@ -22,5 +22,7 @@ it("useSpeeqIdentity follows the server's identity and its changes", async () =>
   who = { state: "authenticated", fingerprint: "fp-ravi" };
   await act(() => result.current.refresh());
   await waitFor(() => expect(result.current.identity?.fingerprint).toBe("fp-ravi"));
-  expect(fetch.mock.calls.every(([url]) => String(url) === "/api/speeq/identity")).toBe(true);
+  expect(fetch.mock.calls.every(([url]) => String(url).startsWith("/api/speeq/identity"))).toBe(
+    true,
+  );
 });

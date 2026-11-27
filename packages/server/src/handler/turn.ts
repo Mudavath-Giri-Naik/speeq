@@ -30,6 +30,7 @@ import { needsClarification } from "../agent/voice-guard.js";
 import { AuditRecorder } from "../audit/recorder.js";
 import { resumablePageContext, sanitizePageContext, storedPageContext } from "../context/page.js";
 import { loadInitialContext } from "../context/run.js";
+import { logProviderDiagnostic } from "../diagnostics.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
@@ -326,6 +327,7 @@ export function streamTurn<TUser extends AgentUser>(
         reason = signal.aborted ? "aborted" : "error";
         const e = toSpeeqError(error, "PROVIDER_ERROR");
         if (!isSpeeqError(error)) rt.config.logger.error("turn failed", error);
+        logProviderDiagnostic(rt.config.logger, error);
         if (!signal.aborted) emit({ type: "error", ...toPublicError(e) });
         rt.telemetry.error(e.code);
         await turn.recorder.record("error", { code: e.code, message: e.message }, { turnId });

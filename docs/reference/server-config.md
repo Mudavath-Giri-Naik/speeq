@@ -54,4 +54,4 @@ Pass a `SpeeqConfig<TUser>` to `createSpeeq`. The return value exposes `handler(
 | telemetry.transport                    | TelemetryTransport                                            | Uses HTTP when an endpoint is supplied. A custom transport takes precedence.                                    |
 | telemetry.flushIntervalMs              | number                                                        | 60000 between sends after the first flush.                                                                      |
 
-[Customer context](../guides/customer-context.md) · [Telemetry fields and delivery](telemetry.md) · [Tool definitions](../guides/tools-and-knowledge.md)
+[Customer context](../guides/customer-context.md) · [Greetings and style](../guides/agent-greetings-and-style.md) · [Telemetry fields and delivery](telemetry.md) · [Tool definitions](../guides/tools-and-knowledge.md)

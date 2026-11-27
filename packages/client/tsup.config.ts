@@ -16,6 +16,7 @@ if (!moduleSymbol) throw new Error("Could not load core types");
 const names = new Set([
   "ClientConfig",
   "IdentitySummary",
+  "ClientGreeting",
   "ProtocolEvent",
   "SessionListResponse",
   "SessionDetailResponse",

@@ -1,5 +1,6 @@
 import type {
   ClientConfig,
+  ClientGreeting,
   IdentitySummary,
   ProtocolEvent,
   SpeechInput,
@@ -133,6 +134,11 @@ export interface SpeeqSnapshot {
    * `null` until the first session or identity check. Never holds a user or tenant id.
    */
   identity: IdentitySummary | null;
+  /**
+   * Greeting and starter prompts the server chose for this visitor and page, or `null` when the
+   * server configures none (older servers too). Updated by sessions and identity checks.
+   */
+  greeting: ClientGreeting | null;
 }
 
 /** Configures transport, speech and host callbacks. */
@@ -220,6 +226,11 @@ export interface SpeeqClient {
    * by itself on window focus and when the page becomes visible, once a conversation exists.
    */
   refreshIdentity(): Promise<IdentitySummary | null>;
+  /**
+   * Starts a fresh conversation for the same person: clears the transcript and pending actions and
+   * opens a new session with the next message.
+   */
+  newConversation(): void;
   /**
    * Registers the page code for a UI action the server declared with `defineUiAction`. Register
    * before the first turn: the session tells the server whether any handler exists. Returns a
