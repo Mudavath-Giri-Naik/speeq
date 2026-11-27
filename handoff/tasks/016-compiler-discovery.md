@@ -78,10 +78,10 @@ Next.js
   `pathPattern` (speeq form): `[x]` becomes `:x`, `[...x]` becomes `:x*`, `[[...x]]` becomes `:x*?`.
   (Catch-all patterns are `needs-review` because core's `resolveNavigation` only fills `:name`.)
 - Pages Router: files under `pages/` except `_app`, `_document`, `_error`, `404`, `500`; `pages/api/**` are
-  endpoints (methods unknown from the filename: read `req.method` comparisons `=== "GET"` etc. only in
-  the form `req.method === "<LITERAL>"` or `switch (req.method) { case "<LITERAL>": }`; otherwise methods
-  are `["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"]` is **not** assumed: use an empty array and
-  `needs-review` with `SQ0150`). Page title/description only from a literal `export const metadata`
+  endpoints (methods unknown from the filename: read `req.method` comparisons only in the form
+  `req.method === "<LITERAL>"` or `switch (req.method) { case "<LITERAL>": }`; otherwise `methods` is an empty
+  array (all methods are never assumed), `support` is `needs-review` and `SQ0150` is reported).
+  Page title/description only from a literal `export const metadata`
   (App Router) of the form `{ title: "…", description: "…" }` or `title: { default|absolute: "…" }`;
   `generateMetadata` and non-literal values are ignored (title falls back to the last path segment,
   title-cased; `/` becomes "Home").
@@ -131,11 +131,12 @@ Schemas (Zod)
 - Output is `JsonSchemaLite` (section 6 in 015). Object schemas get `additionalProperties: false` for
   `strictObject` only. Property order follows source order. A field is `required` unless `.optional()`,
   `.nullish()` or `.default()`.
-- Sensitive field names (case-insensitive substring, after splitting camel and snake case):
-  `password`, `passwd`, `pwd`, `secret`, `token`, `apikey`, `api_key`, `cvv`, `cvc`, `otp`, `pin`,
-  `cardnumber`, `card_number`, `ccnumber`, `cc_number`, `iban`, `accountnumber`, `ssn`, `aadhaar`, `pan`
-  is **not** matched alone (too many false hits) but `pannumber` is. A function or endpoint whose input
-  schema contains a sensitive field gets sensitivity `credentials` (therefore blocked). Forms list such
+- Sensitive field names: split the name into lowercase words (camelCase, snake_case, kebab-case) and match
+  **whole words or the joined form**, never substrings: `password`, `passwd`, `pwd`, `secret`, `token`,
+  `apikey` (also `api`+`key`), `cvv`, `cvc`, `otp`, `pin`, `cardnumber` (also `card`+`number`), `ccnumber`,
+  `iban`, `accountnumber`, `ssn`, `aadhaar`, `pannumber`. So `pinCode` matches (word `pin`) but `pinterestUrl`
+  and `panel` do not. A function or endpoint whose input schema contains a sensitive field gets sensitivity
+  `credentials` (therefore blocked). Forms list such
   fields with `sensitive: true`.
 
 Functions and server actions

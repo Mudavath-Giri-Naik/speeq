@@ -120,17 +120,15 @@ is the single source of truth and has an exhaustive test.
 ## 5. Phase 1 delivery: tasks 015 to 022
 
 Task numbers continue the existing handoff index. 014 (voice) is independent of all of these.
+The work was merged on 2026-11-27 into **four** briefs, to cut handoff overhead. Big briefs are split into
+milestones with a commit each, so a partial result is still reviewable.
 
-| #   | Brief                                              | Outcome                                                                                                                 |
-| --- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 015 | Contracts, safe fs, research evidence, eval harness | `@speeq/core/manifest`, `@speeq/compiler` skeleton (jailed `RepoFs`, adapter and diagnostics contracts), ground-truth format and scorer, compiler research doc |
-| 016 | Repo and Next.js route discovery                    | Repo/workspace/framework detection, App and Pages routes, alias resolution, auth and integration detection, route fixtures |
-| 017 | API, function, schema, form and filter discovery    | Route handlers, server actions, exported service functions, Zod extraction, forms, filters, honest `unsupported`          |
-| 018 | Manifest build, decisions, staleness, incremental scan | Stable ids, fingerprints, decisions file, policy defaults, `scan --check`, scan cache                                  |
-| 019 | CLI shell, scan report, control center              | `speeq init/scan/configure/capabilities`, provider and feature registries, JSON and CI modes, persistence             |
-| 020 | Integration engine                                  | Plan, diff, dry-run, apply, idempotency, rollback, generated wrappers, `provider` edit or manual snippet, endpoint binding in `@speeq/server` |
-| 021 | Verification and doctor                             | Static checks, mock runtime smoke test, permission and confirmation tests, host command runner, readiness levels        |
-| 022 | External validation and release                     | Real Next.js apps, accuracy and timing report, umbrella `bin`, packed-tarball test in a clean app, docs, changeset        |
+| #   | Brief                                 | Outcome                                                                                                                                                                                 |
+| --- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 015 | Contracts and foundation              | `@speeq/core/manifest`, `@speeq/compiler` skeleton (jailed `RepoFs`, ids, fingerprints, adapter and diagnostics contracts), ground-truth format and scorer, compiler research evidence |
+| 016 | **The whole compiler**                | Repo, workspace, tsconfig, integrations, App and Pages routes, auth evidence, Zod schemas, endpoints, server actions, forms, filters, manifest build, `reconcile`, incremental scan, 18 fixtures, benchmark |
+| 017 | **CLI and integration engine**        | `speeq init/scan/configure/capabilities/rollback/upgrade`, scan report, control center, provider and feature registries, `@speeq/integrate` (plan, diff, apply, idempotency, rollback), generated wrappers, endpoint binding in `@speeq/server`, `--json` and CI mode |
+| 018 | **Verification, validation, release** | Doctor and `verify` (static, mock runtime smoke, permission and confirmation tests, host commands), readiness levels, three real external apps, accuracy and timing report, umbrella `bin`, packed-tarball test, docs, changeset |
 
 Phase 1 gate (all required): ground-truth fixtures 100% on supported contracts; at least three real
 external Next.js apps integrated in isolated copies with verification run; `npx speeq init` works from
