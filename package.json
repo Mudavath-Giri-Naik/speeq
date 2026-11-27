@@ -21,7 +21,7 @@
     "check-deps": "tsx scripts/check-deps-direction.ts",
     "pack-all": "bash scripts/pack-all.sh",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-cli-version.mjs",
     "release": "pnpm build && changeset publish --tag next"
   },
   "devDependencies": {
