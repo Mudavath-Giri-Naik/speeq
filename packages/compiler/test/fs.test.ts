@@ -114,3 +114,20 @@ it("keeps the hostile fixture secret outside all returned data", async () => {
     ]),
   ).not.toContain("SPEEQ_TEST_SECRET_DO_NOT_LEAK");
 });
+
+it("retains output-named routes and excludes actual package outputs from all access", async () => {
+  const fs = await openRepoFs({
+    root: fileURLToPath(new URL("../../../fixtures/compiler/build-named-routes/", import.meta.url)),
+  });
+  const inventory = await fs.listFiles();
+  for (const dir of ["build", "coverage", "out"]) {
+    const p = `app/${dir}/page.tsx`;
+    expect(inventory).toContain(p);
+    expect(await fs.readText(p)).toContain("Page");
+  }
+  for (const p of ["build/generated.ts", "dist/generated.ts", "packages/lib/dist/x.ts"]) {
+    expect(inventory).not.toContain(p);
+    expect(await fs.exists(p)).toBe(false);
+    await expect(fs.readText(p)).rejects.toMatchObject({ code: "SQ0002" });
+  }
+});

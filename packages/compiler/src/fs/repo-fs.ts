@@ -5,7 +5,7 @@ import type { Diagnostic } from "@speeq/core/manifest";
 import ignore from "ignore";
 import { type DiagnosticCode, diagnostics as registry } from "../diagnostics.js";
 import { ToolError } from "../tool-error.js";
-import { excluded } from "./deny.js";
+import { excluded, packageOutput } from "./deny.js";
 /** Limits for untrusted repository inventory. */
 export interface RepoFsOptions {
   root: string;
@@ -77,8 +77,20 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
     deadline();
     let current = root;
     for (const part of path.split("/")) {
+      const parent = current;
       current = join(current, part);
       const info = await lstat(current);
+      if (
+        info.isDirectory() &&
+        packageOutput.test(part) &&
+        (
+          await lstat(join(parent, "package.json")).catch((e) => {
+            if (e.code !== "ENOENT") throw e;
+            return undefined;
+          })
+        )?.isFile()
+      )
+        throw new ToolError("SQ0002");
       if (info.isSymbolicLink()) {
         report("SQ0003", relative(root, current).replaceAll("\\", "/"));
         throw new ToolError("SQ0003");
@@ -188,7 +200,9 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
       const layers = l ? [...parents, l] : parents;
       const entries = await readdir(full, { withFileTypes: true });
       entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      const packageRoot = entries.some((e) => e.name === "package.json" && e.isFile());
       for (const entry of entries) {
+        if (packageRoot && entry.isDirectory() && packageOutput.test(entry.name)) continue;
         deadline();
         const path = dir ? `${dir}/${entry.name}` : entry.name;
         if (!entry.isDirectory() && ++count > cap) {
