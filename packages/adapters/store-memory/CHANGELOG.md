@@ -1,5 +1,12 @@
 # @speeq/store-memory
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [d687185]
+  - @speeq/core@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

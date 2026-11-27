@@ -1,6 +1,6 @@
 {
   "name": "@speeq/testing",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Test doubles for speeq: FakeLLMProvider, MockLLMProvider, fake speech, SSE helpers and a store contract suite.",
   "license": "MIT",
   "type": "module",
