@@ -29,6 +29,7 @@ ground-truth fixtures and must be 100% on supported contracts.
 ## 3. Decisions already made (do NOT change or re-decide)
 
 General
+
 - Parse only (`ts.createSourceFile`), plus `ts.resolveModuleName` through a `ModuleResolutionHost` backed
   by `RepoFs`. No `Program`, no type checker, no `require`/`import` of repo files, no spawning processes
   (not even git). Reads only through `RepoFs`. Dependencies are read from `package.json` files only,
@@ -47,6 +48,7 @@ General
 - New diagnostic codes go in the 015 registry; the completeness test must keep passing.
 
 Project and workspace
+
 - Package manager from, in order: `packageManager` field of the app or workspace root package.json, then
   lockfile (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`/`bun.lockb`), else `unknown`.
 - A Next.js **app** is a directory with a `package.json` that lists `next` in dependencies or
@@ -64,6 +66,7 @@ Project and workspace
   `mixed` if both TS and JS source files exist outside config files.
 
 Next.js
+
 - Supported: App Router (`app/` or `src/app/`), Pages Router (`pages/` or `src/pages/`), both in one app.
   Next 13 to 16 conventions. `middleware.(ts|js)` and `proxy.(ts|js)` (the renamed file) are both read for
   auth evidence.
@@ -113,6 +116,7 @@ Next.js
   turned into capabilities).
 
 Schemas (Zod)
+
 - Recognised import forms of Zod: `import { z } from "zod"`, `import * as z from "zod"`,
   `import z from "zod"`, `from "zod/v4"`, and named imports of builders. `zod/mini` is not supported (`SQ0210`).
 - Recognised builders (everything else makes the **whole schema** `needs-review` with `SQ0211`, naming the
@@ -140,6 +144,7 @@ Schemas (Zod)
   fields with `sensitive: true`.
 
 Functions and server actions
+
 - Candidates are **only**: (a) exported functions of a file whose first statement is the directive
   `"use server"`, (b) exported functions carrying the JSDoc tag `@speeq` (any of `@speeq`, `@speeq read`,
   `@speeq write`) in the leading JSDoc of the declaration. Plain exported helpers are never candidates.
@@ -158,6 +163,7 @@ Functions and server actions
 - Capability name defaults come from the export name; the id is `function:<file>#<export>`.
 
 Endpoint input evidence (route handlers)
+
 - Body: `S.parse|safeParse|parseAsync(await <req>.json())` where `<req>` is the first parameter or the
   result of destructuring, or a previous `const body = await <req>.json()` followed by `S.parse(body)`.
 - Query: `S.parse|safeParse(Object.fromEntries(<req>.nextUrl.searchParams))`, or
@@ -167,6 +173,7 @@ Endpoint input evidence (route handlers)
   `input: { source: "none" }` and `proven`. Anything else (`req.formData()`, `req.text()`, dynamic access) is `needs-review` with `SQ0230`.
 
 Forms
+
 - Sources: native `<form>` JSX elements in `.tsx/.jsx` files under the app dir (pages, components);
   React Hook Form: `useForm({ resolver: zodResolver(S) })` or `useForm<z.infer<typeof S>>()` combined with
   `register("<literal>")` / `<Controller name="<literal>">` in the same file.
@@ -182,6 +189,7 @@ Forms
   file). `runtimeBinding` is always `"none"`.
 
 Filters and search
+
 - `filter-set` capabilities only from structural evidence: (1) a page default export in `page.*` that calls
   `S.parse|safeParse(<searchParams>)` where `searchParams` is the page's props member (awaited or not),
   S a recognised Zod object: parameters from the schema; (2) `useSearchParams()` results used via
@@ -191,6 +199,7 @@ Filters and search
   (`routeId`) and the route's `queryParams` are filled from it. Pagination and sort are just parameters.
 
 Reconcile and incremental scan
+
 - `reconcile` is pure. It never writes. Moves are detected for `function` only (ADR-0015 point 2).
 - Incremental scan: `scan` takes an optional previous `ScanCache` and returns a new one. The caller persists
   it (the compiler is read-only). Cache key per file: sha256 of content plus `ANALYZER_VERSION`.
@@ -348,6 +357,7 @@ builder, `SQ0212` schema not resolvable, `SQ0213` import depth or cycle, `SQ0220
 
 Fixtures (each small, committed, with a hand-written `expected.json`; add traps listed). Names are
 `fixtures/compiler/<name>`:
+
 1. `next-app-minimal`, `next-pages-minimal`, `hostile` (from 015, now with real expectations; hostile expects
    `forbidden` to contain every id that the planted comment or `.env` content tries to cause).
 2. `next-app-src`: `src/app`, `@/*` alias, TS.
@@ -370,6 +380,7 @@ Fixtures (each small, committed, with a hand-written `expected.json`; add traps 
 18. `integrations`: a package.json containing one package from every table row.
 
 Tests:
+
 - One test per fixture comparing `scan` to the ground truth through the scorer, asserting 100% on supported.
 - Determinism: same result (deep-equal and byte-identical `JSON.stringify(manifest)`) across two runs,
   across a copy of the fixture in a different directory, and with different file-system listing order (mock).
