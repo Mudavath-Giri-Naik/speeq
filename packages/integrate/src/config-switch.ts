@@ -1,5 +1,5 @@
 import type { ProviderEntry, VoiceEntry } from "./registry.js";
-import { imp } from "./render.js";
+import { imp, STORE_LINES } from "./render.js";
 
 const FACTORIES = [
   "createMockLLMProvider",
@@ -181,4 +181,24 @@ export function switchVoice(text: string, v: VoiceEntry): { text: string } | { r
     out = `${out.slice(0, where)}${imp(`{ ${missing.join(", ")} }`, i.from)}${nl}${out.slice(where)}`;
   }
   return { text: out };
+}
+
+const STORE_PROPERTY = /^([ \t]*)store\s*:\s*createMemoryStore\(\)\s*,/m;
+/**
+ * Whether the config keeps its in-memory store across hot reloads. `match` also covers configs that use
+ * another store (nothing to change) and files without a `createMemoryStore()` call.
+ */
+export function configStoreState(text: string): "match" | "mismatch" {
+  return STORE_PROPERTY.test(text) && !text.includes("__speeqStore") ? "mismatch" : "match";
+}
+/** Rewrite `store: createMemoryStore(),` so conversations survive hot reloads in development. */
+export function keepStoreAcrossReloads(text: string): { text: string } | { reason: string } {
+  if (configStoreState(text) === "match") return { text };
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const decl = STORE_LINES.join(nl);
+  const anchor = /^export\s+const\s+\w+\s*=\s*createSpeeq\s*\(/m.exec(text);
+  if (!anchor) return { reason: "no `export const ... = createSpeeq(` was found" };
+  const out = text.replace(STORE_PROPERTY, "$1store,");
+  const at = out.indexOf(anchor[0]);
+  return { text: `${out.slice(0, at)}${decl}${nl}${nl}${out.slice(at)}` };
 }

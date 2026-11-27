@@ -526,7 +526,8 @@ export async function buildPlan(input: {
       changes.push(owned(handlerPath, current, renderHandler(handlerPath, configFile)));
     }
     const layoutDone = await layoutHasProvider(fs, options.appRouterDir);
-    if (options.ui) await planAssistant(options, options.appRouterDir, read, changes, manual);
+    if (options.ui)
+      await planAssistant(options, options.appRouterDir, read, changes, manual, routes);
     else if (!layoutDone)
       manual.push({ title: "Add the provider to your root layout", snippet: layoutSnippet() });
   } else {
@@ -647,8 +648,14 @@ async function planAssistant(
   read: (p: string) => Promise<string | undefined>,
   changes: PlannedChange[],
   manual: IntegrationPlan["manual"],
+  routes: readonly RouteSpec[],
 ): Promise<void> {
   const base = posix.dirname(appRouterDir);
+  // Starter buttons: the first few pages that need no parameter.
+  const suggestions = routes
+    .filter((r) => !r.params && r.title.length <= 30 && r.path !== "/")
+    .slice(0, 3)
+    .map((r) => `Open ${r.title}`);
   const widget = `${base === "." ? "" : `${base}/`}components/speeq/assistant.tsx`;
   const prov = findProvider(options.providerId ?? "mock");
   changes.push(
@@ -659,6 +666,7 @@ async function planAssistant(
         voice: options.voice ?? "browser",
         languages: options.languages?.length ? options.languages : ["en-IN"],
         mock: (options.providerId ?? "mock") === "mock" || prov?.needsKey === false,
+        suggestions,
         ...(options.assistantName ? { name: options.assistantName } : {}),
       }),
     ),

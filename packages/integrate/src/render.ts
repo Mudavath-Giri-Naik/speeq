@@ -26,6 +26,12 @@ export interface FormSpec {
   fields: { name: string; type: string; required: boolean; sensitive: boolean }[];
 }
 /** One approved route, ready to render. */
+/** Declarations that keep the in-memory store alive across hot reloads in development. */
+export const STORE_LINES = [
+  "// Kept on globalThis so conversations (and the assistant's memory) survive hot reloads in development.",
+  "const memory = globalThis as { __speeqStore?: ReturnType<typeof createMemoryStore> };",
+  "const store = (memory.__speeqStore ??= createMemoryStore());",
+];
 export interface RouteSpec {
   id: string;
   path: string;
@@ -202,12 +208,14 @@ export function renderConfig(o: {
     `import { tools } from ${gen("tools")};`,
     ...(o.ui ? [`import { uiActions } from ${gen("ui")};`] : []),
     "",
+    ...STORE_LINES,
+    "",
     "export const speeq = createSpeeq({",
     "  secret: process.env.SPEEQ_SECRET,",
     `  agent: { name: "Assistant", instructions: "You help people use this website. Use the tools and routes you are given. Say so when you cannot do something."${o.languages?.length ? `, languages: ${JSON.stringify([...o.languages])}` : ""} },`,
     `  llm: ${o.provider.expression},`,
-    "  // In-memory store: conversations are lost on restart. Use speeq/store-mongodb for production.",
-    "  store: createMemoryStore(),",
+    "  // In-memory store: conversations are lost when the server restarts. Use speeq/store-mongodb for production.",
+    "  store,",
     "  // Return the signed-in user from your own session, e.g. { id: session.user.id }.",
     "  // resolveUser: async (request) => null,",
     "  routes,",

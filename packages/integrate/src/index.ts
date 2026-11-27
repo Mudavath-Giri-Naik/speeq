@@ -12,7 +12,9 @@ export {
 } from "./apply.js";
 export {
   configProviderState,
+  configStoreState,
   configVoiceState,
+  keepStoreAcrossReloads,
   keyVariable,
   switchProvider,
   switchVoice,

@@ -53,6 +53,7 @@ export function buildSystemPrompt(config: ResolvedConfig, input: PromptInput): s
   if (terms.length) sections.push(`## Domain terms\n${JSON.stringify(terms)}`);
   sections.push(
     "The user's words may contain recognition mistakes. If a request depends on an unclear word, ask a short question instead of guessing.",
+    'You can see the earlier messages of this conversation. Use them: remember what the visitor already asked for and do not ask again for something they already told you. If they say "it", "that" or "again", look back.',
   );
   if (input.inputLanguage)
     sections.push(

@@ -1,8 +1,10 @@
 import {
   applyEnvValues,
   configProviderState,
+  configStoreState,
   configVoiceState,
   ignoresEnvLocal,
+  keepStoreAcrossReloads,
   nodeFs,
   PROVIDERS,
   type ProjectFs,
@@ -88,7 +90,8 @@ async function alignConfig(ctx: Ctx, io: WizardIo, c: Choices) {
   if (text === undefined || !p || !v) return;
   const llmOff = configProviderState(text, p) === "mismatch";
   const voiceOff = configVoiceState(text, v) === "mismatch";
-  if (!llmOff && !voiceOff) return;
+  const storeOff = configStoreState(text) === "mismatch";
+  if (!llmOff && !voiceOff && !storeOff) return;
   let next = text;
   const manual: string[] = [];
   if (llmOff) {
@@ -102,10 +105,20 @@ async function alignConfig(ctx: Ctx, io: WizardIo, c: Choices) {
       manual.push(v.config.length ? v.config.join("\n") : "(remove the `speech` setting)");
     else next = r.text;
   }
-  const what = [llmOff && "model provider", voiceOff && "voice"].filter(Boolean).join(" and ");
+  if (storeOff) {
+    const r = keepStoreAcrossReloads(next);
+    if ("reason" in r)
+      manual.push(
+        "Keep the store on globalThis so the assistant remembers the conversation after a reload.",
+      );
+    else next = r.text;
+  }
+  const what = [llmOff && "model provider", voiceOff && "voice", storeOff && "conversation memory"]
+    .filter(Boolean)
+    .join(" and ");
   if (next !== text) {
     const yes = await ctx.env.prompts?.confirm(
-      `${path} still has a different ${what}. Update it to match? A copy is kept in .speeq/backups.`,
+      `${path} can be updated (${what}). Update it? A copy is kept in .speeq/backups.`,
       true,
     );
     if (yes) {

@@ -1,5 +1,13 @@
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { configVoiceState, switchVoice, VOICES } from "../src/index.js";
+import {
+  configStoreState,
+  configVoiceState,
+  keepStoreAcrossReloads,
+  renderAssistant,
+  switchVoice,
+  VOICES,
+} from "../src/index.js";
 import { project } from "./helpers.js";
 
 const voice = (id: string) => {
@@ -82,5 +90,81 @@ describe("switching the speech setting in speeq.config.ts", () => {
     } finally {
       await p.cleanup();
     }
+  });
+});
+
+describe("the generated chat box", () => {
+  const widget = renderAssistant({
+    voice: "browser",
+    languages: ["en-IN"],
+    mock: false,
+    name: "Helper",
+    suggestions: ["Open Pricing", 'Open "Docs"'],
+  });
+  it("navigates with the router, but only to paths on this site", () => {
+    expect(widget).toContain('import { useRouter } from "next/navigation";');
+    expect(widget).toContain("onNavigate={(action) => {");
+    expect(widget).toContain("router.push(action.href)");
+    expect(widget).toContain('href.startsWith("/") && !href.startsWith("//")');
+    expect(widget).toContain("String.fromCharCode(92)");
+  });
+  it("starts the conversation with a greeting and tappable suggestions", () => {
+    expect(widget).toContain('const SUGGESTIONS: string[] = ["Open Pricing","Open \\"Docs\\""];');
+    expect(widget).toContain("What would you like to do?");
+    expect(widget).toContain("sq-greeting");
+    expect(widget).toContain("chat.sendText(s)");
+  });
+  it("scrolls to the newest message and keeps the log scrollable", () => {
+    expect(widget).toContain("el.scrollTo({ top: el.scrollHeight })");
+    expect(widget).toContain("latest?.text");
+    expect(widget).toContain(".sq-log{flex:1 1 auto;min-height:0;overflow-y:auto");
+    expect(widget).toContain("Thinking...");
+  });
+  it("is syntactically valid", () => {
+    const out = ts.transpileModule(widget.replace(/^\/\/.*\n/, ""), {
+      reportDiagnostics: true,
+      fileName: "assistant.tsx",
+      compilerOptions: { jsx: ts.JsxEmit.Preserve },
+    });
+    expect(out.diagnostics).toEqual([]);
+  });
+});
+
+describe("keeping the dev store across hot reloads", () => {
+  const OLD = `import { createSpeeq } from "speeq/server";
+import { createMemoryStore } from "speeq/store-memory";
+
+export const speeq = createSpeeq({
+  llm: makeLlm(),
+  store: createMemoryStore(),
+});
+`;
+  it("is the default in a generated config", async () => {
+    const p = await project("next-app-minimal");
+    try {
+      const plan = await p.plan(undefined, { providerId: "mock" });
+      const config = plan.changes.find((c) => c.path === "speeq.config.ts")?.content ?? "";
+      expect(config).toContain("__speeqStore");
+      expect(config).toContain("  store,");
+      expect(configStoreState(config)).toBe("match");
+    } finally {
+      await p.cleanup();
+    }
+  });
+  it("rewrites an older config and changes nothing else", () => {
+    expect(configStoreState(OLD)).toBe("mismatch");
+    const r = keepStoreAcrossReloads(OLD);
+    if ("reason" in r) throw new Error(r.reason);
+    expect(r.text).toContain("const store = (memory.__speeqStore ??= createMemoryStore());");
+    expect(r.text).toContain("  store,");
+    expect(r.text).toContain("llm: makeLlm(),");
+    expect(r.text.indexOf("const store")).toBeLessThan(r.text.indexOf("export const speeq"));
+    expect(configStoreState(r.text)).toBe("match");
+    const again = keepStoreAcrossReloads(r.text);
+    expect("reason" in again ? "" : again.text).toBe(r.text);
+  });
+  it("leaves other stores alone", () => {
+    const mongo = OLD.replace("createMemoryStore()", "createMongoStore(db)");
+    expect(configStoreState(mongo)).toBe("match");
   });
 });
