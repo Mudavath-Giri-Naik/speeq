@@ -83,6 +83,10 @@ The key goes **only to the provider's own host** (for example `api.groq.com`), i
 
 If you would rather not paste a key into the terminal, choose **Skip** and fill `.env.local` by hand.
 
+## After you update speeq
+
+The chat box and the other generated files are written into your app, so updating the package does not change them. After `pnpm add speeq@latest` run `npx speeq upgrade` (or `npx speeq setup`, which also refreshes an outdated chat box) to get the new version of them. Files you edited are never overwritten.
+
 ## Change anything later: `speeq setup`
 
 `npx speeq setup` (alias `connect`) opens the same review screen on your current setup. Change the model, the voice, the languages or the chat box, paste a new key, or switch from Groq to Gemini; each key is checked as you give it. When you apply, it saves the keys, updates `speeq.config.ts` (after asking), and regenerates the chat box. It needs a terminal.

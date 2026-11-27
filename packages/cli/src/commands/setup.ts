@@ -6,6 +6,7 @@ import {
   ignoresEnvLocal,
   keepStoreAcrossReloads,
   nodeFs,
+  ownership,
   PROVIDERS,
   type ProjectFs,
   readSetup,
@@ -163,7 +164,11 @@ export async function applyChoices(
     prev.ui !== c.ui ||
     prev.languages.join() !== c.languages.join() ||
     (prev.provider === "mock") !== (c.provider === "mock");
-  if (opts.regenerate && changed) {
+  // A generated chat box from an older speeq is refreshed too: updating the package does not rewrite it.
+  let stale = false;
+  for (const f of ["components/speeq/assistant.tsx", "src/components/speeq/assistant.tsx"])
+    if (ownership(await io.fs.read(`${io.prefix}${f}`)) === "owned") stale = true;
+  if (opts.regenerate && (changed || stale)) {
     const busy = ui.busy("Updating the chat box and generated files (scanning your app)");
     const loaded = await load(ctx);
     busy.stop("Scan finished");
