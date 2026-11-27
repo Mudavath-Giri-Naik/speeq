@@ -1,5 +1,11 @@
 # @speeq/react
 
+## 0.9.0
+
+### Patch Changes
+
+- @speeq/client@0.9.0
+
 ## 0.8.0
 
 ### Patch Changes

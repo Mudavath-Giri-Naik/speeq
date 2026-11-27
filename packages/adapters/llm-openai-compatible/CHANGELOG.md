@@ -1,5 +1,11 @@
 # @speeq/llm-openai-compatible
 
+## 0.9.0
+
+### Patch Changes
+
+- @speeq/core@0.9.0
+
 ## 0.8.0
 
 ### Patch Changes
