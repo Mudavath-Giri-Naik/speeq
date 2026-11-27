@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -100,6 +100,7 @@ it("keeps the hostile fixture secret outside all returned data", async () => {
   const files = await fs.listFiles();
   expect(files).not.toContain("link-placeholder.txt");
   expect(files).not.toContain(".env");
+  expect(await readFile(join(fs.root, ".env"), "utf8")).toContain("SPEEQ_TEST_SECRET_DO_NOT_LEAK");
   expect(files).not.toContain("large.txt");
   expect(fs.diagnostics).toContainEqual(
     expect.objectContaining({ code: "SQ0004", file: "large.txt" }),

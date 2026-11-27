@@ -19,4 +19,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 013 | Indian-language accuracy: vocabulary, language detection, Telugu/Hindi providers, evaluation | accepted          | task/013-indic-accuracy     |
 | 014 | Natural conversation: endpointing, voices, reliability, analytics, latency, docs             | briefed           | task/014-natural-voice      |
 | 015 | Compiler foundation: manifest contracts, jailed fs, research evidence, eval harness          | ready-for-review  | task/015-compiler-contracts |
-| 016 | The whole compiler: discovery, schemas, forms, filters, manifest, reconcile, incremental    | briefed           | task/016-compiler-discovery |
+| 016 | The whole compiler: discovery, schemas, forms, filters, manifest, reconcile, incremental     | briefed           | task/016-compiler-discovery |

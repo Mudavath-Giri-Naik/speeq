@@ -14,6 +14,7 @@ export interface PackageManifest {
   name: string;
   private?: boolean;
   dependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
 }
 
@@ -25,7 +26,7 @@ export interface PackageUnderCheck {
 }
 
 const IMPORT_RE =
-  /(?:import|export)\s[^"']*?from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
+  /(?:import|export)\s[^"']*?from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|(?:import|require)\s*\(\s*["']([^"']+)["']\s*\)/g;
 
 /** Returns the bare package name of an import specifier, or `null` for relative/node imports. */
 export function packageNameOf(specifier: string): string | null {
@@ -56,7 +57,11 @@ export function checkPackage(
   const rule: PackageRule | undefined = rules[pkg.manifest.name];
   if (!rule) return [`${pkg.manifest.name}: no rule in scripts/deps-rules.ts`];
   const problems: string[] = [];
-  const declared = { ...pkg.manifest.dependencies, ...pkg.manifest.peerDependencies };
+  const declared = {
+    ...pkg.manifest.dependencies,
+    ...pkg.manifest.optionalDependencies,
+    ...pkg.manifest.peerDependencies,
+  };
   for (const dep of Object.keys(declared)) {
     const allowed = dep.startsWith("@speeq/")
       ? rule.internalDeps.includes(dep)

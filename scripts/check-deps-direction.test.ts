@@ -61,6 +61,16 @@ describe("dependency direction", () => {
     }
   });
 
+  it("checks optional runtime dependencies and CommonJS imports", () => {
+    expect(
+      checkPackage({
+        dir: "x",
+        manifest: { name: "speeq", optionalDependencies: { "@speeq/compiler": "*" } },
+        sources: [{ file: "x.ts", code: 'require("@speeq/cli");' }],
+      }),
+    ).toHaveLength(2);
+  });
+
   it("flags core depending on server", () => {
     const problems = checkPackage({
       dir: "x",

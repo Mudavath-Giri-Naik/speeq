@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import {
   type Access,
   accessSchema,
@@ -10,6 +8,8 @@ import {
   type Support,
   supportSchema,
 } from "@speeq/core/manifest";
+import { openRepoFs } from "../fs/repo-fs.js";
+import { ToolError } from "../tool-error.js";
 /** Hand-labelled expectations for a fixture. */
 export interface GroundTruth {
   fixture: string;
@@ -39,7 +39,16 @@ function bool(x: unknown) {
 }
 /** Read and validate fixture labels as data. */
 export async function loadGroundTruth(dir: string): Promise<GroundTruth> {
-  const x = record(JSON.parse(await readFile(join(dir, "expected.json"), "utf8")));
+  const fs = await openRepoFs({ root: dir });
+  const text = await fs.readText("expected.json");
+  try {
+    return parseGroundTruth(JSON.parse(text));
+  } catch {
+    throw new ToolError("SQ0010", { file: "expected.json" });
+  }
+}
+function parseGroundTruth(value: unknown): GroundTruth {
+  const x = record(value);
   if (typeof x.fixture !== "string" || !x.fixture) throw Error("Missing fixture name");
   const capabilities = array(x.capabilities).map((value) => {
     const c = record(value);

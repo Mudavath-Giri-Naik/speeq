@@ -25,6 +25,11 @@ export interface RepoFs {
 type Layer = { dir: string; rules: ReturnType<typeof ignore> };
 /** Open a jailed source inventory. Ignore files are read through the same bounded file reader. */
 export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
+  const rootInfo = await lstat(options.root).catch(() => {
+    throw new ToolError("SQ0002");
+  });
+  if (rootInfo.isSymbolicLink()) throw new ToolError("SQ0003");
+  if (!rootInfo.isDirectory()) throw new ToolError("SQ0002");
   const root = await realpath(options.root);
   const max = options.maxFileBytes ?? 1048576,
     cap = options.maxFiles ?? 20000;
@@ -96,8 +101,14 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
     );
     try {
       const info = await handle.stat();
-      await checked(path);
-      if (!info.isFile() || info.dev !== initial.dev || info.ino !== initial.ino)
+      const current = await lstat(await checked(path));
+      if (
+        current.ino !== info.ino ||
+        current.dev !== info.dev ||
+        !info.isFile() ||
+        info.dev !== initial.dev ||
+        info.ino !== initial.ino
+      )
         throw new ToolError("SQ0002");
       function tooBig(): never {
         report("SQ0004", path);
@@ -172,7 +183,7 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
     let count = 0;
     async function walk(dir: string, parents: Layer[]): Promise<boolean> {
       deadline();
-      const full = dir ? await checked(dir) : root;
+      const full = await checked(dir);
       const l = await layer(dir);
       const layers = l ? [...parents, l] : parents;
       const entries = await readdir(full, { withFileTypes: true });
