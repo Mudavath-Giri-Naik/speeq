@@ -1,5 +1,12 @@
 # @speeq/compiler
 
+## 0.7.0
+
+### Patch Changes
+
+- Updated dependencies [54755b9]
+  - @speeq/core@0.7.0
+
 ## 0.6.0
 
 ### Patch Changes

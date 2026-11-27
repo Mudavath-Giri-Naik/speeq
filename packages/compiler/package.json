@@ -1,6 +1,6 @@
 {
   "name": "@speeq/compiler",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Read-only discovery of what a Next.js app can expose to a speeq agent.",
   "license": "MIT",
   "type": "module",
