@@ -25,15 +25,17 @@ import {
 } from "../agent/loop.js";
 import { buildSystemPrompt } from "../agent/prompt.js";
 import { executeTool, prepareToolCall } from "../agent/tools.js";
+import { cancelPendingUiActions, sessionHasUiActions } from "../agent/ui.js";
 import { needsClarification } from "../agent/voice-guard.js";
 import { AuditRecorder } from "../audit/recorder.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
 import { type Emit, sseResponse } from "./sse.js";
 
-const HISTORY_EVENT_WINDOW = 300;
+export const HISTORY_EVENT_WINDOW = 300;
 
-interface TurnSetup<TUser extends AgentUser> {
+/** Everything `streamTurn` needs to run one request. */
+export interface TurnSetup<TUser extends AgentUser> {
   rt: Runtime<TUser>;
   request: Request;
   sessionId: string;
@@ -42,6 +44,8 @@ interface TurnSetup<TUser extends AgentUser> {
   inputLanguage?: string;
   clarify?: boolean;
   pageContext: PageContext | undefined;
+  /** The session declared `ui-actions` and the server has UI actions. */
+  uiEnabled?: boolean;
   inputMode: "voice" | "text";
   headers: Record<string, string>;
 }
@@ -71,10 +75,12 @@ export async function handleTurn<TUser extends AgentUser>(
     inputLanguage: body.inputLanguage,
     clarify: needsClarification(body, rt.config.raw.speech?.clarifyBelow),
     pageContext: body.context,
+    uiEnabled: await uiEnabled(rt, sessionId),
     inputMode: body.inputMode ?? "text",
   };
   return streamTurn(setup, async (turn) => {
     await cancelPendingConfirmations(turn);
+    await cancelPendingUiActions(turn);
     await turn.recorder.record(
       "user.message",
       {
@@ -120,6 +126,7 @@ export async function handleConfirm<TUser extends AgentUser>(
     headers,
     language: lastUser?.data.language ?? rt.config.defaultLanguage,
     pageContext: lastUser?.data.context,
+    uiEnabled: await uiEnabled(rt, sessionId),
     inputMode: "text",
   };
 
@@ -218,7 +225,18 @@ async function cancelPendingConfirmations<TUser extends AgentUser>(turn: TurnRun
   }
 }
 
-async function loadMessages<TUser extends AgentUser>(
+/** Reads the session's declared capabilities, only when the server has UI actions. */
+export async function uiEnabled<TUser extends AgentUser>(
+  rt: Runtime<TUser>,
+  sessionId: string,
+): Promise<boolean> {
+  return (
+    rt.config.uiActions.size > 0 && (await sessionHasUiActions(rt.config.raw.store, sessionId))
+  );
+}
+
+/** Rebuilds the model conversation from the store, plus the new user message if any. */
+export async function loadMessages<TUser extends AgentUser>(
   turn: TurnRuntime<TUser>,
   userText: string | null,
 ) {
@@ -245,7 +263,7 @@ async function loadMessages<TUser extends AgentUser>(
 }
 
 /** Wraps a turn body in an SSE stream with timing, errors, audit and telemetry. */
-function streamTurn<TUser extends AgentUser>(
+export function streamTurn<TUser extends AgentUser>(
   setup: TurnSetup<TUser>,
   body: (turn: TurnRuntime<TUser>) => Promise<LoopResult>,
   countTurn = true,
@@ -268,7 +286,8 @@ function streamTurn<TUser extends AgentUser>(
         inputLanguage: setup.inputLanguage,
         clarify: setup.clarify,
         config: rt.config,
-        toolDefs: rt.toolDefs,
+        toolDefs: setup.uiEnabled ? [...rt.toolDefs, ...rt.uiToolDefs] : rt.toolDefs,
+        uiEnabled: setup.uiEnabled === true,
         recorder: new AuditRecorder(
           rt.config,
           rt.config.raw.store,

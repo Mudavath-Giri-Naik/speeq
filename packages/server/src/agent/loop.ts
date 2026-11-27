@@ -13,6 +13,7 @@ import type { AuditRecorder } from "../audit/recorder.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { TelemetrySink } from "../telemetry/sink.js";
 import { executeTool, prepareToolCall, type ToolOutcome } from "./tools.js";
+import { checkUiCall, requestUiAction } from "./ui.js";
 
 /** Everything one turn needs. Created per request; nothing survives the request. */
 export interface TurnRuntime<TUser extends AgentUser = AgentUser> {
@@ -20,6 +21,8 @@ export interface TurnRuntime<TUser extends AgentUser = AgentUser> {
   clarify?: boolean;
   config: ResolvedConfig<TUser>;
   toolDefs: LLMToolDefinition[];
+  /** True when this session declared `ui-actions`; only then may UI actions run. */
+  uiEnabled?: boolean;
   recorder: AuditRecorder;
   telemetry: TelemetrySink;
   ctx: AgentContext<TUser>;
@@ -93,6 +96,31 @@ export async function runAgentLoop<TUser extends AgentUser>(
         emitRejected(rt, call, outcome);
         await recordOutcome(rt, call, call.arguments, outcome);
         messages.push({ role: "tool", toolCallId: call.id, name: call.name, content });
+        continue;
+      }
+      if (rt.uiEnabled && config.uiActions.has(call.name)) {
+        const check = await checkUiCall(rt, call);
+        if (check.status === "emit") {
+          await requestUiAction(rt, call, check);
+          for (const skipped of calls.slice(i + 1)) await recordSkipped(rt, skipped);
+          return { reason: "ui_action_required", steps: step + 1 };
+        }
+        const outcome: ToolOutcome = {
+          kind: "custom",
+          ok: false,
+          content: check.content,
+          truncated: false,
+          durationMs: 0,
+          ...(check.errorCode ? { errorCode: check.errorCode } : {}),
+        };
+        emitRejected(rt, call, outcome);
+        await recordOutcome(rt, call, call.arguments, outcome);
+        messages.push({
+          role: "tool",
+          toolCallId: call.id,
+          name: call.name,
+          content: check.content,
+        });
         continue;
       }
       const prepared = prepareToolCall(config, call);

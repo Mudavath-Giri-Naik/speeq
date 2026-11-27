@@ -17,7 +17,7 @@ export interface ProviderEntry {
 }
 /** An optional feature of the generated config. Data only. */
 export interface FeatureEntry {
-  id: "voice" | "audit" | "confirmation" | "telemetry";
+  id: "voice" | "audit" | "confirmation" | "telemetry" | "ui-bridge";
   label: string;
   defaultOn: boolean;
   /** Lines added to the `createSpeeq` options when enabled. */
@@ -114,6 +114,16 @@ export const FEATURES: readonly FeatureEntry[] = [
     config: [],
     env: [],
     note: "Client-side only: enable it on the SpeeqProvider. No server change.",
+  },
+  {
+    id: "ui-bridge",
+    label: "UI actions (the agent asks the page to do things)",
+    defaultOn: false,
+    config: [
+      "  uiActions: [], // add defineUiAction(...) entries; mount handlers with useSpeeqAction",
+    ],
+    env: [],
+    note: "Server-declared, page-executed, confirmable. See docs: UI actions.",
   },
 ];
 /** Look a provider up by id. */

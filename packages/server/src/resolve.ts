@@ -6,7 +6,7 @@ import {
   SpeeqError,
 } from "@speeq/core";
 import type { AuditConfig, SpeeqConfig, SpeeqLogger } from "./config.js";
-import type { RouteDefinition, ToolDefinition } from "./define.js";
+import type { RouteDefinition, ToolDefinition, UiActionDefinition } from "./define.js";
 
 /** A tool after defaults are applied. */
 export interface ResolvedTool<TUser extends AgentUser = AgentUser> {
@@ -29,6 +29,10 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
   allowAnonymous: boolean;
   routes: Map<string, RouteDefinition>;
   tools: Map<string, ResolvedTool<TUser>>;
+  // biome-ignore lint/suspicious/noExplicitAny: heterogeneous UI action inputs, validated per action.
+  uiActions: Map<string, UiActionDefinition<any, TUser>>;
+  uiActionsPerTurn: number;
+  uiActionsPerSession: number;
   knowledge: KnowledgeSource<TUser>[];
   audit: AuditConfig;
   maxToolOutputChars: number;
@@ -44,6 +48,7 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
 export const BUILTIN_TOOL_NAMES = ["navigate", "search_knowledge"] as const;
 
 const TOOL_NAME_RE = /^[a-zA-Z0-9_-]{1,64}$/;
+const UI_ACTION_NAME_RE = /^ui_[a-z0-9_]{1,60}$/;
 const ROUTE_ID_RE = /^[a-zA-Z0-9_.-]{1,64}$/;
 
 const defaultLogger: SpeeqLogger = {
@@ -120,8 +125,24 @@ export function resolveConfig<TUser extends AgentUser>(
     });
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: heterogeneous UI action inputs, validated per action.
+  const uiActions = new Map<string, UiActionDefinition<any, TUser>>();
+  for (const def of config.uiActions ?? []) {
+    if (!UI_ACTION_NAME_RE.test(def.name))
+      throw fail(`UI action name "${def.name}" must match ${UI_ACTION_NAME_RE}.`);
+    if (uiActions.has(def.name)) throw fail(`duplicate UI action name "${def.name}".`);
+    if (tools.has(def.name) || routes.has(def.name))
+      throw fail(`UI action name "${def.name}" collides with a tool or route.`);
+    if (def.risk !== "read" && def.risk !== "write")
+      throw fail(`UI action "${def.name}" needs \`risk\` ("read" or "write").`);
+    if (typeof def.summary !== "function")
+      throw fail(`UI action "${def.name}" needs a \`summary\` function.`);
+    uiActions.set(def.name, def);
+  }
+
   const ids = new Set<string>();
   for (const k of config.knowledge ?? []) {
+    if (uiActions.has(k.id)) throw fail(`knowledge source id "${k.id}" collides with a UI action.`);
     if (ids.has(k.id)) throw fail(`duplicate knowledge source id "${k.id}".`);
     ids.add(k.id);
   }
@@ -139,6 +160,9 @@ export function resolveConfig<TUser extends AgentUser>(
     allowAnonymous: config.allowAnonymous ?? config.resolveUser === undefined,
     routes,
     tools,
+    uiActions,
+    uiActionsPerTurn: Math.max(1, config.guardrails?.uiActionsPerTurn ?? 5),
+    uiActionsPerSession: Math.max(1, config.guardrails?.uiActionsPerSession ?? 30),
     knowledge: config.knowledge ?? [],
     audit: config.audit ?? {},
     maxToolOutputChars: config.guardrails?.maxToolOutputChars ?? 8000,

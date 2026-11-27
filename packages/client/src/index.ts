@@ -28,11 +28,13 @@ export type {
   NavigateAction,
   PageContextInput,
   PendingConfirmation,
+  PendingUiAction,
   SpeeqClient,
   SpeeqClientEvents,
   SpeeqClientOptions,
   SpeeqSnapshot,
   SpeeqState,
+  UiActionHandler,
 } from "./types.js";
 export { WebSpeechInput } from "./web-speech-input.js";
 export { WebSpeechOutput, type WebSpeechOutputOptions } from "./web-speech-output.js";

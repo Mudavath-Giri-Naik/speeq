@@ -29,6 +29,15 @@ describe("protocol schemas", () => {
         summary: "s",
         args: {},
       },
+      {
+        ...base,
+        type: "ui.action",
+        callId: "u1",
+        name: "ui_open_cart",
+        args: {},
+        summary: "Open the cart",
+        confirm: false,
+      },
       { ...base, type: "error", code: "RATE_LIMITED", message: "busy", retryable: true },
       { ...base, type: "turn.finished", reason: "completed", latencyMs: 10 },
     ];

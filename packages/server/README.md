@@ -75,6 +75,10 @@ Fetch-API server (Hono, Bun, Deno, Node with an adapter).
   how to route.
 - `search_knowledge({ query, sourceId? })`: available when `knowledge` sources are configured.
 
+## UI actions
+
+`uiActions: [defineUiAction({ name: "ui_open_cart", description, input, risk, summary })]` lets the agent ask the page to run a named browser function. The server validates the arguments, emits a `ui.action` event, ends the turn and resumes when the page reports its outcome on `POST /session/:id/ui-result`. Only sessions whose client declared the `ui-actions` capability can see or run them. Limits live in `guardrails.uiActionsPerTurn` and `guardrails.uiActionsPerSession`. See `docs/concepts/ui-actions.md`.
+
 ## Security defaults
 
 | Default                                                                     | How to change it                                               |

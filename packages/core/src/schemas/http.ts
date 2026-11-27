@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { PROTOCOL_VERSION } from "../constants.js";
-import { ErrorCodeSchema, InputModeSchema, LanguageSchema, PageContextSchema } from "./common.js";
+import {
+  ErrorCodeSchema,
+  InputModeSchema,
+  LanguageSchema,
+  PageContextSchema,
+  SessionCapabilitySchema,
+  UiResultStatusSchema,
+} from "./common.js";
 
 /** Maximum length of one user message, in characters. */
 export const MAX_TURN_TEXT_CHARS = 2000;
@@ -9,6 +16,8 @@ export const MAX_TURN_TEXT_CHARS = 2000;
 export const CreateSessionRequestSchema = z.object({
   language: LanguageSchema.optional(),
   context: PageContextSchema.optional(),
+  /** Optional protocol features this client understands. Unlisted features are never used. */
+  capabilities: z.array(SessionCapabilitySchema).max(4).optional(),
 });
 /** Body of `POST /session`. */
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
@@ -73,6 +82,16 @@ export const ConfirmRequestSchema = z.object({
 });
 /** Body of `POST /session/:id/confirm`. */
 export type ConfirmRequest = z.infer<typeof ConfirmRequestSchema>;
+
+/** Body of `POST /session/:id/ui-result`. */
+export const UiResultRequestSchema = z.object({
+  callId: z.string().min(1).max(200),
+  status: UiResultStatusSchema,
+  /** JSON the handler returned. The server keeps at most 2048 bytes of it. */
+  result: z.unknown().optional(),
+});
+/** Body of `POST /session/:id/ui-result`. */
+export type UiResultRequest = z.infer<typeof UiResultRequestSchema>;
 
 /** JSON error body for non-streaming endpoints. */
 export const ErrorResponseSchema = z.object({

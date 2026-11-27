@@ -1,4 +1,4 @@
-import type { SpeeqClient, SpeeqClientEvents, SpeeqSnapshot } from "@speeq/client";
+import type { SpeeqClient, SpeeqClientEvents, SpeeqSnapshot, UiActionHandler } from "@speeq/client";
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { useProvider } from "./provider.js";
 
@@ -13,6 +13,8 @@ export interface UseSpeeqResult extends SpeeqSnapshot {
   cancel: SpeeqClient["cancel"];
   setLanguage: SpeeqClient["setLanguage"];
   confirm: SpeeqClient["confirm"];
+  /** Approves or declines `pendingUiAction`. */
+  resolveUiAction: SpeeqClient["resolveUiAction"];
   speak: SpeeqClient["speak"];
 }
 
@@ -33,6 +35,7 @@ export function useSpeeq(): UseSpeeqResult {
         cancel: client.cancel.bind(client),
         setLanguage: client.setLanguage.bind(client),
         confirm: client.confirm.bind(client),
+        resolveUiAction: client.resolveUiAction.bind(client),
         speak: client.speak.bind(client),
       },
     }),
@@ -48,6 +51,21 @@ export function useSpeeqContext(data: Record<string, unknown>): void {
   const current = useRef(data);
   current.current = data;
   useEffect(() => registry.register(() => current.current), [registry]);
+}
+
+/**
+ * Mounts the page code for a UI action declared on the server with `defineUiAction`. The latest
+ * `handler` is always used and the registration ends on unmount. `args` are validated by the server
+ * but are still untrusted input. Nothing runs during server rendering.
+ */
+export function useSpeeqAction(name: string, handler: UiActionHandler): void {
+  const { client } = useProvider("useSpeeqAction");
+  const current = useRef(handler);
+  current.current = handler;
+  useEffect(
+    () => client.registerUiAction(name, (args, signal) => current.current(args, signal)),
+    [client, name],
+  );
 }
 
 /** Subscribes to a client event and calls the latest handler. */

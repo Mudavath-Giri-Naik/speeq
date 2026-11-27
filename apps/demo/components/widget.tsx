@@ -19,6 +19,7 @@ export function Widget({ llmMode }: { llmMode: LlmMode }) {
     messages,
     interimTranscript,
     pendingConfirmation,
+    pendingUiAction,
     error,
     support,
     sendText,
@@ -27,6 +28,7 @@ export function Widget({ llmMode }: { llmMode: LlmMode }) {
     setLanguage,
     cancel,
     confirm,
+    resolveUiAction,
   } = useSpeeq();
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
@@ -145,6 +147,18 @@ export function Widget({ llmMode }: { llmMode: LlmMode }) {
           </form>
         </div>
       </section>
+      {pendingUiAction && !pendingConfirmation && (
+        <ConfirmDialog
+          key={pendingUiAction.callId}
+          pending={{
+            confirmationId: pendingUiAction.callId,
+            toolName: pendingUiAction.name,
+            summary: pendingUiAction.summary,
+            args: pendingUiAction.args,
+          }}
+          confirm={resolveUiAction}
+        />
+      )}
       {pendingConfirmation && (
         <ConfirmDialog
           key={pendingConfirmation.confirmationId}

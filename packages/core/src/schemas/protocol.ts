@@ -77,6 +77,23 @@ export const ConfirmationRequiredEventSchema = z.object({
   args: z.unknown(),
 });
 
+/**
+ * The page should run a developer-registered UI action. Sent only to sessions created with the
+ * `ui-actions` capability. The stream ends after this event; the client answers through
+ * `POST /session/:id/ui-result`.
+ */
+export const UiActionEventSchema = z.object({
+  ...base,
+  type: z.literal("ui.action"),
+  callId: z.string(),
+  name: z.string(),
+  args: z.unknown(),
+  /** Human-readable summary for the user, produced by the server (descriptor `summary`). */
+  summary: z.string(),
+  /** True when the client must ask the user before running the handler. */
+  confirm: z.boolean(),
+});
+
 /** A recoverable or terminal error. Messages are always safe to show to users. */
 export const ErrorEventSchema = z.object({
   ...base,
@@ -106,6 +123,7 @@ export const ProtocolEventSchema = z.discriminatedUnion("type", [
   ToolFinishedEventSchema,
   NavigateEventSchema,
   ConfirmationRequiredEventSchema,
+  UiActionEventSchema,
   ErrorEventSchema,
   TurnFinishedEventSchema,
 ]);
@@ -132,6 +150,7 @@ export const PROTOCOL_EVENT_TYPES = [
   "tool.finished",
   "navigate",
   "confirmation.required",
+  "ui.action",
   "error",
   "turn.finished",
 ] as const satisfies readonly ProtocolEventType[];

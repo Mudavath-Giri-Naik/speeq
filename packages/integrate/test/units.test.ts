@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  FEATURES,
   isSecretName,
   memoryFs,
   nodeFs,
@@ -145,5 +146,17 @@ describe("registry", () => {
   });
   it("no provider hard-codes a model id", () => {
     for (const p of PROVIDERS) expect(p.expression).not.toMatch(/gpt-|gemini-\d|llama|claude/i);
+  });
+  it("offers the UI bridge as an opt-in feature", () => {
+    const entry = FEATURES.find((f) => f.id === "ui-bridge");
+    expect(entry).toMatchObject({ defaultOn: false, env: [] });
+    expect(entry?.config.join(" ")).toContain("uiActions: []");
+    expect(FEATURES.map((f) => f.id)).toEqual([
+      "confirmation",
+      "audit",
+      "telemetry",
+      "voice",
+      "ui-bridge",
+    ]);
   });
 });

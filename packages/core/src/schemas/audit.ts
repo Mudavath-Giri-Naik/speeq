@@ -4,8 +4,10 @@ import {
   InputModeSchema,
   LanguageSchema,
   PageContextSchema,
+  SessionCapabilitySchema,
   ToolKindSchema,
   TurnEndReasonSchema,
+  UiResultStatusSchema,
   UsageSchema,
 } from "./common.js";
 
@@ -31,6 +33,7 @@ export const ConversationEventBodySchema = z.discriminatedUnion("type", [
       userId: z.string().nullable(),
       language: LanguageSchema,
       context: PageContextSchema.optional(),
+      capabilities: z.array(SessionCapabilitySchema).optional(),
     }),
   ),
   ev(
@@ -78,6 +81,27 @@ export const ConversationEventBodySchema = z.discriminatedUnion("type", [
   ev(
     "confirmation.resolved",
     z.object({ confirmationId: z.string(), approved: z.boolean(), userId: z.string().nullable() }),
+  ),
+  ev(
+    "ui.action.requested",
+    z.object({
+      callId: z.string(),
+      /** The model's tool call id, so the result can be attached to it. */
+      toolCallId: z.string(),
+      name: z.string(),
+      args: z.unknown(),
+      summary: z.string(),
+      confirm: z.boolean(),
+    }),
+  ),
+  ev(
+    "ui.action.resolved",
+    z.object({
+      callId: z.string(),
+      status: UiResultStatusSchema,
+      userId: z.string().nullable(),
+      reason: z.literal("superseded").optional(),
+    }),
   ),
   ev("error", z.object({ code: ErrorCodeSchema, message: z.string() })),
   ev(

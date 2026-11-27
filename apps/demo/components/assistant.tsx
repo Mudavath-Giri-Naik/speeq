@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type JSX, useEffect } from "react";
 import type { LlmMode } from "../lib/llm";
 import { AssistantQuestionContext } from "./question-context";
+import { UiActions } from "./ui-actions";
 import { Widget } from "./widget";
 
 const endpoint = "/api/speeq";
@@ -44,6 +45,7 @@ export function Assistant({
       onNavigate={(action) => router.push(action.href)}
     >
       <AssistantQuestionContext />
+      <UiActions />
       <Widget llmMode={llmMode} />
     </SpeeqProvider>
   );

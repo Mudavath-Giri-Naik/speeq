@@ -56,6 +56,7 @@ const known = new Set<string>([
   "tool.finished",
   "navigate",
   "confirmation.required",
+  "ui.action",
   "error",
   "turn.finished",
 ] satisfies ProtocolEvent["type"][]);

@@ -1,5 +1,6 @@
 import { type AgentUser, type LLMToolDefinition, SpeeqError } from "@speeq/core";
 import { buildToolDefinitions } from "./agent/tools.js";
+import { buildUiToolDefinitions } from "./agent/ui.js";
 import type { SpeeqConfig } from "./config.js";
 import { bearerToken } from "./handler/http.js";
 import { type ResolvedConfig, resolveConfig } from "./resolve.js";
@@ -11,6 +12,8 @@ import { noopTelemetry, type TelemetrySink } from "./telemetry/sink.js";
 export class Runtime<TUser extends AgentUser = AgentUser> {
   readonly config: ResolvedConfig<TUser>;
   readonly toolDefs: LLMToolDefinition[];
+  /** UI action definitions, appended to `toolDefs` only for sessions that opted in. */
+  readonly uiToolDefs: LLMToolDefinition[];
   readonly telemetry: TelemetrySink;
   private readonly turnLimiter: RateLimiter | null;
   private readonly sessionLimiter: RateLimiter | null;
@@ -19,6 +22,7 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
   constructor(config: SpeeqConfig<TUser>, telemetry: TelemetrySink = noopTelemetry) {
     this.config = resolveConfig(config);
     this.toolDefs = buildToolDefinitions(this.config as ResolvedConfig);
+    this.uiToolDefs = buildUiToolDefinitions(this.config as ResolvedConfig);
     this.telemetry = telemetry;
     this.turnLimiter = this.config.turnsPerMinute
       ? new RateLimiter(this.config.turnsPerMinute)

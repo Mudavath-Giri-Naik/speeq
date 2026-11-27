@@ -13,6 +13,8 @@ export function defaultRedact(event: NewConversationEvent): NewConversationEvent
   switch (event.type) {
     case "tool.called":
       return { ...event, data: { ...event.data, args: redactKeys(event.data.args) } };
+    case "ui.action.requested":
+      return { ...event, data: { ...event.data, args: redactKeys(event.data.args) } };
     case "confirmation.requested":
       return { ...event, data: { ...event.data, args: redactKeys(event.data.args) } };
     case "assistant.message":

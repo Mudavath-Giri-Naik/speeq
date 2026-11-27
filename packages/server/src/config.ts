@@ -11,7 +11,7 @@ import type {
 } from "@speeq/core";
 import { SpeeqError } from "@speeq/core";
 import { z } from "zod";
-import type { RouteDefinition, ToolDefinition } from "./define.js";
+import type { RouteDefinition, ToolDefinition, UiActionDefinition } from "./define.js";
 
 const updateCheckSchema = z.boolean().default(true);
 
@@ -71,6 +71,10 @@ export interface GuardrailsConfig {
   toolTimeoutMs?: number;
   /** Best-effort, per instance (see docs). Default 20 turns per minute per user/IP and per session. */
   rateLimit?: { turnsPerMinute?: number; sessionsPerMinute?: number } | false;
+  /** Maximum UI actions the agent may ask the page to run in one user turn. Default 5. */
+  uiActionsPerTurn?: number;
+  /** Maximum UI actions per session (counted over the most recent events). Default 30. */
+  uiActionsPerSession?: number;
   /** Maximum JSON body size. Default 32 KiB. */
   maxRequestBytes?: number;
   /** Session token lifetime. Default 12 hours. */
@@ -128,6 +132,12 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   routes?: RouteDefinition[];
   // biome-ignore lint/suspicious/noExplicitAny: tool inputs differ per tool; each is validated by its own schema.
   tools?: ToolDefinition<any, TUser>[];
+  /**
+   * Actions the agent may ask the page to run. Offered only to sessions whose client declared the
+   * `ui-actions` capability. Limits live in `guardrails`.
+   */
+  // biome-ignore lint/suspicious/noExplicitAny: UI action inputs differ per action; each is validated by its own schema.
+  uiActions?: UiActionDefinition<any, TUser>[];
   knowledge?: KnowledgeSource<TUser>[];
   audit?: AuditConfig;
   guardrails?: GuardrailsConfig;

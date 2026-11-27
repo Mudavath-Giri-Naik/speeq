@@ -7,6 +7,7 @@ import { createDemoUserReader, type DemoUser, readDemoUser } from "./demo-auth";
 import { type LlmMode, selectLlm } from "./llm";
 import { routes } from "./routes";
 import { createDemoTools } from "./tools";
+import { uiActions } from "./ui-actions";
 
 /** Supplies explicit configuration and optional state for the demo handler. */
 export interface DemoSpeeqOptions {
@@ -77,6 +78,7 @@ export function createDemoSpeeq({
     },
     routes,
     tools: createDemoTools(repo, bookmarks),
+    uiActions,
     knowledge: [questions],
     waitUntil,
     // Provider and driver errors can carry connection details. Keep those out of application logs.

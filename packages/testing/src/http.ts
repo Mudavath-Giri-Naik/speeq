@@ -66,6 +66,13 @@ export interface TestSession {
     approved: boolean,
     headers?: Record<string, string>,
   ): Promise<ProtocolEvent[]>;
+  /** Reports the outcome of a UI action and returns all streamed events. */
+  uiResult(
+    callId: string,
+    status: "done" | "declined" | "failed" | "unavailable",
+    result?: unknown,
+    headers?: Record<string, string>,
+  ): Promise<ProtocolEvent[]>;
 }
 
 /**
@@ -74,12 +81,21 @@ export interface TestSession {
  */
 export async function startSession(
   handler: FetchHandler,
-  options: { basePath?: string; language?: string; headers?: Record<string, string> } = {},
+  options: {
+    basePath?: string;
+    language?: string;
+    headers?: Record<string, string>;
+    /** Protocol features the simulated client declares, e.g. `["ui-actions"]`. */
+    capabilities?: string[];
+  } = {},
 ): Promise<TestSession> {
   const base = options.basePath ?? "/api/speeq";
   const language = options.language ?? "en-IN";
   const res = await handler(
-    jsonRequest(`${base}/session`, { body: { language }, headers: options.headers ?? {} }),
+    jsonRequest(`${base}/session`, {
+      body: { language, ...(options.capabilities ? { capabilities: options.capabilities } : {}) },
+      headers: options.headers ?? {},
+    }),
   );
   if (!res.ok) throw new Error(`session failed: ${res.status} ${await res.text()}`);
   const { sessionId, sessionToken } = (await res.json()) as {
@@ -104,6 +120,16 @@ export async function startSession(
       const r = await handler(
         jsonRequest(`${base}/session/${sessionId}/confirm`, {
           body: { confirmationId, approved },
+          token: sessionToken,
+          headers: { ...options.headers, ...headers },
+        }),
+      );
+      return readSseEvents(r);
+    },
+    async uiResult(callId, status, result, headers) {
+      const r = await handler(
+        jsonRequest(`${base}/session/${sessionId}/ui-result`, {
+          body: { callId, status, ...(result !== undefined ? { result } : {}) },
           token: sessionToken,
           headers: { ...options.headers, ...headers },
         }),

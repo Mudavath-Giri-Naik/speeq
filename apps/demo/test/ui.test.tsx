@@ -33,6 +33,7 @@ const snapshot: UseSpeeqResult = {
   cancel,
   setLanguage,
   confirm,
+  resolveUiAction: vi.fn(async () => {}),
   speak: vi.fn(async () => {}),
 };
 

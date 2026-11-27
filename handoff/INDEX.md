@@ -22,6 +22,6 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 016 | The whole compiler: discovery, schemas, forms, filters, manifest, reconcile, incremental     | reviewed-accepted | task/016-compiler-discovery   |
 | 017 | CLI and integration engine: @speeq/integrate, @speeq/cli, bindEndpoint, registries, rollback | reviewed-accepted | task/017-cli-integration      |
 | 018 | Verification, doctor, real-app validation, umbrella executable, packed tarball               | reviewed-accepted | task/018-verification-release |
-| 019 | UI bridge: contract, server runtime, client registry, React hook, feature entry              | briefed           | task/019-ui-bridge            |
+| 019 | UI bridge: contract, server runtime, client registry, React hook, feature entry              | reviewed-accepted | task/019-ui-bridge            |
 
 Tasks 020 to 022 (forms and filters; page context and universal agent; workflows and the Phase 2 gate) are planned in `docs/maintainers/phase-2-plan.md` and are briefed one at a time after the previous task is accepted.

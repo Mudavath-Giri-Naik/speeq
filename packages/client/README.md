@@ -105,6 +105,19 @@ await client.confirm(confirmationId, approved); // approved is the user's boolea
 
 The client clears the prompt immediately and streams the server's follow-up. Surface any error in the snapshot, including a conflict if the decision has already been handled.
 
+## UI actions
+
+Register page code for actions the server declared with `defineUiAction`:
+
+```js
+const off = client.registerUiAction("ui_open_cart", async (args, signal) => {
+  openCart(); // `args` are validated by the server but are still untrusted input
+  return { opened: true }; // optional JSON, at most 2 KB
+});
+```
+
+Register before the first turn: the session tells the server whether any handler exists. When the server marks an action as needing approval, `pendingUiAction` is set; show its `summary` and call `await client.resolveUiAction(callId, approved)`. The handler never runs before approval, and a declined action reports `declined`. A throwing handler reports `failed` without its message. With no handler the client reports `unavailable`. See `docs/concepts/ui-actions.md`.
+
 ## Sessions
 
 The first text turn, submitted voice transcript or confirmation creates a session. The client keeps the token in memory. With session storage enabled, the key is `speeq:session:<endpoint>`. If storage is unavailable, the client can still use memory. It renews a session within 30 seconds of expiry. If a turn or confirmation receives a 401 with `SESSION_EXPIRED` or `UNAUTHENTICATED`, the client creates a fresh session and retries the request once. The new server session starts with fresh history.

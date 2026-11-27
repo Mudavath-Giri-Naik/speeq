@@ -57,6 +57,7 @@ it("constructs a stable, idle snapshot in Node and ignores blank text", async ()
     messages: [],
     interimTranscript: "",
     pendingConfirmation: null,
+    pendingUiAction: null,
     error: null,
     activeTools: [],
     call: { active: false, interrupted: false },

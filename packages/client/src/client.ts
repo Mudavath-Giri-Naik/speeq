@@ -19,11 +19,13 @@ import { RequestError, readEvents } from "./stream.js";
 import type {
   CallState,
   ChatMessage,
+  PendingUiAction,
   SpeeqClient,
   SpeeqClientEvents,
   SpeeqClientOptions,
   SpeeqSnapshot,
   SpeeqState,
+  UiActionHandler,
 } from "./types.js";
 import { WebSpeechInput } from "./web-speech-input.js";
 import { WebSpeechOutput } from "./web-speech-output.js";
@@ -35,6 +37,13 @@ function freeze<T>(value: T): T {
   }
   return value;
 }
+
+/** What the page reports for a UI action. */
+type UiOutcome = {
+  callId: string;
+  status: "done" | "declined" | "failed" | "unavailable";
+  result?: unknown;
+};
 
 /** Creates a headless client. The first turn or confirmation establishes the session. */
 export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
@@ -97,6 +106,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     messages: [],
     interimTranscript: "",
     pendingConfirmation: null,
+    pendingUiAction: null,
     error: null,
     activeTools: [],
     call: { active: false, interrupted: false },
@@ -113,6 +123,8 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
   let generation = 0;
   let turn: AbortController | undefined;
   let destroyed = false;
+  const uiHandlers = new Map<string, UiActionHandler>();
+  let uiAbort: AbortController | undefined;
 
   // Hands-free call state. See startCall().
   const graceMs = options.call?.interruptGraceMs ?? 1000;
@@ -207,43 +219,47 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     commitTimer = undefined;
   }
 
-  const request = sessions(options, ({ sessionId, config }) => {
-    if (input instanceof ServerSpeechInput)
-      input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
-    const languages =
-      options.languages?.filter((l) => config.languages.includes(l)) ?? config.languages;
-    const language = languages.includes(snapshot.language)
-      ? snapshot.language
-      : config.defaultLanguage;
-    if (
-      options.speech?.input === undefined &&
-      input instanceof ServerSpeechInput &&
-      config.speech?.stt === false
-    ) {
-      input.abort();
-      input = browser;
+  const request = sessions(
+    options,
+    ({ sessionId, config }) => {
+      if (input instanceof ServerSpeechInput)
+        input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
+      const languages =
+        options.languages?.filter((l) => config.languages.includes(l)) ?? config.languages;
+      const language = languages.includes(snapshot.language)
+        ? snapshot.language
+        : config.defaultLanguage;
+      if (
+        options.speech?.input === undefined &&
+        input instanceof ServerSpeechInput &&
+        config.speech?.stt === false
+      ) {
+        input.abort();
+        input = browser;
+        update({
+          voice: {
+            ...snapshot.voice,
+            input: "browser",
+            streaming: "native",
+            processing: "remote",
+            note: "Server recognition is unavailable. Using browser recognition.",
+          },
+          support: { ...snapshot.support, speechInput: input.supported },
+        });
+      }
       update({
-        voice: {
-          ...snapshot.voice,
-          input: "browser",
-          streaming: "native",
-          processing: "remote",
-          note: "Server recognition is unavailable. Using browser recognition.",
-        },
-        support: { ...snapshot.support, speechInput: input.supported },
+        sessionId,
+        config,
+        languages,
+        language,
+        support:
+          language === snapshot.language
+            ? snapshot.support
+            : { ...snapshot.support, voiceForLanguage: null },
       });
-    }
-    update({
-      sessionId,
-      config,
-      languages,
-      language,
-      support:
-        language === snapshot.language
-          ? snapshot.support
-          : { ...snapshot.support, voiceForLanguage: null },
-    });
-  });
+    },
+    () => (uiHandlers.size > 0 ? ["ui-actions"] : []),
+  );
 
   function markStreaming(status: "interrupted" | "error") {
     return snapshot.messages.some((m) => m.status === "streaming")
@@ -317,8 +333,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       transcript?: VoiceMeta;
     } | null,
     confirmation?: { confirmationId: string; approved: boolean },
+    uiResult?: UiOutcome,
   ) {
     interrupt();
+    if (user) uiAbort?.abort();
+    let uiCall: (PendingUiAction & { confirm: boolean }) | undefined;
     const controller = new AbortController();
     turn = controller;
     const { signal } = controller;
@@ -338,7 +357,13 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         ]
       : cleared.messages;
     let language = snapshot.language;
-    update({ ...cleared, messages, pendingConfirmation: null, state: "thinking" });
+    update({
+      ...cleared,
+      messages,
+      pendingConfirmation: null,
+      pendingUiAction: null,
+      state: "thinking",
+    });
     let chunker = new SentenceChunker();
     spoken = "";
     function enqueue(text: string) {
@@ -402,6 +427,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
           update({ pendingConfirmation: { confirmationId, toolName, summary, args } });
           break;
         }
+        case "ui.action": {
+          const { callId, name, args, summary, confirm } = e;
+          uiCall = { callId, name, args, summary, confirm };
+          break;
+        }
         case "error": {
           const { code, message, retryable, retryAfterMs } = e;
           fail({ code, message, retryable, ...(retryAfterMs !== undefined && { retryAfterMs }) });
@@ -411,7 +441,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     }
     try {
       const response = await request(
-        user ? "turn" : "confirm",
+        user ? "turn" : uiResult ? "ui-result" : "confirm",
         language,
         () => {
           if (
@@ -430,7 +460,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
             language = snapshot.config?.defaultLanguage ?? language;
           return user
             ? { ...user, language, context: pageContext(options.getContext) }
-            : confirmation;
+            : (uiResult ?? confirmation);
         },
         signal,
       );
@@ -451,6 +481,31 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       state: snapshot.error && !callActive ? "error" : speech.pending ? "speaking" : restState(),
       activeTools: snapshot.activeTools.length ? [] : snapshot.activeTools,
     });
+    if (uiCall && !snapshot.error) await startUiAction(uiCall);
+  }
+
+  /** Runs the registered handler (after approval when required) and reports the outcome. */
+  async function startUiAction(call: PendingUiAction & { confirm: boolean }) {
+    const { callId, name, args, summary } = call;
+    if (!uiHandlers.has(name)) return run(null, undefined, { callId, status: "unavailable" });
+    if (call.confirm) return update({ pendingUiAction: { callId, name, args, summary } });
+    return performUiAction(callId, name, args);
+  }
+  async function performUiAction(callId: string, name: string, args: unknown) {
+    const handler = uiHandlers.get(name);
+    if (!handler) return run(null, undefined, { callId, status: "unavailable" });
+    const controller = new AbortController();
+    uiAbort = controller;
+    let outcome: UiOutcome;
+    try {
+      const value = await handler(args, controller.signal);
+      const text = JSON.stringify(value);
+      const fits = text !== undefined && new TextEncoder().encode(text).length <= 2048;
+      outcome = { callId, status: "done", ...(fits ? { result: value } : {}) };
+    } catch {
+      outcome = { callId, status: "failed" };
+    }
+    if (!destroyed && !controller.signal.aborted) await run(null, undefined, outcome);
   }
 
   function cancel() {
@@ -746,6 +801,19 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     async confirm(confirmationId, approved) {
       if (!destroyed) await run(null, { confirmationId, approved });
     },
+    registerUiAction(name, handler) {
+      uiHandlers.set(name, handler);
+      return () => {
+        if (uiHandlers.get(name) === handler) uiHandlers.delete(name);
+      };
+    },
+    async resolveUiAction(callId, approved) {
+      const pending = snapshot.pendingUiAction;
+      if (destroyed || pending?.callId !== callId) return;
+      update({ pendingUiAction: null, state: "thinking" });
+      if (!approved) await run(null, undefined, { callId, status: "declined" });
+      else await performUiAction(callId, pending.name, pending.args);
+    },
     setLanguage(language) {
       if (destroyed) return;
       if (!snapshot.languages.includes(language))
@@ -779,6 +847,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         input.clearLast();
       }
       destroyed = true;
+      uiAbort?.abort();
       callActive = false;
       callId++;
       clearCommit();

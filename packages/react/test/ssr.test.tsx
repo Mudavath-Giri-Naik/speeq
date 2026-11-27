@@ -3,7 +3,7 @@
 import { createSpeeqClient } from "@speeq/client";
 import { renderToString } from "react-dom/server";
 import { expect, it } from "vitest";
-import { SpeeqProvider, useSpeeq } from "../src/index.js";
+import { SpeeqProvider, useSpeeq, useSpeeqAction } from "../src/index.js";
 import { useProvider } from "../src/provider.js";
 
 function Reader() {
@@ -37,4 +37,22 @@ it("renders an initial snapshot on the server and caches it per client", () => {
       </SpeeqProvider>,
     ),
   ).toBe("<span>idle:false</span>");
+});
+
+const mustNotRun = () => {
+  throw new Error("must not run during server rendering");
+};
+function ActionPage() {
+  useSpeeqAction("ui_open_panel", mustNotRun);
+  return <span>page</span>;
+}
+
+it("renders a page that mounts a UI action without running it", () => {
+  expect(
+    renderToString(
+      <SpeeqProvider endpoint="/api">
+        <ActionPage />
+      </SpeeqProvider>,
+    ),
+  ).toBe("<span>page</span>");
 });

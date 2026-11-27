@@ -27,6 +27,21 @@ export interface PendingConfirmation {
   args: unknown;
 }
 
+/** A page action the assistant asked for, waiting for the user's approval. */
+export interface PendingUiAction {
+  callId: string;
+  name: string;
+  args: unknown;
+  summary: string;
+}
+
+/**
+ * Runs a UI action on the page. `args` were validated by the server but are still untrusted input:
+ * check them before acting. Return JSON (at most 2 KB) to tell the assistant what happened; throw
+ * to report failure (the message is never sent).
+ */
+export type UiActionHandler = (args: unknown, signal: AbortSignal) => unknown | Promise<unknown>;
+
 /** A navigation request from the assistant. */
 export interface NavigateAction {
   routeId: string;
@@ -98,6 +113,8 @@ export interface SpeeqSnapshot {
   messages: ChatMessage[];
   interimTranscript: string;
   pendingConfirmation: PendingConfirmation | null;
+  /** A page action waiting for `resolveUiAction`. Render your own approval UI from it. */
+  pendingUiAction: PendingUiAction | null;
   error: PublicError | null;
   activeTools: Array<{ callId: string; name: string }>;
   /** Hands-free call status. */
@@ -183,6 +200,14 @@ export interface SpeeqClient {
   cancel(): void;
   setLanguage(language: string): void;
   confirm(confirmationId: string, approved: boolean): Promise<void>;
+  /**
+   * Registers the page code for a UI action the server declared with `defineUiAction`. Register
+   * before the first turn: the session tells the server whether any handler exists. Returns a
+   * function that removes the handler.
+   */
+  registerUiAction(name: string, handler: UiActionHandler): () => void;
+  /** Approves or declines the pending UI action. Ignores an id that is not pending. */
+  resolveUiAction(callId: string, approved: boolean): Promise<void>;
   speak(text: string): Promise<void>;
   destroy(): void;
 }

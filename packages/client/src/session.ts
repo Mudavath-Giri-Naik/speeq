@@ -32,7 +32,11 @@ function valid(s: Session | null): s is Session {
 }
 
 /** Maintains the current token and retries a rejected token once per request. */
-export function sessions(options: SpeeqClientOptions, onSession: (s: Session) => void) {
+export function sessions(
+  options: SpeeqClientOptions,
+  onSession: (s: Session) => void,
+  capabilities: () => string[] = () => [],
+) {
   const endpoint = options.endpoint.replace(/\/+$/, "");
   const key = `speeq:session:${endpoint}`;
   const fetcher: typeof fetch = (url, init) => (options.fetch ?? globalThis.fetch)(url, init);
@@ -51,7 +55,11 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
     const response = await post(
       fetcher,
       `${endpoint}/session`,
-      { language, context: pageContext(options.getContext) },
+      {
+        language,
+        context: pageContext(options.getContext),
+        ...(capabilities().length ? { capabilities: capabilities() } : {}),
+      },
       signal,
     );
     const data: Session = await response.json();
@@ -87,7 +95,7 @@ export function sessions(options: SpeeqClientOptions, onSession: (s: Session) =>
   }
 
   return async (
-    path: "turn" | "confirm" | ((base: string, token: string) => Promise<Response>),
+    path: "turn" | "confirm" | "ui-result" | ((base: string, token: string) => Promise<Response>),
     language: string,
     makeBody: () => unknown,
     signal: AbortSignal,

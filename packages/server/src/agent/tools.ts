@@ -157,7 +157,8 @@ function safeSummary(tool: ResolvedTool<AgentUser>, input: unknown): string {
   return `Run "${tool.def.name}"?`;
 }
 
-function issues(error: z.ZodError): string {
+/** Short, model-readable list of validation problems. */
+export function issues(error: z.ZodError): string {
   return `Invalid arguments: ${error.issues
     .slice(0, 5)
     .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)

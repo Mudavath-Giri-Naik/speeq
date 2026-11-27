@@ -53,6 +53,10 @@ export async function handleCreateSession<TUser extends AgentUser>(
     userId,
     language,
     ...(body.context ? { context: body.context } : {}),
+    // Recorded only if the server has UI actions, so the capability is never granted by default.
+    ...(body.capabilities?.includes("ui-actions") && rt.config.uiActions.size > 0
+      ? { capabilities: ["ui-actions" as const] }
+      : {}),
   });
   rt.telemetry.session();
   rt.maybeRunRetention();

@@ -45,11 +45,22 @@ export const TurnEndReasonSchema = z.enum([
   "completed",
   "max_steps",
   "confirmation_required",
+  "ui_action_required",
   "error",
   "aborted",
 ]);
 /** Why a turn ended. */
 export type TurnEndReason = z.infer<typeof TurnEndReasonSchema>;
+
+/** Optional protocol features a client declares when it creates a session. */
+export const SessionCapabilitySchema = z.enum(["ui-actions"]);
+/** Optional protocol features a client declares when it creates a session. */
+export type SessionCapability = z.infer<typeof SessionCapabilitySchema>;
+
+/** Outcome a client reports for a UI action. */
+export const UiResultStatusSchema = z.enum(["done", "declined", "failed", "unavailable"]);
+/** Outcome a client reports for a UI action. */
+export type UiResultStatus = z.infer<typeof UiResultStatusSchema>;
 
 /** Whether a tool ships with speeq (`navigate`, `search_knowledge`) or is developer-defined. */
 export const ToolKindSchema = z.enum(["builtin", "custom"]);

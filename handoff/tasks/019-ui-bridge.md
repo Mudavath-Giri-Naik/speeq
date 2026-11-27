@@ -61,6 +61,7 @@ never see any of it. The demo has two actions and a browser test.
 ## 4. Scope
 
 Create:
+
 - `packages/server/src/agent/ui.ts` (descriptor to tool definition, validation, limits, outcomes)
 - `packages/server/src/handler/ui.ts` (`handleUiResult`)
 - `packages/server/test/ui-bridge.test.ts`, `packages/client/test/ui-actions.test.ts`,
@@ -70,6 +71,7 @@ Create:
 - `handoff/reports/019-ui-bridge.md`
 
 Modify:
+
 - `packages/core/src/schemas/{protocol,http,audit}.ts` and their exports; `packages/core/src/index.ts`
 - `packages/server/src/{define,config,index}.ts`, `agent/{loop,tools,prompt}.ts` (only what is needed),
   `handler/{index,turn,session}.ts`
@@ -171,7 +173,12 @@ export function defineUiAction<TInput extends z.ZodType, TUser extends AgentUser
 
 ```ts
 // client
-export interface PendingUiAction { callId: string; name: string; args: unknown; summary: string }
+export interface PendingUiAction {
+  callId: string;
+  name: string;
+  args: unknown;
+  summary: string;
+}
 export type UiActionHandler = (args: unknown, signal: AbortSignal) => unknown | Promise<unknown>;
 // SpeeqClientState gains: pendingUiAction: PendingUiAction | null
 // SpeeqClient gains:
@@ -181,10 +188,10 @@ export type UiActionHandler = (args: unknown, signal: AbortSignal) => unknown | 
 
 Client behaviour on `ui.action` (`confirm` from the event, never from the handler):
 
-| Handler mounted | confirm | Behaviour                                                                                         |
-| --------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| no              | any     | post `unavailable` immediately                                                                    |
-| yes             | false   | run handler; post `done` with the returned JSON value, or `failed` (no message, no stack) if it throws |
+| Handler mounted | confirm | Behaviour                                                                                                                          |
+| --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| no              | any     | post `unavailable` immediately                                                                                                     |
+| yes             | false   | run handler; post `done` with the returned JSON value, or `failed` (no message, no stack) if it throws                             |
 | yes             | true    | set `pendingUiAction`, wait. `resolveUiAction(id, true)` runs as above, `(id, false)` posts `declined` without calling the handler |
 
 A returned value that is not JSON-serialisable or serialises over 2048 bytes is omitted and `done` is
@@ -201,6 +208,7 @@ Core: valid and invalid `ui.action` events; `UiResultRequest` bounds (empty and 
 status); `capabilities` accepts only `ui-actions`; audit event data shapes.
 
 Server (`ui-bridge.test.ts`, with the fake LLM from `@speeq/testing`):
+
 - session without capability: model tool list has no `ui_` tools; a model call to `ui_x` is an unknown-tool
   outcome and **no** `ui.action` event is emitted;
 - with capability: call emits `ui.action`, stream ends with `ui_action_required`, `ui.action.requested`

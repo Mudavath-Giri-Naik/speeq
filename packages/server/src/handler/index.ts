@@ -13,13 +13,14 @@ import { handleGetSession, handleListSessions } from "./audit.js";
 import { errorResponse, json } from "./http.js";
 import { handleCreateSession } from "./session.js";
 import { handleConfirm, handleTurn } from "./turn.js";
+import { handleUiResult } from "./ui.js";
 
 /** A web-standard request handler. */
 export type SpeeqHandler = (request: Request) => Promise<Response>;
 
 // Matches the speeq route at the end of the path, wherever the handler is mounted.
 const ROUTE_RE =
-  /\/(health|session|session\/([^/]+)\/(turn|confirm|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
+  /\/(health|session|session\/([^/]+)\/(turn|confirm|ui-result|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
 
 /**
  * Creates the request handler. It only uses `Request`/`Response`, so it runs on Next.js route
@@ -67,6 +68,8 @@ export function createRequestHandler<TUser extends AgentUser>(rt: Runtime<TUser>
         return await handleTurn(rt, request, decodeURIComponent(sessionId), headers);
       if (sessionId && action === "confirm" && method === "POST")
         return await handleConfirm(rt, request, decodeURIComponent(sessionId), headers);
+      if (sessionId && action === "ui-result" && method === "POST")
+        return await handleUiResult(rt, request, decodeURIComponent(sessionId), headers);
       if (route === "audit/sessions" && method === "GET")
         return await handleListSessions(runtime, request, headers);
       if (auditId && method === "GET")

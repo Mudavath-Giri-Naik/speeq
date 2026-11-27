@@ -7,6 +7,9 @@ const bookmark = /bookmark|బుక్[‌ ]?మార్క్|बुकमा
 const count = /how many|\bcount\b|ఎన్ని|कितने/u;
 const topics = /topics|అంశాలు|विषय सूची/u;
 const navigation = /go to|take me|\bopen\b|\bshow\b|తీసుకెళ్ళు|చూపించు|తెరువు|ले चलो|खोलो|दिखाओ/u;
+const textSize = /\b(?:larger|bigger|large)\s+text\b|\btext\s+(?:size|larger|bigger)\b/u;
+const normalText = /\b(?:normal|smaller|regular)\s+text\b/u;
+const resetPrefs = /\breset\s+(?:my\s+)?(?:preferences|settings)\b/u;
 const knowledge = /tell me about|what is|explain|గురించి|के बारे में/u;
 
 const pages = [
@@ -54,6 +57,13 @@ function tool(name: string, args: Record<string, unknown>) {
 function afterTool(repo: QuestionRepository, { toolName, result, request }: MockAfterToolInput) {
   const { text, name } = localizedReply(firstSystem(request));
   const reply = (value: string) => ({ text: value });
+  if (toolName.startsWith("ui_")) {
+    const status = z.object({ status: z.string() }).safeParse(decode(result));
+    if (status.success && status.data.status === "done") return reply("Done.");
+    if (status.success && status.data.status === "declined")
+      return reply("Okay, I did not change anything.");
+    return reply("I could not do that on this page.");
+  }
   const data = z.record(z.string(), z.unknown()).safeParse(decode(result));
   if (!data.success) return reply(text.failure(result || text.unknown));
   const values = data.data;
@@ -136,6 +146,9 @@ export function createDemoMockLlm({
           const system = firstSystem(input.request);
           const { text } = localizedReply(system);
           const subject = subjectFor(query);
+          if (resetPrefs.test(query)) return tool("ui_reset_preferences", {});
+          if (normalText.test(query)) return tool("ui_set_text_size", { size: "normal" });
+          if (textSize.test(query)) return tool("ui_set_text_size", { size: "large" });
           if (bookmark.test(query)) {
             if (/list|show (?:my |the )?bookmarks|my bookmarks|నా బుక్‌మార్క్|मेरे बुकमार्क/u.test(query))
               return tool("list_bookmarks", {});
