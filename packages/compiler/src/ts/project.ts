@@ -33,6 +33,7 @@ export class SourceProject {
   readonly #text = new Map<string, Promise<string | undefined>>();
   readonly #parsed = new Map<string, Promise<ParsedFile | undefined>>();
   readonly #sha = new Map<string, Promise<string | undefined>>();
+  readonly #resolved = new Map<string, string | null>();
   readonly #host: ts.ModuleResolutionHost;
   constructor(fs: RepoFs, files: readonly string[], options: ts.CompilerOptions = {}) {
     this.#fs = fs;
@@ -103,14 +104,19 @@ export class SourceProject {
   }
   /** Resolve a module specifier to a repository file, or null for packages and unknown targets. */
   resolve(from: string, specifier: string, touched?: Touched): string | null {
-    const result = ts.resolveModuleName(specifier, VIRTUAL + from, this.#options, this.#host);
-    const name = result.resolvedModule?.resolvedFileName;
-    let target: string | null = null;
-    if (name?.startsWith(VIRTUAL)) {
-      const rel = name.slice(VIRTUAL.length);
-      if (this.#files.has(rel) && !/\.d\.[cm]?ts$/.test(rel)) target = rel;
+    const key = `${from}\0${specifier}`;
+    let target = this.#resolved.get(key);
+    if (target === undefined) {
+      const result = ts.resolveModuleName(specifier, VIRTUAL + from, this.#options, this.#host);
+      const name = result.resolvedModule?.resolvedFileName;
+      target = null;
+      if (name?.startsWith(VIRTUAL)) {
+        const rel = name.slice(VIRTUAL.length);
+        if (this.#files.has(rel) && !/\.d\.[cm]?ts$/.test(rel)) target = rel;
+      }
+      this.#resolved.set(key, target);
     }
-    touched?.resolutions.set(`${from}\0${specifier}`, target);
+    touched?.resolutions.set(key, target);
     return target;
   }
 }

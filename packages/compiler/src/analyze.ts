@@ -1,4 +1,5 @@
 import type { Capability, Diagnostic, Framework } from "@speeq/core/manifest";
+import ts from "typescript";
 import type { Draft } from "./capability.js";
 import { diagnostic } from "./diagnostics.js";
 import type { FileCtx } from "./extract/context.js";
@@ -14,6 +15,15 @@ import { existingCalls } from "./project/existing-speeq.js";
 import { ModuleGraph } from "./ts/exports.js";
 import { newTouched, type SourceProject, type Touched } from "./ts/project.js";
 
+/** Does the file import speeq itself? Such a route is the host's speeq handler, not a capability. */
+function importsSpeeq(sf: ts.SourceFile) {
+  return sf.statements.some(
+    (s) =>
+      ts.isImportDeclaration(s) &&
+      ts.isStringLiteral(s.moduleSpecifier) &&
+      /^(?:speeq|@speeq)(?:\/|$)/.test(s.moduleSpecifier.text),
+  );
+}
 /** Everything learned from one file. Plain data, so it can be cached. */
 export interface FileResult {
   capabilities: Draft<Capability>[];
@@ -62,8 +72,10 @@ export async function analyzeFile(
   const capabilities: Draft<Capability>[] = [];
   if (role?.role === "skip" && role.diag) ctx.diags.push(diagnostic(role.diag, file));
   if (role?.role === "page") capabilities.push(routeDraft(role, file, sf));
-  if (role?.role === "route-handler" || role?.role === "api")
-    capabilities.push(...(await endpointDrafts(ctx, role)));
+  if (role?.role === "route-handler" || role?.role === "api") {
+    if (importsSpeeq(sf)) ctx.diags.push(diagnostic("SQ0171", file));
+    else capabilities.push(...(await endpointDrafts(ctx, role)));
+  }
   if (hasUseServer(sf) || sf.text.includes("@speeq"))
     capabilities.push(...(await functionDrafts(ctx)));
   inlineServerActions(ctx);

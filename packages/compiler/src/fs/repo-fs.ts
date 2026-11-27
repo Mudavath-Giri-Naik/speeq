@@ -145,18 +145,26 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
     }
   }
   const extras = ignore().add(options.extraIgnore ?? []);
-  async function layer(dir: string) {
-    const path = dir ? `${dir}/.gitignore` : ".gitignore";
-    try {
-      return { dir, rules: ignore().add(await bounded(path)) };
-    } catch (e) {
-      if (
-        (e as NodeJS.ErrnoException).code === "ENOENT" ||
-        (e instanceof ToolError && (e.code === "SQ0003" || e.code === "SQ0004"))
-      )
-        return;
-      throw e;
+  // Each directory's ignore file is read once per opened inventory, not once per file read.
+  const layerCache = new Map<string, Promise<Layer | undefined>>();
+  function layer(dir: string): Promise<Layer | undefined> {
+    let hit = layerCache.get(dir);
+    if (!hit) {
+      const path = dir ? `${dir}/.gitignore` : ".gitignore";
+      hit = bounded(path).then(
+        (text): Layer => ({ dir, rules: ignore().add(text) }),
+        (e: unknown) => {
+          if (
+            (e as NodeJS.ErrnoException).code === "ENOENT" ||
+            (e instanceof ToolError && (e.code === "SQ0003" || e.code === "SQ0004"))
+          )
+            return undefined;
+          throw e;
+        },
+      );
+      layerCache.set(dir, hit);
     }
+    return hit;
   }
   function hidden(path: string, layers: Layer[]) {
     if (extras.ignores(path)) return true;
@@ -222,7 +230,10 @@ export async function openRepoFs(options: RepoFsOptions): Promise<RepoFs> {
         if (entry.isDirectory()) {
           if (!(await walk(path, layers))) return false;
         } else if (entry.isFile()) {
-          const stat = await lstat(await checked(path));
+          // The parent directory chain was verified by `walk`; the entry is a regular file by
+          // its directory entry type. Only the size is needed here.
+          const stat = await lstat(join(root, path));
+          if (!stat.isFile()) continue;
           if (stat.size > max) report("SQ0004", path);
           else files.push(path);
         }

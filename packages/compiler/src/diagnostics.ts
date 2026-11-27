@@ -19,6 +19,7 @@ export const diagnostics = {
   SQ0150: { severity: "warning", meaning: "Pages API methods unknown" },
   SQ0160: { severity: "warning", meaning: "Middleware matcher cannot be interpreted" },
   SQ0170: { severity: "info", meaning: "Existing speeq tools or routes found" },
+  SQ0171: { severity: "info", meaning: "Existing speeq handler route skipped" },
   SQ0210: { severity: "warning", meaning: "Unsupported zod entry point" },
   SQ0211: { severity: "warning", meaning: "Unsupported zod builder" },
   SQ0212: { severity: "warning", meaning: "Schema cannot be resolved" },

@@ -18,7 +18,8 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "eval": "node --conditions=@speeq/source --import tsx src/eval/report.ts"
+    "eval": "node --conditions=@speeq/source --import tsx src/eval/report.ts",
+    "bench": "node --conditions=@speeq/source --import tsx scripts/gen-large-fixture.ts"
   },
   "dependencies": {
     "@speeq/core": "workspace:*",

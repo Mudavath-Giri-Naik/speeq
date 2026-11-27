@@ -140,8 +140,20 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
       framework: routers.includes("app") ? "nextjs-app" : "nextjs-pages",
       maxDepth: lim.maxImportDepth ?? 8,
     };
-    const diags: Diagnostic[] = [...fs.diagnostics];
+    // Filesystem notes about files outside the chosen application are noise for this scan.
+    const diags: Diagnostic[] = fs.diagnostics.filter(
+      (d) => !d.file || d.file.startsWith(info.prefix),
+    );
     if (info.invalidConfig) diags.push(diagnostic("SQ0104", info.invalidConfig));
+    if (info.config?.dropped.length && project.tsconfig)
+      diags.push(
+        diagnostic(
+          "SQ0104",
+          project.tsconfig.path,
+          undefined,
+          `parent config not found: ${info.config.dropped.join(", ")}`,
+        ),
+      );
     const middleware: Middleware[] = [];
     for (const f of sources.filter((f) => MIDDLEWARE.test(f) && f.startsWith(info.prefix))) {
       const rel = f.slice(info.prefix.length);

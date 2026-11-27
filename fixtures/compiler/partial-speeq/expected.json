@@ -6,6 +6,10 @@
     {
       "code": "SQ0170",
       "file": "speeq.config.ts"
+    },
+    {
+      "code": "SQ0171",
+      "file": "app/api/speeq/[[...speeq]]/route.ts"
     }
   ],
   "forbidden": []

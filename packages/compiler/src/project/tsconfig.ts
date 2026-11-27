@@ -30,7 +30,12 @@ export function readConfig(
         if (spec.startsWith(".")) target = posix.join(posix.dirname(name), spec);
         else {
           const pkg = [...packages.keys()].find((k) => spec === k || spec.startsWith(k + "/"));
-          if (!pkg) throw Error("external config");
+          if (!pkg) {
+            // A parent config outside the scanned files (an npm package) cannot be read.
+            // The file's own options are still used and the omission is reported.
+            dropped.push(spec);
+            continue;
+          }
           target = posix.join(
             packages.get(pkg) ?? "",
             spec.slice(pkg.length).replace(/^\//, "") || "tsconfig.json",
@@ -41,11 +46,13 @@ export function readConfig(
         normalized.set(virtual + target, JSON.stringify(parent));
         rewritten.push(virtual + target);
       }
-      data.extends = rewritten;
+      if (rewritten.length) data.extends = rewritten;
+      else delete data.extends;
     }
     return data;
   }
   const normalized = new Map<string, string>();
+  const dropped: string[] = [];
   try {
     const data = config(file, new Set());
     const parsed = ts.parseJsonConfigFileContent(
@@ -76,6 +83,7 @@ export function readConfig(
         })),
       },
       references: (parsed.projectReferences ?? []).map((r) => posix.relative("/repo", r.path)),
+      dropped,
     };
   } catch {
     return;
