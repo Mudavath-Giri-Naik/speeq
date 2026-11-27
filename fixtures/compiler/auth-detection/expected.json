@@ -1,0 +1,52 @@
+{
+  "fixture": "auth-detection",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/private",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/private/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/public",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/public/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/me",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/me/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0160",
+      "file": "proxy.ts"
+    }
+  ],
+  "forbidden": []
+}

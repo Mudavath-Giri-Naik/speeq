@@ -1,0 +1,164 @@
+{
+  "fixture": "routes-advanced",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/products/[id]",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/(store)/products/[id]/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/docs/[...slug]",
+      "kind": "route",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/docs/[...slug]/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/help/[[...slug]]",
+      "kind": "route",
+      "support": "needs-review",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/help/[[...slug]]/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/legacy",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "pages/legacy/index.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "endpoint:GET /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 2
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:PUT /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 3
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:PATCH /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 5
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:DELETE /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 6
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:HEAD /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 6
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:OPTIONS /api/example",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/example/route.ts",
+          "line": 6
+        }
+      ],
+      "executableWhenApproved": false
+    }
+  ],
+  "unsupported": [
+    {
+      "code": "SQ0140",
+      "file": "app/@extra/page.tsx"
+    },
+    {
+      "code": "SQ0141",
+      "file": "app/(.)modal/page.tsx"
+    }
+  ],
+  "forbidden": [
+    "route:/_private",
+    "route:/modal",
+    "route:/404"
+  ]
+}

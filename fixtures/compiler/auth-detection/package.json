@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "next": "16",
+    "next-auth": "5",
+    "@clerk/nextjs": "1",
+    "@supabase/supabase-js": "1"
+  }
+}

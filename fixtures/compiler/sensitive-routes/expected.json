@@ -1,0 +1,112 @@
+{
+  "fixture": "sensitive-routes",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/admin/users",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/admin/users/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/login",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/login/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/checkout",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/checkout/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "route:/account",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/account/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/about",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/about/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "route:/blog/[slug]",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/blog/[slug]/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    },
+    {
+      "id": "endpoint:POST /api/webhooks/stripe",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/webhooks/stripe/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    },
+    {
+      "id": "endpoint:POST /api/cron/x",
+      "kind": "endpoint",
+      "support": "proven",
+      "access": "unknown",
+      "evidence": [
+        {
+          "file": "app/api/cron/x/route.ts",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": false
+    }
+  ],
+  "unsupported": [],
+  "forbidden": []
+}
