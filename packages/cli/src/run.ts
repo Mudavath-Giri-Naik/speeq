@@ -4,6 +4,7 @@ import { capabilities } from "./commands/capabilities.js";
 import { configure, init, upgrade } from "./commands/init.js";
 import { rollbackCommand } from "./commands/rollback.js";
 import { scanCommand } from "./commands/scan.js";
+import { doctorCommand, verifyCommand } from "./commands/verify.js";
 import { type CliEnv, CliExit, type Ctx, EXIT } from "./types.js";
 import { SPEEQ_PACKAGE_VERSION } from "./version.js";
 
@@ -14,13 +15,9 @@ const handlers: Record<(typeof COMMANDS)[number], (ctx: Ctx) => Promise<number>>
   capabilities,
   upgrade,
   rollback: rollbackCommand,
-  verify: async (ctx) => stub(ctx, "verify"),
-  doctor: async (ctx) => stub(ctx, "doctor"),
+  verify: verifyCommand,
+  doctor: doctorCommand,
 };
-function stub(ctx: Ctx, name: string) {
-  ctx.say(`speeq ${name} is available in the next release.`);
-  return ctx.finish(EXIT.ok, { available: false });
-}
 function wantsJson(argv: string[]) {
   return argv.includes("--json");
 }

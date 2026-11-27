@@ -85,9 +85,55 @@ describe("usage and exit codes", () => {
     expect((await a.cli(["capabilities", "wat"])).code).toBe(2);
     expect(await a.read(".speeq/decisions.json").catch(() => "none")).toBe("none");
   });
-  it("verify and doctor are stubs that succeed", async () => {
+  it("verify and doctor: exit codes, separate levels, JSON, and host commands only with --run-host", async () => {
     const a = await make("next-app-minimal");
-    for (const c of ["verify", "doctor"]) expect((await a.cli([c])).code).toBe(0);
+    expect((await a.cli(["capabilities", "enable", ROUTE])).code).toBe(0);
+    expect((await a.cli(["init"])).code).toBe(0);
+    const bad = await a.cli(["verify", "--json"]);
+    expect(bad.code).toBe(1);
+    expect(bad.json()).toMatchObject({
+      command: "verify",
+      ok: false,
+      readiness: { static: "fail" },
+    });
+    await a.write(
+      "package.json",
+      JSON.stringify({
+        scripts: { typecheck: "tsc" },
+        dependencies: { next: "16", zod: "4", speeq: "0.4.0" },
+      }),
+    );
+    const calls: string[] = [];
+    const exec = async (c: string, args: string[]) => {
+      calls.push(`${c} ${args.join(" ")}`);
+      return 0;
+    };
+    const ok = await a.cli(["verify", "--json"], { exec });
+    expect(ok.code).toBe(0);
+    expect(ok.json().readiness).toEqual({ static: "pass", runtime: "pass", host: "not-run" });
+    expect(calls).toEqual([]);
+    const host = await a.cli(["verify", "--json", "--run-host"], { exec });
+    expect(host.json().readiness).toMatchObject({ host: "pass" });
+    expect(calls).toHaveLength(1);
+    const doc = await a.cli(["doctor", "--json"]);
+    expect(doc.code).toBe(0);
+    expect(doc.json().readiness).toEqual({ static: "pass", runtime: "not-run", host: "not-run" });
+    const human = await a.cli(["verify"]);
+    expect(human.stdout).toContain("Runtime (mock model");
+    expect(human.stdout).toContain("Not verified here: a live model provider");
+    expect((await a.cli(["verify", "--bogus"])).code).toBe(2);
+  });
+  it("verify exits 3 when decisions are pending and 4 for an unsupported project", async () => {
+    const a = await make("next-app-minimal");
+    expect((await a.cli(["init"])).code).toBe(3);
+    await a.write(
+      "package.json",
+      JSON.stringify({ dependencies: { next: "16", zod: "4", speeq: "0.4.0" } }),
+    );
+    expect((await a.cli(["verify"])).code).toBe(3);
+    const n = await make("no-next");
+    expect((await n.cli(["verify"])).code).toBe(4);
+    expect((await n.cli(["doctor", "--json"])).json()).toMatchObject({ exitCode: 4 });
   });
   it("rollback with nothing to undo is 1", async () => {
     const a = await make("next-app-minimal");

@@ -22,9 +22,21 @@ export const RULES: Readonly<Record<string, PackageRule>> = {
     externalDeps: ["typescript", "ignore"],
   },
   "@speeq/integrate": {
-    internalDeps: ["@speeq/core", "@speeq/compiler"],
-    internalImports: ["@speeq/core", "@speeq/compiler"],
-    externalDeps: ["typescript"],
+    internalDeps: [
+      "@speeq/core",
+      "@speeq/compiler",
+      "@speeq/server",
+      "@speeq/store-memory",
+      "@speeq/testing",
+    ],
+    internalImports: [
+      "@speeq/core",
+      "@speeq/compiler",
+      "@speeq/server",
+      "@speeq/store-memory",
+      "@speeq/testing",
+    ],
+    externalDeps: ["typescript", "zod"],
   },
   "@speeq/cli": {
     internalDeps: ["@speeq/core", "@speeq/compiler", "@speeq/integrate"],

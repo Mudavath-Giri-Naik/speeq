@@ -41,6 +41,9 @@ export async function project(name: string) {
     get manifest() {
       return state.manifest;
     },
+    get options() {
+      return state.options as PlanOptions;
+    },
     async scan() {
       const r = await rescan();
       state.manifest = r.manifest;

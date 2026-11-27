@@ -57,6 +57,8 @@ export interface IntegrationPlan {
   prefix: string;
   changes: PlannedChange[];
   wrapped: { id: string; tool: string }[];
+  /** The approved tools as rendered, for verification. Not part of the JSON summary. */
+  toolSpecs: ToolSpec[];
   skipped: { id: string; reason: string }[];
   stale: string[];
   pending: string[];
@@ -472,6 +474,7 @@ export async function buildPlan(input: {
     prefix,
     changes,
     wrapped,
+    toolSpecs: tools,
     skipped,
     stale,
     pending,

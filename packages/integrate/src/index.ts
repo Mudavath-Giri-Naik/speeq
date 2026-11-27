@@ -41,3 +41,10 @@ export {
   provider,
 } from "./registry.js";
 export { isSecretName, renderZod } from "./schema.js";
+export {
+  type Check,
+  type Level,
+  type VerifyInput,
+  type VerifyReport,
+  verifyProject,
+} from "./verify.js";

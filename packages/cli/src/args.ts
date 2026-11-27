@@ -32,6 +32,7 @@ export function parseCommandLine(argv: string[]): {
       install: { type: "boolean", default: false },
       "forward-auth": { type: "boolean", default: false },
       "no-confirm": { type: "boolean", default: false },
+      "run-host": { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
       version: { type: "boolean", short: "v", default: false },
       cwd: { type: "string" },
@@ -58,6 +59,7 @@ export function parseCommandLine(argv: string[]): {
     install: values.install === true,
     forwardAuth: values["forward-auth"] === true,
     noConfirm: values["no-confirm"] === true,
+    runHost: values["run-host"] === true,
     help: values.help === true,
     version: values.version === true,
     ...(values.cwd ? { cwd: values.cwd } : {}),
@@ -84,7 +86,8 @@ Commands
   capabilities list|show|enable|disable [id]
   upgrade                   Rescan, reconcile decisions, regenerate owned files
   rollback                  Undo the last apply (owned files only)
-  verify, doctor            Available in the next release
+  doctor                    Check the environment and the integration files (static)
+  verify                    Static checks plus a mock-runtime smoke and permission test
 
 Options
   --json         One JSON document on stdout, no other output
@@ -97,6 +100,7 @@ Options
   --install      Install missing dependencies (init)
   --access <read|write> --auth <public|authenticated|roles> --roles a,b
   --forward-auth --no-confirm --name <tool>   (capabilities enable)
+  --run-host     verify: also run the app's own type check (runs host commands)
 
 Exit codes: 0 ok, 1 failure, 2 usage, 3 needs review, 4 unsupported
 `;

@@ -15,7 +15,8 @@ const code = await run(process.argv.slice(2), {
     new Promise((resolve) => {
       const child = spawn(command, args, {
         cwd,
-        stdio: "inherit",
+        // Child output goes to stderr so `--json` keeps stdout clean.
+        stdio: ["inherit", 2, 2],
         shell: process.platform === "win32",
       });
       child.on("close", (c) => resolve(c ?? 1));

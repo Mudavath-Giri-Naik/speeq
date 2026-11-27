@@ -40,6 +40,7 @@ export interface Flags {
   install: boolean;
   forwardAuth: boolean;
   noConfirm: boolean;
+  runHost: boolean;
   help: boolean;
   version: boolean;
   cwd?: string;
