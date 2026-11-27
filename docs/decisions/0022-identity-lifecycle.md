@@ -32,8 +32,8 @@ Status: Proposed (accepted with task 022).
    - `resolveUser` throws and the claims have a `uid` → **`AUTH_UNAVAILABLE`** (new code, 503, retryable).
      Nothing private runs. Anonymous sessions (`uid: null`) continue as anonymous.
    - At session creation a throw stays "anonymous" when `allowAnonymous`, else `AUTH_UNAVAILABLE`.
-   Every session request goes through `authenticate`: turn, confirm, ui-result, speech, and the new
-   memory and messages endpoints. A pending confirmation therefore cannot be approved by another identity.
+     Every session request goes through `authenticate`: turn, confirm, ui-result, speech, and the new
+     memory and messages endpoints. A pending confirmation therefore cannot be approved by another identity.
 4. **Identity summary.** `POST /session` returns `identity: { state: "anonymous" | "authenticated",
    fingerprint, profile? }`. `fingerprint` = first 22 chars of base64url HMAC-SHA256(secret,
    `"identity\0" + uid + "\0" + (tid ?? "")`), or `"anonymous"`. It is opaque, never stored, never in
