@@ -66,6 +66,7 @@ export function scripted(answers: unknown[]): Prompter & { asked: string[] } {
     select: async (m) => next(m) as never,
     multiselect: async (m) => next(m) as never,
     text: async (m) => next(m) as string,
+    password: async (m) => next(m) as string,
   };
 }
 /** A prompter that fails the test if it is ever used. */

@@ -1,4 +1,4 @@
-import { cancel, confirm, isCancel, multiselect, select, text } from "@clack/prompts";
+import { cancel, confirm, isCancel, multiselect, password, select, text } from "@clack/prompts";
 import { CliExit, EXIT, type Prompter } from "./types.js";
 
 function ok<T>(value: T | symbol): T {
@@ -31,5 +31,8 @@ export const clackPrompter: Prompter = {
   },
   async text(message, initial = "") {
     return ok<string>(await text({ message, initialValue: initial }));
+  },
+  async password(message) {
+    return ok<string>(await password({ message, mask: "*" }));
   },
 };

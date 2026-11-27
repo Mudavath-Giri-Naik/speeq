@@ -447,6 +447,7 @@ describe("onboarding: provider, voice, env names and the chat box", () => {
       [],
       true,
       false,
+      false, // not now: paste the key later
     ]);
     const r = await a.cli(["init"], { isTTY: true, prompts });
     expect([0, 3]).toContain(r.code); // 3: capabilities still wait for review
@@ -462,6 +463,43 @@ describe("onboarding: provider, voice, env names and the chat box", () => {
       expect(env).toContain(`${name}=\n`);
     expect(r.stdout).toContain("Next steps");
     expect(r.stdout).toContain(".env.local");
+  });
+  it("offers to paste the key at the end of init, checks it, and saves the key and model", async () => {
+    const a = await withLayout();
+    const key = "gsk_INITFLOWKEY1234567890";
+    const fetchStub = (async (url: string | URL | Request, init?: RequestInit) => {
+      const h = (init?.headers ?? {}) as Record<string, string>;
+      if (h.authorization !== `Bearer ${key}`) return new Response("{}", { status: 401 });
+      if (String(url).endsWith("/models"))
+        return new Response(JSON.stringify({ data: [{ id: "model-a" }, { id: "model-b" }] }), {
+          status: 200,
+        });
+      return new Response(JSON.stringify({ choices: [] }), { status: 200 });
+    }) as unknown as typeof fetch;
+    const prompts = scripted([
+      "groq",
+      "browser",
+      ["en-IN"],
+      true,
+      true,
+      [],
+      [],
+      true,
+      false,
+      true, // paste the key now
+      key,
+      "model-b",
+    ]);
+    const r = await a.cli(["init"], { isTTY: true, prompts, fetch: fetchStub });
+    expect([0, 3]).toContain(r.code);
+    const env = await a.read(".env.local");
+    expect(env).toContain(`GROQ_API_KEY=${key}`);
+    expect(env).toContain("SPEEQ_LLM_MODEL=model-b");
+    expect(r.stdout + r.stderr).not.toContain(key);
+    expect(r.stdout).toContain("are saved in .env.local");
+    const example = await a.read(".env.example");
+    expect(example).not.toContain(key);
+    expect(example).toContain("GROQ_API_KEY=\n");
   });
   it("rollback restores the layout and removes the untouched env blocks", async () => {
     const a = await withLayout();

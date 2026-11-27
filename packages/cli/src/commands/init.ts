@@ -4,6 +4,7 @@ import { load } from "../load.js";
 import { reviewPending } from "../review.js";
 import { installDependencies, reviewExit, showManual, showPlan, sync } from "../sync.js";
 import { CliExit, type Ctx, EXIT, type Loaded, planSummary } from "../types.js";
+import { type ConnectResult, runConnect } from "./connect.js";
 
 function projectDoc(l: Loaded) {
   const p = l.manifest.project;
@@ -67,20 +68,33 @@ async function chooseSetup(ctx: Ctx, loaded: Loaded) {
   o.remember = true;
 }
 /** What to do next, in plain words. */
-function showNextSteps(ctx: Ctx, loaded: Loaded, plan: IntegrationPlan) {
+function showNextSteps(
+  ctx: Ctx,
+  loaded: Loaded,
+  plan: IntegrationPlan,
+  connected: ConnectResult | undefined,
+) {
   const o = loaded.options;
   const needsKey = PROVIDERS.find((p) => p.id === (o.providerId ?? "mock"))?.needsKey === true;
   const names = plan.env.map((e) => e.name).filter((n) => n !== "SPEEQ_SECRET");
   const pm = loaded.manifest.project.packageManager;
   const dev = pm === "yarn" ? "yarn dev" : `${pm === "unknown" ? "npm" : pm} run dev`;
   const lines = ["", pc.bold("Next steps")];
-  if (needsKey && o.env)
+  if (connected?.saved)
+    lines.push(
+      `  1. Your key${connected.model ? ` and model (${connected.model})` : ""} are saved in .env.local`,
+      `  2. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
+    );
+  else if (needsKey && o.env)
     lines.push(`  1. Open .env.local, paste a value for: ${names.join(", ")}`, "  2. Save it");
   else if (needsKey) lines.push(`  1. Set these environment variables: ${names.join(", ")}`);
   else lines.push("  1. (Mock mode needs no key: the assistant gives canned replies.)");
-  lines.push(
-    `  ${needsKey ? 3 : 2}. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
-  );
+  if (!connected?.saved)
+    lines.push(
+      `  ${needsKey ? 3 : 2}. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
+    );
+  if (needsKey && !connected?.saved)
+    lines.push("  Or let speeq check the key and pick a working model for you: npx speeq connect");
   if (!needsKey)
     lines.push(
       "  To connect a real model later: speeq configure (shows the config and variable names to use).",
@@ -116,9 +130,27 @@ export async function init(ctx: Ctx): Promise<number> {
         : false);
     if (wants) installed = await installDependencies(ctx, loaded, plan);
   }
+  let connected: ConnectResult | undefined;
+  const providerId = loaded.options.providerId ?? "mock";
+  if (
+    !ctx.flags.dryRun &&
+    ctx.interactive &&
+    prompts &&
+    loaded.options.env &&
+    PROVIDERS.find((p) => p.id === providerId)?.needsKey
+  ) {
+    const label = PROVIDERS.find((p) => p.id === providerId)?.label.split(" (")[0];
+    if (
+      await prompts.confirm(
+        `Paste your ${label} key now? speeq checks it, shows which models work, and saves it in .env.local`,
+        true,
+      )
+    )
+      connected = await runConnect(ctx, { fs: loaded.fs, prefix: loaded.prefix, providerId });
+  }
   if (!ctx.flags.json) {
     showManual(ctx, plan);
-    showNextSteps(ctx, loaded, plan);
+    showNextSteps(ctx, loaded, plan, connected);
   }
   return ctx.finish(reviewExit(plan), {
     project: projectDoc(loaded),
@@ -172,7 +204,7 @@ export async function configure(ctx: Ctx): Promise<number> {
   for (;;) {
     const choice = await prompts.select("speeq control center", [
       { value: "review", label: "Review capabilities" },
-      { value: "provider", label: "Language model (shows the config to use)" },
+      { value: "provider", label: "Language model (add a key, check models)" },
       { value: "status", label: "Show status and pending changes" },
       { value: "apply", label: "Apply changes" },
       { value: "exit", label: "Exit" },
@@ -188,7 +220,9 @@ export async function configure(ctx: Ctx): Promise<number> {
         PROVIDERS.map((p) => ({ value: p.id, label: p.label, hint: p.note })),
       );
       const p = PROVIDERS.find((x) => x.id === id);
-      if (p)
+      if (p?.needsKey)
+        await runConnect(ctx, { fs: loaded.fs, prefix: loaded.prefix, providerId: p.id });
+      else if (p)
         ctx.say(
           `speeq.config.ts is yours, so speeq does not rewrite it. Use:\n  llm: ${p.expression}\nEnvironment: ${p.env.map((e) => e.name).join(", ") || "none"}`,
         );

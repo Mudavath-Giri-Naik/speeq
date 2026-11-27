@@ -10,6 +10,7 @@ export {
   type RollbackResult,
   rollback,
 } from "./apply.js";
+export { configProviderState, keyVariable, switchProvider } from "./config-switch.js";
 export {
   decisionsPath,
   IntegrateError,
@@ -21,7 +22,14 @@ export {
   writeManifest,
 } from "./decisions.js";
 export { lineDiff, renderDiff } from "./diff.js";
-export { type EnvName, ignoresEnvLocal, newSecret, planEnv } from "./env.js";
+export {
+  applyEnvValues,
+  type EnvName,
+  type EnvValueResult,
+  ignoresEnvLocal,
+  newSecret,
+  planEnv,
+} from "./env.js";
 export { memoryFs, nodeFs, type ProjectFs } from "./fsx.js";
 export { type LayoutSplice, spliceLayout } from "./layout.js";
 export { type Ownership, ownership, seal, sha256 } from "./owned.js";

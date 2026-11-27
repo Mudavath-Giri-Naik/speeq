@@ -4,6 +4,7 @@ import type { Flags } from "./types.js";
 /** Commands the CLI knows. Bare `speeq` is `configure`. */
 export const COMMANDS = [
   "init",
+  "connect",
   "scan",
   "configure",
   "capabilities",
@@ -89,6 +90,7 @@ Usage: speeq [command] [options]
 
 Commands
   init                      Scan, review and integrate speeq into this app
+  connect                   Paste a model key: it is checked, the working models are listed, and it is saved to .env.local
   scan                      Rediscover capabilities and refresh .speeq/manifest.json
   configure                 Control center (also: bare \`speeq\`)
   capabilities list|show|enable|disable [id]

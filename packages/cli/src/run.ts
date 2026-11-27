@@ -1,6 +1,7 @@
 import { isSpeeqError } from "@speeq/core";
 import { type COMMANDS, HELP, parseCommandLine } from "./args.js";
 import { capabilities } from "./commands/capabilities.js";
+import { connect } from "./commands/connect.js";
 import { configure, init, upgrade } from "./commands/init.js";
 import { rollbackCommand } from "./commands/rollback.js";
 import { scanCommand } from "./commands/scan.js";
@@ -10,6 +11,7 @@ import { SPEEQ_PACKAGE_VERSION } from "./version.js";
 
 const handlers: Record<(typeof COMMANDS)[number], (ctx: Ctx) => Promise<number>> = {
   init,
+  connect,
   scan: scanCommand,
   configure,
   capabilities,

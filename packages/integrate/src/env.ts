@@ -51,6 +51,75 @@ export function planEnv(
   };
 }
 
+/** What {@link applyEnvValues} did. Names only: values are never reported. */
+export interface EnvValueResult {
+  text: string;
+  /** Existing empty variables that now have a value. */
+  filled: string[];
+  /** Variables that were missing and are now at the end of the file. */
+  added: string[];
+  /** Variables that had a value and were overwritten (only when listed in `overwrite`). */
+  replaced: string[];
+  /** Variables that already have a value and were left alone. */
+  skipped: string[];
+}
+
+const SAFE_VALUE = /^[A-Za-z0-9_.\-:/+=@~]+$/;
+const LINE = (name: string) => new RegExp(`^(\\s*(?:export\\s+)?${name}\\s*=)(.*)$`);
+const isEmptyValue = (rest: string) => /^\s*(?:(?:""|'')\s*)?(?:#.*)?$/.test(rest);
+
+/**
+ * Put values into an env file. The only place speeq writes a secret, and only because the developer
+ * pasted it into the terminal. An existing empty variable is filled in place; a missing one is appended
+ * with a short note; a variable that already has a value is left alone unless it is in `overwrite`.
+ * Values are restricted to plain characters (keys and model ids), so nothing needs quoting and nothing
+ * can add a line. Keeps the file's line endings. Never reports a value.
+ */
+export function applyEnvValues(
+  existing: string | undefined,
+  values: Readonly<Record<string, string>>,
+  options: { overwrite?: readonly string[]; notes?: Readonly<Record<string, string>> } = {},
+): EnvValueResult {
+  const base = existing ?? "";
+  const nl = base.includes("\r\n") ? "\r\n" : "\n";
+  const lines = base === "" ? [] : base.split(/\r?\n/);
+  if (lines[lines.length - 1] === "") lines.pop(); // the file's final newline is added back below
+  const result: EnvValueResult = { text: base, filled: [], added: [], replaced: [], skipped: [] };
+  const append: string[] = [];
+  for (const [name, value] of Object.entries(values)) {
+    if (!NAME.test(name)) throw new Error(`Not a valid variable name: ${name}`);
+    if (!SAFE_VALUE.test(value))
+      throw new Error(`The value for ${name} has characters speeq will not write.`);
+    const re = LINE(name);
+    const at: number[] = [];
+    lines.forEach((l, i) => {
+      if (re.test(l)) at.push(i);
+    });
+    if (at.length === 0) {
+      const note = options.notes?.[name];
+      if (note) append.push(`# ${note.replace(/[\r\n]+/g, " ")}`);
+      append.push(`${name}=${value}`);
+      result.added.push(name);
+      continue;
+    }
+    const empty = at.every((i) => isEmptyValue(re.exec(lines[i] ?? "")?.[2] ?? ""));
+    if (!empty && !options.overwrite?.includes(name)) {
+      result.skipped.push(name);
+      continue;
+    }
+    for (const i of at) lines[i] = `${re.exec(lines[i] ?? "")?.[1] ?? `${name}=`}${value}`;
+    (empty ? result.filled : result.replaced).push(name);
+  }
+  if (append.length) {
+    while (lines.length && lines[lines.length - 1] === "") lines.pop();
+    if (lines.length) lines.push("");
+    lines.push(...append);
+  }
+  const changed = result.filled.length + result.replaced.length + result.added.length > 0;
+  result.text = changed ? `${lines.join(nl)}${nl}` : base;
+  return result;
+}
+
 /** True when a `.gitignore` already ignores `.env.local`. */
 export function ignoresEnvLocal(gitignore: string): boolean {
   return gitignore.split(/\r?\n/).some((l) => {

@@ -40,47 +40,63 @@ Then it writes:
 
 - `components/speeq/assistant.tsx`: the chat box, with text, mic, call mode, language switch, mock badge, and approval dialogs for confirmations and page actions. It is generated into **your** app (speeq's own packages ship no UI). Delete its first line to take it over and restyle it.
 - A one-line change to your root layout: an import and `<SpeeqAssistant />` before `</body>`. If your layout has another shape, speeq prints the exact snippet instead of guessing.
-- `.env.local` and `.env.example` with the **names** of the variables you need and empty values. speeq never writes your keys and never reads the values you add. The one value it generates is `SPEEQ_SECRET` (random, made on your machine). `.gitignore` gets `.env*.local` if it does not already cover it.
+- `.env.local` and `.env.example` with the **names** of the variables you need and empty values. Unless you paste a key (below), speeq writes no key and reads no value. The one value it generates is `SPEEQ_SECRET` (random, made on your machine). `.gitignore` gets `.env*.local` if it does not already cover it.
 - `.speeq/setup.json`, so `speeq upgrade` regenerates the same files.
 
-Then you only paste the keys:
+At the end of `init` it offers to take your key right there, or you can do it any time with `npx speeq connect`:
 
 ```text
-Next steps
-  1. Open .env.local, paste a value for: GROQ_API_KEY, SPEEQ_LLM_MODEL
-  2. Save it
-  3. Run npm run dev and open your app: the chat box is bottom-right
+? Paste your Groq API key (hidden, Enter to skip)  ****************
+Checking the key...
+Testing 12 models (the first 25 of 40). Each gets one tiny message.
+  ✓ llama-3.3-70b-versatile   310 ms
+  ✓ llama-3.1-8b-instant      180 ms
+  ✗ some-old-model            The model does not exist
+? Which model should speeq use?
+Saved GROQ_API_KEY, SPEEQ_LLM_MODEL in .env.local.
 ```
+
+What `connect` does, and what it does not:
+
+- The key is typed hidden and sent **only to the provider's own host** (for example `api.groq.com`), in a request header. It is never printed, logged or put in a URL, and provider error messages are scrubbed of it.
+- It asks the provider whether the key is accepted, lists the chat models, and sends each one a tiny message (a few tokens) to see which really work. Models that are not chat models (speech, embeddings, safety, image) are left out. OpenRouter tests only `:free` models, and for a custom OpenAI-compatible server it asks first because the test may use paid quota.
+- You pick from the models that answered, fastest first. The key and the model are written to `.env.local` only: never to `.env.example`, and never to the setup file. An existing value is replaced only if you say yes.
+- If your `speeq.config.ts` still uses another provider (for example Gemini when you chose Groq), it offers to switch it, and keeps a copy in `.speeq/backups`.
+- `speeq rollback` does not remove a key you saved. Delete the line yourself to remove it.
+- It needs a terminal. In CI or with `--json` it exits with a usage error and calls nothing.
+
+If you would rather not paste a key into the terminal, skip it and fill `.env.local` by hand.
 
 Skip any part with flags: `--no-ui`, `--no-env`. Choose without prompts with `--provider groq|gemini|openrouter|openai-compatible|mock`, `--voice browser|cloud|none`, and `--languages en-IN,te-IN,hi-IN`. Without a terminal the defaults are mock mode, browser voice and the chat box. `npx speeq rollback` undoes it: the layout is restored exactly, and an env file that you have already filled in is left alone.
 
-Model ids change often, so speeq never writes one: you set `SPEEQ_LLM_MODEL` yourself (for Groq, pick one from console.groq.com/docs/models).
+Model ids change often, so speeq never guesses one: `connect` lists the models that work with your key right now. Without it, set `SPEEQ_LLM_MODEL` yourself (for Groq, pick one from console.groq.com/docs/models).
 
 ## Commands
 
-| Command                           | What it does                                                                                  |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| `speeq init`                      | Scan, review, write files.                                                                    |
-| `speeq capabilities list`         | Show what was found and its status.                                                           |
-| `speeq capabilities enable <id>`  | Approve one thing. Add `--access read\|write` and `--auth public\|authenticated` when needed. |
-| `speeq capabilities disable <id>` | Turn one thing off.                                                                           |
-| `speeq upgrade`                   | Scan again after code changes and regenerate the files speeq owns.                            |
-| `speeq rollback`                  | Undo the last apply.                                                                          |
-| `speeq doctor`                    | Check your environment and files (static).                                                    |
-| `speeq verify`                    | Static checks plus a mock-model test of confirmations and permissions.                        |
+| Command                           | What it does                                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `speeq init`                      | Scan, review, write files.                                                                             |
+| `speeq connect`                   | Paste a model key (hidden): it is checked, working models are listed, and it is saved in `.env.local`. |
+| `speeq capabilities list`         | Show what was found and its status.                                                                    |
+| `speeq capabilities enable <id>`  | Approve one thing. Add `--access read\|write` and `--auth public\|authenticated` when needed.          |
+| `speeq capabilities disable <id>` | Turn one thing off.                                                                                    |
+| `speeq upgrade`                   | Scan again after code changes and regenerate the files speeq owns.                                     |
+| `speeq rollback`                  | Undo the last apply.                                                                                   |
+| `speeq doctor`                    | Check your environment and files (static).                                                             |
+| `speeq verify`                    | Static checks plus a mock-model test of confirmations and permissions.                                 |
 
 Useful options: `--json` (one JSON document, nothing else), `--dry-run` (write nothing), `--diff`, `--yes` or `--ci` (never ask questions), `--app <dir>`, `--provider mock|groq|gemini|openrouter|openai-compatible`, `--voice`, `--languages`, `--no-ui`, `--no-env`, `--install`.
 
 ## What gets written
 
-| File                                     | Who owns it | Rule                                                                         |
-| ---------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
-| `.speeq/manifest.json`                   | the scanner | Rewritten on every scan. Facts only: no source text, no data.                |
-| `.speeq/decisions.json`                  | you         | Changed only by your choices. Never regenerated.                             |
-| `.speeq/generated/tools.ts`, `routes.ts` | speeq       | First line `// speeq:generated sha256=...`. Overwritten only while unedited. |
-| `app/api/speeq/[[...speeq]]/route.ts`    | speeq       | Same marker. Uses `src/app` if your app uses `src/`.                         |
-| `speeq.config.ts`                        | you         | Created once, never overwritten.                                             |
-| Your layout and everything else          | you         | Never edited. `init` prints the snippet to paste.                            |
+| File                                     | Who owns it | Rule                                                                                  |
+| ---------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| `.speeq/manifest.json`                   | the scanner | Rewritten on every scan. Facts only: no source text, no data.                         |
+| `.speeq/decisions.json`                  | you         | Changed only by your choices. Never regenerated.                                      |
+| `.speeq/generated/tools.ts`, `routes.ts` | speeq       | First line `// speeq:generated sha256=...`. Overwritten only while unedited.          |
+| `app/api/speeq/[[...speeq]]/route.ts`    | speeq       | Same marker. Uses `src/app` if your app uses `src/`.                                  |
+| `speeq.config.ts`                        | you         | Created once. Only `connect` can change its provider, after asking, with a copy kept. |
+| Your layout and everything else          | you         | Never edited. `init` prints the snippet to paste.                                     |
 
 Add `.speeq/backups/` to `.gitignore`. If you edit a generated file, speeq refuses to overwrite it. Delete its first line to take the file over for good.
 

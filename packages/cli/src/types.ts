@@ -17,6 +17,8 @@ export interface Prompter {
     initial?: T[],
   ): Promise<T[]>;
   text(message: string, initial?: string): Promise<string>;
+  /** Asks for a secret. The terminal shows masks, never the characters. */
+  password(message: string): Promise<string>;
 }
 /** Everything outside the process the CLI needs. Injected so tests run without a terminal. */
 export interface CliEnv {
@@ -27,6 +29,8 @@ export interface CliEnv {
   /** True when both stdin and stdout are terminals. */
   isTTY: boolean;
   prompts?: Prompter;
+  /** Network calls to a provider (`speeq connect`). Defaults to the global `fetch`. */
+  fetch?: typeof fetch;
   /** Runs a package-manager command. Only called after an explicit approval. */
   exec?: (command: string, args: string[], cwd: string) => Promise<number>;
 }
