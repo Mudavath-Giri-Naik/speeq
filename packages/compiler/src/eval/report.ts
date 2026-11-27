@@ -47,4 +47,9 @@ async function run() {
   console.log(renderReport(scores));
   if (scores.some((s) => s.supported && !s.passed)) process.exitCode = 1;
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void run();
+if (
+  import.meta.url &&
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  void run();
