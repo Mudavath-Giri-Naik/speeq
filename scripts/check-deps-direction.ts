@@ -7,7 +7,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { type PackageRule, RULES } from "./deps-rules.js";
+import { type PackageRule, RULES, runtimePackageNames } from "./deps-rules.js";
 
 /** Minimal view of a package.json for this check. */
 export interface PackageManifest {
@@ -34,7 +34,6 @@ export function packageNameOf(specifier: string): string | null {
   return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : (parts[0] ?? null);
 }
 
-const scopedPackages = [...Object.keys(RULES), "@speeq/speech"];
 const packageRules = {
   ...RULES,
   "@speeq/speech": {
@@ -43,8 +42,8 @@ const packageRules = {
     externalDeps: [],
   },
   speeq: {
-    internalDeps: scopedPackages,
-    internalImports: scopedPackages,
+    internalDeps: runtimePackageNames,
+    internalImports: runtimePackageNames,
     externalDeps: ["zod", "react", "mongodb"],
   },
 };

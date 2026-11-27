@@ -4,6 +4,7 @@
   "files": {
     "includes": [
       "**",
+      "!!fixtures",
       "!**/dist",
       "!**/.next",
       "!**/.turbo",

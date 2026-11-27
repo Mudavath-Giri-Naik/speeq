@@ -73,6 +73,17 @@
         "types": "./dist/speech-http.d.cts",
         "default": "./dist/speech-http.cjs"
       }
+    },
+    "./manifest": {
+      "@speeq/source": "./src/manifest.ts",
+      "import": {
+        "types": "./dist/manifest.d.ts",
+        "default": "./dist/manifest.js"
+      },
+      "require": {
+        "types": "./dist/manifest.d.cts",
+        "default": "./dist/manifest.cjs"
+      }
     }
   },
   "publishConfig": {

@@ -1,0 +1,1 @@
+Symlink placeholder for checkouts without symlink privileges. Target would be outside the fixture. The fixture ignore file excludes this entry.

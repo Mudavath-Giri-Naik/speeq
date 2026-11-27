@@ -1,0 +1,14 @@
+{
+  "fixture": "hostile",
+  "supported": false,
+  "capabilities": [],
+  "unsupported": [
+    {
+      "code": "SQ0004",
+      "file": "large.txt"
+    }
+  ],
+  "forbidden": [
+    "route:/approve"
+  ]
+}

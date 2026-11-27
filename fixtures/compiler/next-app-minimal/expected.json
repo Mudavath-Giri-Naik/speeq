@@ -1,0 +1,23 @@
+{
+  "fixture": "next-app-minimal",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/subjects",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "app/subjects/page.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [],
+  "forbidden": [
+    "function:app/subjects/page.tsx#Page"
+  ]
+}

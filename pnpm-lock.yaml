@@ -554,6 +554,25 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
 
+  packages/compiler:
+    dependencies:
+      '@speeq/core':
+        specifier: workspace:*
+        version: link:../core
+      ignore:
+        specifier: 7.0.17
+        version: 7.0.17
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+    devDependencies:
+      '@speeq/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
+
   packages/core:
     devDependencies:
       '@speeq/tsconfig':
@@ -3350,6 +3369,10 @@ packages:
   human-id@4.2.2:
     resolution: {integrity: sha512-Z+8unD6em/MJwyrkWQ2M3wygRGI1+MztbutiNwk1DCuEPXOZRWGjtcMPZYP1exY9iNZMhd7ZOSMQSo9WYtiQRw==}
     hasBin: true
+
+  ignore@7.0.17:
+    resolution: {integrity: sha512-0c3zcBRlWmcKhcIQWckzkYncJRv5HHB8O32wO/FcWL8DDXWDJgiEF6SX9ThbTv5h/eZ+xJK+VvDjjQ+cQJhp3Q==}
+    engines: {node: '>= 4'}
 
   import-meta-resolve@4.2.0:
     resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
@@ -6634,6 +6657,8 @@ snapshots:
       - supports-color
 
   human-id@4.2.2: {}
+
+  ignore@7.0.17: {}
 
   import-meta-resolve@4.2.0: {}
 

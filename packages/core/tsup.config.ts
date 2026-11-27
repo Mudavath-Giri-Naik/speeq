@@ -2,6 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
+    manifest: "src/manifest.ts",
     "speech-http": "src/speech-http/index.ts",
     index: "src/index.ts",
     errors: "src/errors.ts",

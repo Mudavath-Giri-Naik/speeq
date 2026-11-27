@@ -30,7 +30,7 @@ describe("dependency direction", () => {
   });
 
   it("allows the umbrella to re-export all scoped packages", () => {
-    const names = Object.keys(RULES);
+    const names = Object.keys(RULES).filter((name) => name !== "@speeq/compiler");
     expect(
       checkPackage({
         dir: "x",
@@ -41,6 +41,24 @@ describe("dependency direction", () => {
         sources: names.map((name) => ({ file: "x.ts", code: `export * from "${name}";` })),
       }),
     ).toEqual([]);
+  });
+
+  it("keeps development tooling out of every runtime package", () => {
+    for (const name of [
+      ...Object.keys(RULES).filter((n) => n !== "@speeq/compiler"),
+      "@speeq/speech",
+      "speeq",
+    ]) {
+      for (const tool of ["@speeq/compiler", "@speeq/integrate", "@speeq/cli"]) {
+        expect(
+          checkPackage({
+            dir: "x",
+            manifest: { name, dependencies: { [tool]: "*" } },
+            sources: [{ file: "src/x.ts", code: `import "${tool}/subpath";` }],
+          }),
+        ).toHaveLength(2);
+      }
+    }
   });
 
   it("flags core depending on server", () => {

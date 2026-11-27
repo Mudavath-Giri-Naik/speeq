@@ -1,0 +1,23 @@
+{
+  "fixture": "next-pages-minimal",
+  "supported": true,
+  "capabilities": [
+    {
+      "id": "route:/",
+      "kind": "route",
+      "support": "proven",
+      "access": "read",
+      "evidence": [
+        {
+          "file": "pages/index.tsx",
+          "line": 1
+        }
+      ],
+      "executableWhenApproved": true
+    }
+  ],
+  "unsupported": [],
+  "forbidden": [
+    "function:pages/index.tsx#Page"
+  ]
+}

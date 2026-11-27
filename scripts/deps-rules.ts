@@ -16,6 +16,11 @@ export interface PackageRule {
 
 /** The rule table. Adding a package means adding a row here. */
 export const RULES: Readonly<Record<string, PackageRule>> = {
+  "@speeq/compiler": {
+    internalDeps: ["@speeq/core"],
+    internalImports: ["@speeq/core"],
+    externalDeps: ["typescript", "ignore"],
+  },
   "@speeq/core": { internalDeps: [], internalImports: [], externalDeps: ["zod"] },
   "@speeq/server": {
     internalDeps: ["@speeq/core"],
@@ -55,3 +60,11 @@ export const RULES: Readonly<Record<string, PackageRule>> = {
     externalDeps: ["mongodb"],
   },
 };
+
+/** Runtime packages the umbrella may depend on and re-export. */
+export const runtimePackageNames = [
+  ...Object.keys(RULES).filter(
+    (name) => !["@speeq/compiler", "@speeq/integrate", "@speeq/cli"].includes(name),
+  ),
+  "@speeq/speech",
+];
