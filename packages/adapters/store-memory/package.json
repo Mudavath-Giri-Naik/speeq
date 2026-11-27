@@ -1,6 +1,6 @@
 {
   "name": "@speeq/store-memory",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "In-memory ConversationStore for speeq (development and tests only).",
   "license": "MIT",
   "type": "module",
