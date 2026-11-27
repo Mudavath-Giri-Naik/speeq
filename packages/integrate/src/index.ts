@@ -10,7 +10,13 @@ export {
   type RollbackResult,
   rollback,
 } from "./apply.js";
-export { configProviderState, keyVariable, switchProvider } from "./config-switch.js";
+export {
+  configProviderState,
+  configVoiceState,
+  keyVariable,
+  switchProvider,
+  switchVoice,
+} from "./config-switch.js";
 export {
   decisionsPath,
   IntegrateError,
@@ -53,6 +59,18 @@ export {
   type VoiceEntry,
   voice,
 } from "./registry.js";
+export {
+  applyRemoval,
+  envNamesIn,
+  planRemoval,
+  type RemovableFile,
+  type RemovalPlan,
+  type RemovalSelection,
+  SHARED_NAMES,
+  SPEEQ_ONLY_NAMES,
+  stripEnvNames,
+  unspliceLayout,
+} from "./remove.js";
 export type { FormSpec } from "./render.js";
 export { isSecretName, renderZod } from "./schema.js";
 export { readSetup, type Setup, setupOf, setupPath } from "./setup.js";

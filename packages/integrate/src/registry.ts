@@ -17,7 +17,7 @@ export interface ProviderEntry {
 }
 /** How the assistant listens and speaks. Data only. */
 export interface VoiceEntry {
-  id: "none" | "browser" | "cloud";
+  id: "none" | "browser" | "cloud" | "sarvam";
   label: string;
   /** Module specifier and names the generated config imports. */
   imports: { from: string; names: string[] }[];
@@ -152,6 +152,29 @@ export const VOICES: readonly VoiceEntry[] = [
       { name: "GEMINI_STT_MODEL", note: "Gemini speech-to-text model id" },
     ],
     note: "Better recognition for Indian languages. Needs keys.",
+  },
+  {
+    id: "sarvam",
+    label: "Sarvam AI voice (paid credits, best for Indian languages)",
+    imports: [{ from: "speeq/speech", names: ["createSarvamStt", "createSarvamTts"] }],
+    config: [
+      "  // Sarvam speech uses your paid Sarvam credits. Falls back to browser voice without a key.",
+      "  speech: process.env.SARVAM_API_KEY",
+      "    ? {",
+      "        stt: [createSarvamStt({ apiKey: process.env.SARVAM_API_KEY })],",
+      '        tts: [createSarvamTts({ apiKey: process.env.SARVAM_API_KEY, defaultVoice: "aditya" })],',
+      '        routing: { stt: { default: ["sarvam-stt"] }, tts: { default: ["sarvam-tts"] } },',
+      "        policy: { allowRemote: true, allowPaid: true },",
+      "      }",
+      "    : undefined,",
+    ],
+    env: [
+      {
+        name: "SARVAM_API_KEY",
+        note: "Sarvam AI key (speech to text and text to speech; uses paid credits)",
+      },
+    ],
+    note: "Telugu, Hindi and 9 more languages. New accounts get free credits, then it is paid.",
   },
   {
     id: "none",

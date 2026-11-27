@@ -4,7 +4,8 @@ import { load } from "../load.js";
 import { reviewPending } from "../review.js";
 import { installDependencies, reviewExit, showManual, showPlan, sync } from "../sync.js";
 import { CliExit, type Ctx, EXIT, type Loaded, planSummary } from "../types.js";
-import { type ConnectResult, runConnect } from "./connect.js";
+import { type Choices, runWizard } from "../wizard.js";
+import { applyChoices, initialChoices, setupCommand } from "./setup.js";
 
 function projectDoc(l: Loaded) {
   const p = l.manifest.project;
@@ -68,41 +69,38 @@ async function chooseSetup(ctx: Ctx, loaded: Loaded) {
   o.remember = true;
 }
 /** What to do next, in plain words. */
-function showNextSteps(
-  ctx: Ctx,
-  loaded: Loaded,
-  plan: IntegrationPlan,
-  connected: ConnectResult | undefined,
-) {
+function showNextSteps(ctx: Ctx, loaded: Loaded, plan: IntegrationPlan, saved: string[]) {
   const o = loaded.options;
   const needsKey = PROVIDERS.find((p) => p.id === (o.providerId ?? "mock"))?.needsKey === true;
   const names = plan.env.map((e) => e.name).filter((n) => n !== "SPEEQ_SECRET");
   const pm = loaded.manifest.project.packageManager;
   const dev = pm === "yarn" ? "yarn dev" : `${pm === "unknown" ? "npm" : pm} run dev`;
   const lines = ["", pc.bold("Next steps")];
-  if (connected?.saved)
+  const keySaved = saved.some((n) => n.endsWith("_API_KEY"));
+  if (keySaved)
     lines.push(
-      `  1. Your key${connected.model ? ` and model (${connected.model})` : ""} are saved in .env.local`,
+      `  1. Your keys and models are saved in .env.local${saved.includes("SPEEQ_LLM_MODEL") ? "" : " (set SPEEQ_LLM_MODEL there too)"}`,
       `  2. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
     );
   else if (needsKey && o.env)
     lines.push(`  1. Open .env.local, paste a value for: ${names.join(", ")}`, "  2. Save it");
   else if (needsKey) lines.push(`  1. Set these environment variables: ${names.join(", ")}`);
   else lines.push("  1. (Mock mode needs no key: the assistant gives canned replies.)");
-  if (!connected?.saved)
+  if (!keySaved)
     lines.push(
       `  ${needsKey ? 3 : 2}. Run ${pc.cyan(dev)} and open your app${o.ui ? ": the chat box is bottom-right" : ""}`,
     );
-  if (needsKey && !connected?.saved)
-    lines.push("  Or let speeq check the key and pick a working model for you: npx speeq connect");
+  if (needsKey && !keySaved)
+    lines.push("  Or let speeq check the key and pick a working model for you: npx speeq setup");
   if (!needsKey)
     lines.push(
-      "  To connect a real model later: speeq configure (shows the config and variable names to use).",
+      "  To connect a real model, voice or Sarvam later: npx speeq setup (it checks your keys for you).",
     );
   ctx.say(lines.join("\n"));
 }
 /** `speeq init`: scan, review, integrate. */
 export async function init(ctx: Ctx): Promise<number> {
+  if (ctx.interactive) ctx.say(pc.dim("Scanning your app..."));
   const loaded = await load(ctx);
   ctx.say(
     pc.bold(
@@ -111,7 +109,26 @@ export async function init(ctx: Ctx): Promise<number> {
   );
   const prompts = ctx.env.prompts;
   const first = !loaded.options.remember;
-  if (first) await chooseSetup(ctx, loaded);
+  let choices: Choices | undefined;
+  const flagged = Boolean(ctx.flags.provider || ctx.flags.voice || ctx.flags.languages);
+  if (first && ctx.interactive && prompts && !flagged) {
+    choices = await runWizard(
+      ctx,
+      { fs: loaded.fs, prefix: loaded.prefix },
+      initialChoices(undefined),
+      "first",
+    );
+    if (!choices) throw new CliExit(EXIT.failure, "Cancelled.", "cancelled");
+    const o = loaded.options;
+    o.providerId = choices.provider;
+    o.voice = choices.voice;
+    o.languages = choices.languages;
+    o.ui = choices.ui;
+    o.env = !ctx.flags.noEnv;
+    o.remember = true;
+  } else if (first) await chooseSetup(ctx, loaded);
+  else if (ctx.interactive)
+    ctx.say(pc.dim("Already set up. Change the model, voice or keys any time: npx speeq setup"));
   if (ctx.interactive && prompts) {
     loaded.options.featureIds = await prompts.multiselect(
       "Features",
@@ -130,27 +147,16 @@ export async function init(ctx: Ctx): Promise<number> {
         : false);
     if (wants) installed = await installDependencies(ctx, loaded, plan);
   }
-  let connected: ConnectResult | undefined;
-  const providerId = loaded.options.providerId ?? "mock";
-  if (
-    !ctx.flags.dryRun &&
-    ctx.interactive &&
-    prompts &&
-    loaded.options.env &&
-    PROVIDERS.find((p) => p.id === providerId)?.needsKey
-  ) {
-    const label = PROVIDERS.find((p) => p.id === providerId)?.label.split(" (")[0];
-    if (
-      await prompts.confirm(
-        `Paste your ${label} key now? speeq checks it, shows which models work, and saves it in .env.local`,
-        true,
-      )
-    )
-      connected = await runConnect(ctx, { fs: loaded.fs, prefix: loaded.prefix, providerId });
-  }
+  let saved: string[] = [];
+  if (choices && !ctx.flags.dryRun && loaded.options.env)
+    saved = (
+      await applyChoices(ctx, { fs: loaded.fs, prefix: loaded.prefix }, choices, {
+        regenerate: false,
+      })
+    ).names;
   if (!ctx.flags.json) {
     showManual(ctx, plan);
-    showNextSteps(ctx, loaded, plan, connected);
+    showNextSteps(ctx, loaded, plan, saved);
   }
   return ctx.finish(reviewExit(plan), {
     project: projectDoc(loaded),
@@ -204,7 +210,7 @@ export async function configure(ctx: Ctx): Promise<number> {
   for (;;) {
     const choice = await prompts.select("speeq control center", [
       { value: "review", label: "Review capabilities" },
-      { value: "provider", label: "Language model (add a key, check models)" },
+      { value: "provider", label: "Model, voice, languages and keys (step by step)" },
       { value: "status", label: "Show status and pending changes" },
       { value: "apply", label: "Apply changes" },
       { value: "exit", label: "Exit" },
@@ -215,17 +221,7 @@ export async function configure(ctx: Ctx): Promise<number> {
       const plan = (await sync({ ...ctx, flags: { ...ctx.flags, dryRun: true } }, loaded)).plan;
       showManual(ctx, plan);
     } else if (choice === "provider") {
-      const id = await prompts.select(
-        "Provider",
-        PROVIDERS.map((p) => ({ value: p.id, label: p.label, hint: p.note })),
-      );
-      const p = PROVIDERS.find((x) => x.id === id);
-      if (p?.needsKey)
-        await runConnect(ctx, { fs: loaded.fs, prefix: loaded.prefix, providerId: p.id });
-      else if (p)
-        ctx.say(
-          `speeq.config.ts is yours, so speeq does not rewrite it. Use:\n  llm: ${p.expression}\nEnvironment: ${p.env.map((e) => e.name).join(", ") || "none"}`,
-        );
+      await setupCommand(ctx);
     } else if (choice === "apply") {
       const { plan } = await sync(ctx, loaded);
       showPlan(ctx, plan);

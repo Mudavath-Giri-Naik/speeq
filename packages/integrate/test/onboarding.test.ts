@@ -129,7 +129,7 @@ describe("generated chat box", () => {
       });
       expect(syntax(text)).toBe(0);
       expect(text).toContain(
-        'const VOICE: "none" | "browser" | "cloud" = ' + JSON.stringify(voice),
+        'const VOICE: "none" | "browser" | "cloud" | "sarvam" = ' + JSON.stringify(voice),
       );
       expect(text).not.toContain("alert(1); //\n");
       expect(text).not.toMatch(/__[A-Z_]+__/);

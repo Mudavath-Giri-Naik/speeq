@@ -5,7 +5,7 @@ import type { PlanOptions } from "./plan.js";
 export interface Setup {
   setupVersion: 1;
   provider: string;
-  voice: "none" | "browser" | "cloud";
+  voice: "none" | "browser" | "cloud" | "sarvam";
   languages: string[];
   ui: boolean;
   env: boolean;
@@ -21,7 +21,7 @@ export async function readSetup(fs: ProjectFs, prefix: string): Promise<Setup | 
     const text = await fs.read(setupPath(prefix));
     const v = text === undefined ? undefined : (JSON.parse(text) as Partial<Setup>);
     if (!v || v.setupVersion !== 1) return undefined;
-    const voices = ["none", "browser", "cloud"];
+    const voices = ["none", "browser", "cloud", "sarvam"];
     if (typeof v.provider !== "string" || !voices.includes(String(v.voice))) return undefined;
     if (!Array.isArray(v.languages) || !v.languages.every((l) => typeof l === "string"))
       return undefined;

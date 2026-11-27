@@ -297,7 +297,7 @@ describe("interactive and CI mode", () => {
       "browser",
       ["en-IN"],
       true,
-      true,
+      "apply",
       ["audit"],
       [ROUTE],
       true,
@@ -435,36 +435,88 @@ describe("onboarding: provider, voice, env names and the chat box", () => {
     expect((await a.cli(["init", "--provider", "nope"])).code).toBe(2);
     expect((await a.cli(["init", "--voice", "nope"])).code).toBe(2);
   });
-  it("asks for provider, voice, languages, chat box and env names in a terminal", async () => {
+  it("walks through model, voice, languages and chat box in a terminal, then a review screen", async () => {
     const a = await withLayout();
     const prompts = scripted([
-      "gemini",
-      "cloud",
+      "gemini", // language model
+      "__skip", // key: add it later
+      "sarvam", // voice
+      "__skip", // sarvam key: later
       ["en-IN", "hi-IN"],
+      true, // chat box
+      "apply", // review
+      [], // features
+      [], // capabilities
+      true, // apply the plan
+      false, // install dependencies
+    ]);
+    const r = await a.cli(["init"], { isTTY: true, prompts });
+    expect([0, 3]).toContain(r.code); // 3: capabilities still wait for review
+    expect(prompts.asked.slice(0, 7)).toEqual([
+      "Which language model do you want to use?",
+      "Your Google Gemini key",
+      "How should people talk to the assistant?",
+      "Your Sarvam key",
+      "Which languages should people speak?",
+      "Add the chat box to your site's layout?",
+      "What next?",
+    ]);
+    const env = await a.read(".env.local");
+    for (const name of ["GEMINI_API_KEY", "SARVAM_API_KEY", "SPEEQ_LLM_MODEL"])
+      expect(env).toContain(`${name}=\n`);
+    expect(await a.read("speeq.config.ts")).toContain("createSarvamStt");
+    expect(JSON.parse(await a.read(".speeq/setup.json"))).toMatchObject({
+      provider: "gemini",
+      voice: "sarvam",
+      languages: ["en-IN", "hi-IN"],
+    });
+    expect(r.stdout).toContain("Next steps");
+  });
+  it("Back goes to the previous step and the choice can be changed", async () => {
+    const a = await withLayout();
+    const prompts = scripted([
+      "groq",
+      "__skip",
+      "__back", // voice: go back
+      "mock", // model again
+      "browser",
+      ["en-IN"],
       true,
-      true,
+      "apply",
       [],
       [],
       true,
       false,
-      false, // not now: paste the key later
     ]);
     const r = await a.cli(["init"], { isTTY: true, prompts });
-    expect([0, 3]).toContain(r.code); // 3: capabilities still wait for review
-    expect(prompts.asked.slice(0, 5)).toEqual([
-      "Language model",
-      "Voice",
-      "Languages",
-      "Add the chat box to your layout?",
-      "Write the needed variable names into .env.local?",
+    expect([0, 3]).toContain(r.code);
+    expect(prompts.asked.slice(0, 4)).toEqual([
+      "Which language model do you want to use?",
+      "Your Groq key",
+      "How should people talk to the assistant?",
+      "Which language model do you want to use?",
     ]);
-    const env = await a.read(".env.local");
-    for (const name of ["GEMINI_API_KEY", "GROQ_STT_MODEL", "GEMINI_STT_MODEL"])
-      expect(env).toContain(`${name}=\n`);
-    expect(r.stdout).toContain("Next steps");
-    expect(r.stdout).toContain(".env.local");
+    expect(await a.read("speeq.config.ts")).toContain("createMockLLMProvider");
   });
-  it("offers to paste the key at the end of init, checks it, and saves the key and model", async () => {
+  it("the review screen can change one part before applying", async () => {
+    const a = await withLayout();
+    const prompts = scripted([
+      "mock",
+      "browser",
+      ["en-IN"],
+      true,
+      "languages", // review: change languages
+      ["en-IN", "te-IN"],
+      "apply",
+      [],
+      [],
+      true,
+      false,
+    ]);
+    await a.cli(["init"], { isTTY: true, prompts });
+    expect(JSON.parse(await a.read(".speeq/setup.json")).languages).toEqual(["en-IN", "te-IN"]);
+  });
+  it("checks a pasted key at once, lists working models, and saves the key and model", async () => {
     const a = await withLayout();
     const key = "gsk_INITFLOWKEY1234567890";
     const fetchStub = (async (url: string | URL | Request, init?: RequestInit) => {
@@ -478,17 +530,17 @@ describe("onboarding: provider, voice, env names and the chat box", () => {
     }) as unknown as typeof fetch;
     const prompts = scripted([
       "groq",
+      "paste",
+      key,
+      "model-b",
       "browser",
       ["en-IN"],
       true,
-      true,
+      "apply",
       [],
       [],
       true,
       false,
-      true, // paste the key now
-      key,
-      "model-b",
     ]);
     const r = await a.cli(["init"], { isTTY: true, prompts, fetch: fetchStub });
     expect([0, 3]).toContain(r.code);
@@ -496,7 +548,7 @@ describe("onboarding: provider, voice, env names and the chat box", () => {
     expect(env).toContain(`GROQ_API_KEY=${key}`);
     expect(env).toContain("SPEEQ_LLM_MODEL=model-b");
     expect(r.stdout + r.stderr).not.toContain(key);
-    expect(r.stdout).toContain("are saved in .env.local");
+    expect(r.stdout).toContain("Your keys and models are saved in .env.local");
     const example = await a.read(".env.example");
     expect(example).not.toContain(key);
     expect(example).toContain("GROQ_API_KEY=\n");

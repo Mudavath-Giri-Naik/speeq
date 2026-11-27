@@ -1,4 +1,4 @@
-# ADR-0021: Key capture in the terminal (`speeq connect`)
+# ADR-0021: Key capture in the terminal (`speeq setup`)
 
 Status: Accepted
 
@@ -45,3 +45,25 @@ Rules, all enforced by tests:
 - The "speeq never touches keys" statement in the docs is now "unless you paste a key".
 - `integrate` stays pure (the env and config rewriting are plain functions); all network code is in the
   CLI, behind an injectable `fetch`, so tests run with no network.
+
+## Amendment: the setup wizard, Sarvam, and removal
+
+- `speeq connect` became `speeq setup` (`connect` stays as an alias). `init` runs the same wizard: language
+  model, voice, languages, chat box, then a review screen where any part can be changed. Each choice has
+  Back. A key is checked the moment it is given, then the next step starts.
+- **Reading a saved key.** If the variable is already in `.env.local` or `.env`, the wizard offers to use it.
+  It reads the value in memory only, to check it; it never prints it and never rewrites it. Characters
+  count is the only fact shown.
+- **Sarvam** (paid) is a voice choice, covering speech-to-text and text-to-speech. Its key is checked
+  without credits (a bad key is refused before the request is read; a good key with an empty text gets a
+  400). The two-letter spoken test is optional and says it uses a few characters of credit. The
+  generated config marks it `allowPaid` only because the developer chose it.
+- **Cloud speech** tests Groq Whisper and Gemini models with half a second of silence and saves the fastest
+  working model id for each, so the developer never has to guess `GROQ_STT_MODEL` or `GEMINI_STT_MODEL`.
+- **Statuses.** A model is `working`, `busy` (overloaded or slow: may work later), `limited` (rate limit or
+  quota) or `failed` (not available to this key).
+- **`speeq remove`** deletes only what speeq added: generated files that still carry the marker and match
+  their hash, the layout import and element, the `.speeq` folder, speeq's own names in `.env.local` and
+  `.env.example`, and `speeq.config.ts` when it is unchanged. Edited or taken-over files and provider keys
+  that the app may use are kept unless chosen. The package is uninstalled only after a yes in a terminal.
+  `speeq.config.ts` changes made by `setup` keep a copy in `.speeq/backups`.

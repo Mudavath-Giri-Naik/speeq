@@ -165,7 +165,7 @@ describe("registry", () => {
     for (const name of cloud?.env.map((e) => e.name) ?? [])
       expect(text).toContain(`process.env.${name}`);
     expect(text).toContain(": undefined");
-    expect(VOICES.map((v) => v.id)).toEqual(["browser", "cloud", "none"]);
+    expect(VOICES.map((v) => v.id)).toEqual(["browser", "cloud", "sarvam", "none"]);
   });
   it("offers the UI bridge as an opt-in feature", () => {
     const entry = FEATURES.find((f) => f.id === "ui-bridge");

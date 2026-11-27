@@ -8,9 +8,9 @@ export type ProbeProvider = "groq" | "gemini" | "openrouter" | "openai-compatibl
 type Fetch = typeof fetch;
 
 /** The most models tested in one run. Each test is one tiny message. */
-export const MAX_MODELS = 25;
-const TIMEOUT_MS = 15_000;
-const CONCURRENCY = 4;
+export const MAX_MODELS = 24;
+const TIMEOUT_MS = 12_000;
+const CONCURRENCY = 6;
 const BASES: Record<Exclude<ProbeProvider, "openai-compatible">, string> = {
   groq: "https://api.groq.com/openai/v1",
   openrouter: "https://openrouter.ai/api/v1",
@@ -21,12 +21,15 @@ const NOT_CHAT =
   /whisper|tts|speech|transcribe|embed|guard|moderat|image|imagen|veo|live|audio|native|aqa|robotics|computer-use|orpheus|rerank|safeguard|lyria|nano-banana/i;
 
 export type KeyCheck =
-  | { ok: true; models: string[]; total: number }
+  | { ok: true; models: string[]; total: number; stt: string[] }
   | { ok: false; kind: "rejected" | "network" | "unexpected"; message: string };
 export interface ModelResult {
   model: string;
-  /** `working`: answered. `limited`: the key is fine but the plan's rate limit answered. `failed`: not usable. */
-  status: "working" | "limited" | "failed";
+  /**
+   * `working`: answered. `busy`: the provider was overloaded or slow, so it may work later. `limited`: the
+   * key is fine but a rate limit or quota answered. `failed`: not usable with this key.
+   */
+  status: "working" | "busy" | "limited" | "failed";
   ms: number;
   reason?: string;
 }
@@ -78,11 +81,24 @@ async function errorText(res: Response, key: string): Promise<string> {
   }
   return `HTTP ${res.status}`;
 }
+/** Turn a failed model response into a status. Overload is `busy` (try later), quotas are `limited`. */
+async function classify(res: Response, key: string): Promise<Omit<ModelResult, "model" | "ms">> {
+  if (res.ok) return { status: "working" };
+  if (res.status === 429) return { status: "limited", reason: "rate limit or quota reached" };
+  const reason = await errorText(res, key);
+  if (
+    res.status === 503 ||
+    res.status === 500 ||
+    /high demand|overload|try again later|unavailable/i.test(reason)
+  )
+    return { status: "busy", reason: "busy right now, try again later" };
+  return { status: "failed", reason };
+}
 /** Newest-looking first: stable names before previews, then higher ids first. */
 const order = (a: string, b: string) => {
-  const pa = /preview|exp/i.test(a) ? 1 : 0;
-  const pb = /preview|exp/i.test(b) ? 1 : 0;
-  return pa - pb || b.localeCompare(a);
+  const rank = (id: string) =>
+    (/preview|exp/i.test(id) ? 2 : 0) + (/flash|instant|fast/i.test(id) ? 0 : 1);
+  return rank(a) - rank(b) || b.localeCompare(a);
 };
 
 /** Ask the provider whether the key is accepted and which chat models it lists. Sends no message. */
@@ -135,7 +151,8 @@ export async function checkKey(input: ProbeInput): Promise<KeyCheck> {
         .map((m) => String(m.id ?? ""));
     }
     const chat = [...new Set(ids.filter((id) => id && !NOT_CHAT.test(id)))].sort(order);
-    return { ok: true, models: chat.slice(0, MAX_MODELS), total: chat.length };
+    const stt = input.provider === "groq" ? ids.filter((id) => /whisper/i.test(id)) : [];
+    return { ok: true, models: chat.slice(0, MAX_MODELS), total: chat.length, stt };
   } catch (e) {
     const aborted = e instanceof Error && e.name === "AbortError";
     return {
@@ -176,15 +193,12 @@ export async function testModel(input: ProbeInput, model: string): Promise<Model
       body: JSON.stringify(body),
     });
     if (res.ok) return done({ status: "working" });
-    if (res.status === 429)
-      return done({ status: "limited", reason: "rate limit reached (the key works)" });
-    return done({ status: "failed", reason: await errorText(res, input.key) });
+    return done(await classify(res, input.key));
   } catch (e) {
     const aborted = e instanceof Error && e.name === "AbortError";
-    return done({
-      status: "failed",
-      reason: aborted ? `no answer in ${TIMEOUT_MS / 1000}s` : "network error",
-    });
+    return aborted
+      ? done({ status: "busy", reason: `slow: no answer in ${TIMEOUT_MS / 1000}s` })
+      : done({ status: "failed", reason: "network error" });
   }
 }
 
@@ -208,4 +222,139 @@ export async function testModels(
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, models.length) }, worker));
   return out;
+}
+
+/** The outcome of a key check for a service that has no model list (Sarvam). */
+export type ServiceCheck =
+  | { ok: true }
+  | { ok: false; kind: "rejected" | "network" | "unexpected"; message: string };
+export interface VoiceTest {
+  ok: boolean;
+  ms: number;
+  reason?: string;
+}
+const SARVAM = "https://api.sarvam.ai";
+
+/**
+ * Check a Sarvam key without spending credits: Sarvam rejects a bad key (403) before it looks at the
+ * request, and a good key with a deliberately empty text gets a plain 400 and no charge.
+ */
+export async function checkSarvam(key: string, f: Fetch = fetch): Promise<ServiceCheck> {
+  try {
+    const res = await call(f, `${SARVAM}/text-to-speech`, {
+      method: "POST",
+      headers: { "api-subscription-key": key, "content-type": "application/json" },
+      body: JSON.stringify({ text: "", target_language_code: "en-IN" }),
+    });
+    if (res.status === 403 || res.status === 401)
+      return { ok: false, kind: "rejected", message: "Sarvam rejected this key." };
+    if (res.status === 400 || res.status === 422) return { ok: true };
+    return { ok: false, kind: "unexpected", message: await errorText(res, key) };
+  } catch (e) {
+    const aborted = e instanceof Error && e.name === "AbortError";
+    return {
+      ok: false,
+      kind: "network",
+      message: aborted ? `No answer within ${TIMEOUT_MS / 1000}s.` : "Could not reach Sarvam.",
+    };
+  }
+}
+/** Speak two characters with Sarvam (a few characters of the developer's credits) to prove voice works. */
+export async function testSarvamVoice(key: string, f: Fetch = fetch): Promise<VoiceTest> {
+  const started = Date.now();
+  try {
+    const res = await call(f, `${SARVAM}/text-to-speech`, {
+      method: "POST",
+      headers: { "api-subscription-key": key, "content-type": "application/json" },
+      body: JSON.stringify({
+        text: "ok",
+        target_language_code: "en-IN",
+        model: "bulbul:v3",
+        speaker: "aditya",
+        output_audio_codec: "wav",
+      }),
+    });
+    if (!res.ok) return { ok: false, ms: Date.now() - started, reason: await errorText(res, key) };
+    const body = (await res.json()) as { audios?: unknown[] };
+    const audio = typeof body.audios?.[0] === "string" ? body.audios[0] : "";
+    return audio
+      ? { ok: true, ms: Date.now() - started }
+      : { ok: false, ms: Date.now() - started, reason: "no audio came back" };
+  } catch {
+    return { ok: false, ms: Date.now() - started, reason: "no answer from Sarvam" };
+  }
+}
+
+/** Half a second of silence as a 16 kHz mono WAV, the smallest honest input for a speech-to-text test. */
+export function silentWav(): Uint8Array {
+  const samples = 8000;
+  const bytes = new Uint8Array(44 + samples * 2);
+  const view = new DataView(bytes.buffer);
+  const ascii = (at: number, text: string) => {
+    for (let i = 0; i < text.length; i++) bytes[at + i] = text.charCodeAt(i);
+  };
+  ascii(0, "RIFF");
+  view.setUint32(4, 36 + samples * 2, true);
+  ascii(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, 16000, true);
+  view.setUint32(28, 32000, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  ascii(36, "data");
+  view.setUint32(40, samples * 2, true);
+  return bytes;
+}
+
+/** Send silence to one speech-to-text model. Groq uses Whisper models; Gemini models accept audio too. */
+export async function testStt(input: ProbeInput, model: string): Promise<ModelResult> {
+  const f = input.fetch ?? fetch;
+  const base = baseFor(input.provider, input.baseUrl);
+  const started = Date.now();
+  const done = (r: Omit<ModelResult, "model" | "ms">): ModelResult => ({
+    model,
+    ms: Date.now() - started,
+    ...r,
+  });
+  if (!base || (input.provider !== "groq" && input.provider !== "gemini"))
+    return done({ status: "failed", reason: "not a speech provider" });
+  try {
+    let res: Response;
+    if (input.provider === "groq") {
+      const form = new FormData();
+      form.set("file", new Blob([silentWav() as BlobPart], { type: "audio/wav" }), "silence.wav");
+      form.set("model", model);
+      res = await call(f, `${base}/audio/transcriptions`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${input.key}` },
+        body: form,
+      });
+    } else {
+      const data = btoa(String.fromCharCode(...silentWav()));
+      res = await call(f, `${base}/models/${encodeURIComponent(model)}:generateContent`, {
+        method: "POST",
+        headers: headers("gemini", input.key),
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: "Transcribe this audio." },
+                { inlineData: { mimeType: "audio/wav", data } },
+              ],
+            },
+          ],
+          generationConfig: { maxOutputTokens: 16 },
+        }),
+      });
+    }
+    return done(await classify(res, input.key));
+  } catch (e) {
+    const aborted = e instanceof Error && e.name === "AbortError";
+    return aborted
+      ? done({ status: "busy", reason: `slow: no answer in ${TIMEOUT_MS / 1000}s` })
+      : done({ status: "failed", reason: "network error" });
+  }
 }

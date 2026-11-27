@@ -43,60 +43,98 @@ Then it writes:
 - `.env.local` and `.env.example` with the **names** of the variables you need and empty values. Unless you paste a key (below), speeq writes no key and reads no value. The one value it generates is `SPEEQ_SECRET` (random, made on your machine). `.gitignore` gets `.env*.local` if it does not already cover it.
 - `.speeq/setup.json`, so `speeq upgrade` regenerates the same files.
 
-At the end of `init` it offers to take your key right there, or you can do it any time with `npx speeq connect`:
+`init` walks you through four steps, one screen each, with **← Back** on every choice:
+
+1. **Language model:** Groq, Google Gemini, OpenRouter, any OpenAI-compatible server, or mock.
+2. **Voice:** browser voice (free), cloud speech-to-text (Groq Whisper and Gemini free tiers), **Sarvam AI** (paid credits, best for Telugu, Hindi and more, and it speaks the replies), or text only.
+3. **Languages.**
+4. **Chat box** in your layout.
+
+Then a review screen shows your choices. Pick any line to change it, or apply. Nothing is written until you apply.
+
+As soon as you choose a provider that needs a key, speeq asks for it and **checks it at once**:
 
 ```text
-? Paste your Groq API key (hidden, Enter to skip)  ****************
-Checking the key...
-Testing 12 models (the first 25 of 40). Each gets one tiny message.
-  ✓ llama-3.3-70b-versatile   310 ms
-  ✓ llama-3.1-8b-instant      180 ms
-  ✗ some-old-model            The model does not exist
-? Which model should speeq use?
-Saved GROQ_API_KEY, SPEEQ_LLM_MODEL in .env.local.
+◇  Step 1 of 4 · Language model
+●  Your key goes only to api.groq.com. It is never printed and is saved only in .env.local.
+◆  Your Groq key
+│  ● Use the key already in .env   (GROQ_API_KEY, 56 characters)
+│  ○ Paste a key now               (hidden as you type)
+│  ○ Skip, I will add it later
+│  ○ ← Back
+◇  Groq key accepted · 4 chat models available
+◇  Models: 4 working · 0 busy or limited · 0 unavailable
+◇  Models ────────────────────────────────────╮
+│  ✓ qwen/qwen3.8-27b   119 ms  ▰▰▰▰▰▰▰▰      │
+│  ✓ allam-2-7b         186 ms  ▰▰▰▰▰▰▰▰      │
+│  ! some-model         busy right now         │
+│  ✗ old-model          no longer available    │
+├──────────────────────────────────────────────╯
+◆  Which model should speeq use?
 ```
 
-What `connect` does, and what it does not:
+What it checks for each service:
 
-- The key is typed hidden and sent **only to the provider's own host** (for example `api.groq.com`), in a request header. It is never printed, logged or put in a URL, and provider error messages are scrubbed of it.
-- It asks the provider whether the key is accepted, lists the chat models, and sends each one a tiny message (a few tokens) to see which really work. Models that are not chat models (speech, embeddings, safety, image) are left out. OpenRouter tests only `:free` models, and for a custom OpenAI-compatible server it asks first because the test may use paid quota.
-- You pick from the models that answered, fastest first. The key and the model are written to `.env.local` only: never to `.env.example`, and never to the setup file. An existing value is replaced only if you say yes.
-- If your `speeq.config.ts` still uses another provider (for example Gemini when you chose Groq), it offers to switch it, and keeps a copy in `.speeq/backups`.
-- `speeq rollback` does not remove a key you saved. Delete the line yourself to remove it.
-- It needs a terminal. In CI or with `--json` it exits with a usage error and calls nothing.
+- **Groq, Gemini, OpenRouter, other servers:** the key is accepted, then each chat model gets one tiny message (a few tokens, at most 24 models) so you see which ones really work: ✓ working, `!` busy or rate limited (may work later), ✗ not available for your key. Speech, embedding, safety and image models are left out. OpenRouter tests only `:free` models, and a custom server asks first because the test may use paid quota.
+- **Cloud speech-to-text:** both keys, then Groq's Whisper models and Gemini models are tested with half a second of silence, and the fastest working model for each is saved (`GROQ_STT_MODEL`, `GEMINI_STT_MODEL`).
+- **Sarvam:** the key is checked without using credits, then you can have it speak a two-letter test (a few characters of credit). Sarvam is paid after the free credits, and speeq only uses it because you chose it.
 
-If you would rather not paste a key into the terminal, skip it and fill `.env.local` by hand.
+The key goes **only to the provider's own host** (for example `api.groq.com`), in a request header. It is never printed, logged or put in a URL, and provider messages are scrubbed of it. It is saved only in `.env.local`, never in `.env.example` or `.speeq/setup.json`. If a key is already in `.env.local` or `.env`, speeq offers to use it and only reads it in memory to check it. If your `speeq.config.ts` still uses another provider or voice, speeq offers to switch it and keeps a copy in `.speeq/backups`.
 
-Skip any part with flags: `--no-ui`, `--no-env`. Choose without prompts with `--provider groq|gemini|openrouter|openai-compatible|mock`, `--voice browser|cloud|none`, and `--languages en-IN,te-IN,hi-IN`. Without a terminal the defaults are mock mode, browser voice and the chat box. `npx speeq rollback` undoes it: the layout is restored exactly, and an env file that you have already filled in is left alone.
+If you would rather not paste a key into the terminal, choose **Skip** and fill `.env.local` by hand.
+
+## Change anything later: `speeq setup`
+
+`npx speeq setup` (alias `connect`) opens the same review screen on your current setup. Change the model, the voice, the languages or the chat box, paste a new key, or switch from Groq to Gemini; each key is checked as you give it. When you apply, it saves the keys, updates `speeq.config.ts` (after asking), and regenerates the chat box. It needs a terminal.
+
+## Remove speeq completely: `speeq remove`
+
+`npx speeq remove` (alias `uninstall`) shows everything speeq added and lets you choose what to take out. It touches only what speeq added:
+
+| Item                                             | Default              | How it is found                                                    |
+| ------------------------------------------------ | -------------------- | ------------------------------------------------------------------ |
+| Generated files you have not edited              | removed              | They carry the `// speeq:generated` marker and match their hash.   |
+| The chat box in your layout                      | removed              | The import and `<SpeeqAssistant />` are taken out, nothing else.   |
+| `speeq.config.ts`                                | removed if unchanged | Kept when you have changed it, unless you choose it.               |
+| The `.speeq` folder                              | removed              | Decisions, manifest, generated files, backups.                     |
+| speeq's names in `.env.local` and `.env.example` | removed              | `SPEEQ_SECRET`, `SPEEQ_LLM_MODEL`, the speech model ids and so on. |
+| Generated files you edited or took over          | kept                 | Listed separately; choose them to delete.                          |
+| Provider keys (`GROQ_API_KEY`, ...)              | kept                 | Your app may use them; choose them to delete.                      |
+| The `speeq` package                              | asked                | Uses your package manager. `zod` is left alone.                    |
+
+Commit first so git can bring anything back. Without a terminal, `speeq remove --yes` removes the defaults, `--dry-run` only lists, and the package is never uninstalled.
+
+Skip any part with flags: `--no-ui`, `--no-env`. Choose without prompts with `--provider groq|gemini|openrouter|openai-compatible|mock`, `--voice browser|cloud|sarvam|none`, and `--languages en-IN,te-IN,hi-IN`. Without a terminal the defaults are mock mode, browser voice and the chat box. `npx speeq rollback` undoes it: the layout is restored exactly, and an env file that you have already filled in is left alone.
 
 Model ids change often, so speeq never guesses one: `connect` lists the models that work with your key right now. Without it, set `SPEEQ_LLM_MODEL` yourself (for Groq, pick one from console.groq.com/docs/models).
 
 ## Commands
 
-| Command                           | What it does                                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `speeq init`                      | Scan, review, write files.                                                                             |
-| `speeq connect`                   | Paste a model key (hidden): it is checked, working models are listed, and it is saved in `.env.local`. |
-| `speeq capabilities list`         | Show what was found and its status.                                                                    |
-| `speeq capabilities enable <id>`  | Approve one thing. Add `--access read\|write` and `--auth public\|authenticated` when needed.          |
-| `speeq capabilities disable <id>` | Turn one thing off.                                                                                    |
-| `speeq upgrade`                   | Scan again after code changes and regenerate the files speeq owns.                                     |
-| `speeq rollback`                  | Undo the last apply.                                                                                   |
-| `speeq doctor`                    | Check your environment and files (static).                                                             |
-| `speeq verify`                    | Static checks plus a mock-model test of confirmations and permissions.                                 |
+| Command                           | What it does                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------------- |
+| `speeq init`                      | Scan, review, write files.                                                                    |
+| `speeq setup`                     | Change the model, voice, languages and keys step by step. Keys are checked as you paste them. |
+| `speeq remove`                    | Take speeq out of the project: only what it added, with a review first.                       |
+| `speeq capabilities list`         | Show what was found and its status.                                                           |
+| `speeq capabilities enable <id>`  | Approve one thing. Add `--access read\|write` and `--auth public\|authenticated` when needed. |
+| `speeq capabilities disable <id>` | Turn one thing off.                                                                           |
+| `speeq upgrade`                   | Scan again after code changes and regenerate the files speeq owns.                            |
+| `speeq rollback`                  | Undo the last apply.                                                                          |
+| `speeq doctor`                    | Check your environment and files (static).                                                    |
+| `speeq verify`                    | Static checks plus a mock-model test of confirmations and permissions.                        |
 
-Useful options: `--json` (one JSON document, nothing else), `--dry-run` (write nothing), `--diff`, `--yes` or `--ci` (never ask questions), `--app <dir>`, `--provider mock|groq|gemini|openrouter|openai-compatible`, `--voice`, `--languages`, `--no-ui`, `--no-env`, `--install`.
+Useful options: `--json` (one JSON document, nothing else), `--dry-run` (write nothing), `--diff`, `--yes` or `--ci` (never ask questions), `--app <dir>`, `--provider mock|groq|gemini|openrouter|openai-compatible`, `--voice browser|cloud|sarvam|none`, `--languages`, `--no-ui`, `--no-env`, `--install`.
 
 ## What gets written
 
-| File                                     | Who owns it | Rule                                                                                  |
-| ---------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `.speeq/manifest.json`                   | the scanner | Rewritten on every scan. Facts only: no source text, no data.                         |
-| `.speeq/decisions.json`                  | you         | Changed only by your choices. Never regenerated.                                      |
-| `.speeq/generated/tools.ts`, `routes.ts` | speeq       | First line `// speeq:generated sha256=...`. Overwritten only while unedited.          |
-| `app/api/speeq/[[...speeq]]/route.ts`    | speeq       | Same marker. Uses `src/app` if your app uses `src/`.                                  |
-| `speeq.config.ts`                        | you         | Created once. Only `connect` can change its provider, after asking, with a copy kept. |
-| Your layout and everything else          | you         | Never edited. `init` prints the snippet to paste.                                     |
+| File                                     | Who owns it | Rule                                                                                         |
+| ---------------------------------------- | ----------- | -------------------------------------------------------------------------------------------- |
+| `.speeq/manifest.json`                   | the scanner | Rewritten on every scan. Facts only: no source text, no data.                                |
+| `.speeq/decisions.json`                  | you         | Changed only by your choices. Never regenerated.                                             |
+| `.speeq/generated/tools.ts`, `routes.ts` | speeq       | First line `// speeq:generated sha256=...`. Overwritten only while unedited.                 |
+| `app/api/speeq/[[...speeq]]/route.ts`    | speeq       | Same marker. Uses `src/app` if your app uses `src/`.                                         |
+| `speeq.config.ts`                        | you         | Created once. Only `setup` can change its provider or voice, after asking, with a copy kept. |
+| Your layout and everything else          | you         | Never edited. `init` prints the snippet to paste.                                            |
 
 Add `.speeq/backups/` to `.gitignore`. If you edit a generated file, speeq refuses to overwrite it. Delete its first line to take the file over for good.
 

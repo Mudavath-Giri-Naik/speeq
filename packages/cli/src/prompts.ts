@@ -16,8 +16,14 @@ export const clackPrompter: Prompter = {
   async confirm(message, initial = false) {
     return ok<boolean>(await confirm({ message, initialValue: initial }));
   },
-  async select<T extends string>(message: string, options: Opt<T>[]) {
-    return ok<string>(await select<string>({ message, options: plain(options) })) as T;
+  async select<T extends string>(message: string, options: Opt<T>[], initial?: T) {
+    return ok<string>(
+      await select<string>({
+        message,
+        options: plain(options),
+        ...(initial === undefined ? {} : { initialValue: initial }),
+      }),
+    ) as T;
   },
   async multiselect<T extends string>(message: string, options: Opt<T>[], initial: T[] = []) {
     return ok<string[]>(

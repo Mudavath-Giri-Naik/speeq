@@ -1,5 +1,6 @@
 import type { DecisionsFile, Manifest } from "@speeq/core/manifest";
 import type { IntegrationPlan, PlanOptions, ProjectFs } from "@speeq/integrate";
+import type { Ui } from "./ui.js";
 
 /** Exit codes shared by every command. */
 export const EXIT = { ok: 0, failure: 1, usage: 2, needsReview: 3, unsupported: 4 } as const;
@@ -10,6 +11,7 @@ export interface Prompter {
   select<T extends string>(
     message: string,
     options: { value: T; label: string; hint?: string }[],
+    initial?: T,
   ): Promise<T>;
   multiselect<T extends string>(
     message: string,
@@ -29,6 +31,8 @@ export interface CliEnv {
   /** True when both stdin and stdout are terminals. */
   isTTY: boolean;
   prompts?: Prompter;
+  /** Screens for the setup wizard (boxes, spinners). Defaults to plain lines. */
+  ui?: Ui;
   /** Network calls to a provider (`speeq connect`). Defaults to the global `fetch`. */
   fetch?: typeof fetch;
   /** Runs a package-manager command. Only called after an explicit approval. */

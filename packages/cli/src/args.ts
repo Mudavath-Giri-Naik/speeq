@@ -4,7 +4,10 @@ import type { Flags } from "./types.js";
 /** Commands the CLI knows. Bare `speeq` is `configure`. */
 export const COMMANDS = [
   "init",
+  "setup",
   "connect",
+  "remove",
+  "uninstall",
   "scan",
   "configure",
   "capabilities",
@@ -90,7 +93,8 @@ Usage: speeq [command] [options]
 
 Commands
   init                      Scan, review and integrate speeq into this app
-  connect                   Paste a model key: it is checked, the working models are listed, and it is saved to .env.local
+  setup                     Change the model, voice, languages and keys step by step (alias: connect)
+  remove                    Take speeq out of the project: only what it added (alias: uninstall)
   scan                      Rediscover capabilities and refresh .speeq/manifest.json
   configure                 Control center (also: bare \`speeq\`)
   capabilities list|show|enable|disable [id]
@@ -107,7 +111,7 @@ Options
   --app <dir>    App directory in a monorepo
   --cwd <dir>    Project directory (default: current)
   --provider <mock|groq|gemini|openrouter|openai-compatible>
-  --voice <browser|cloud|none>   --languages en-IN,te-IN,hi-IN
+  --voice <browser|cloud|sarvam|none>   --languages en-IN,te-IN,hi-IN
   --no-ui        Do not generate the chat box or touch the layout
   --no-env       Do not write variable names into .env.local
   --install      Install missing dependencies (init)
