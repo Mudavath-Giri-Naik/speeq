@@ -1,6 +1,6 @@
 {
   "name": "@speeq/server",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "speeq server runtime: web-standard handler, agent loop, tools, navigation, audit log and confirmations. Runs in your backend.",
   "license": "MIT",
   "type": "module",
