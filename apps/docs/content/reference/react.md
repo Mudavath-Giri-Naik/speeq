@@ -14,14 +14,15 @@ Wrap your app in it. It takes `children` and the same options as the [browser cl
 
 ## Hooks
 
-| Hook                            | What you get                                                                                                                                               |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useSpeeq()`                    | The live state, plus `sendText`, `startListening`, `stopListening`, `startCall`, `endCall`, `cancel`, `setLanguage`, `confirm`, `speak`, and the `client`. |
-| `useSpeeqEvent(event, handler)` | Listens to one client event while the component is mounted.                                                                                                |
-| `useSpeeqContext(data)`         | Shares page data with the assistant. Later registrations win.                                                                                              |
-| `useSpeeqAudit(options)`        | An audit client with `listSessions` and `getSession`.                                                                                                      |
-| `useAuditSessions(options)`     | `sessions`, `loading`, `error`, `hasMore`, `loadMore`, `refresh`. Accepts an optional `filter`.                                                            |
-| `useAuditSession(id, options)`  | One conversation: the session, its `events`, `loading`, `error`, and `refresh`. Pass `null` for none.                                                      |
+| Hook                            | What you get                                                                                                                                                                                                                                         |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useSpeeq()`                    | The live state, plus `sendText`, `startListening`, `stopListening`, `startCall`, `endCall`, `cancel`, `setLanguage`, `confirm`, `resolveUiAction`, `speak`, and the `client`. It also gives `pendingUiAction` when a page action waits for approval. |
+| `useSpeeqEvent(event, handler)` | Listens to one client event while the component is mounted.                                                                                                                                                                                          |
+| `useSpeeqContext(data)`         | Shares page data with the assistant. Later registrations win.                                                                                                                                                                                        |
+| `useSpeeqAction(name, handler)` | Mounts the browser code for a [UI action](/docs/guides/ui-actions). Uses the latest handler, and unregisters on unmount. Does nothing during server rendering.                                                                                       |
+| `useSpeeqAudit(options)`        | An audit client with `listSessions` and `getSession`.                                                                                                                                                                                                |
+| `useAuditSessions(options)`     | `sessions`, `loading`, `error`, `hasMore`, `loadMore`, `refresh`. Accepts an optional `filter`.                                                                                                                                                      |
+| `useAuditSession(id, options)`  | One conversation: the session, its `events`, `loading`, `error`, and `refresh`. Pass `null` for none.                                                                                                                                                |
 
 The conversation hooks need the provider above them. The audit hooks only need an `endpoint`, so they work on a separate admin page.
 

@@ -12,6 +12,8 @@ The default speech input/output adapters use Web Speech when available. Supply `
 | startListening(), stopListening()  | Control recognition.                                                                                           |
 | setLanguage(tag), speak(text)      | Change language or request speech output.                                                                      |
 | confirm(confirmationId, approved)  | Resume a pending tool decision.                                                                                |
+| registerUiAction(name, handler)    | Mount page code for a server-declared UI action; returns an unregister function. See concepts/ui-actions.md.   |
+| resolveUiAction(callId, approved)  | Approve or decline `pendingUiAction`. Ignores an id that is not pending.                                       |
 | cancel(), destroy()                | Interrupt current work or dispose of the client.                                                               |
 
 The snapshot includes `state` (idle, listening, thinking, speaking or error), `language`, `languages`, `messages`, `interimTranscript`, `pendingConfirmation`, `error`, `activeTools`, `support`, `config` and `sessionId`. Each message has an ID, role, text, status and optional turn ID. Speech support includes input, output and voice availability for the current language.

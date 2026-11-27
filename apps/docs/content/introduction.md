@@ -8,7 +8,7 @@ description: What speeq is, who it is for, and what it does not do.
 
 speeq lets visitors **talk or type** to your website. The assistant can answer questions, open pages, and do things for the visitor, like looking up an order. You keep control of the design, the data, and the model.
 
-> **Note** speeq is **pre-1.0** (version 0.2.x). It works today, but APIs can still change before 1.0. You install it with the `next` tag.
+> **Note** speeq is **pre-1.0** (version 0.6.x). It works today, but APIs can still change before 1.0. You install it with the `next` tag.
 
 ## What you get
 
@@ -16,6 +16,8 @@ speeq lets visitors **talk or type** to your website. The assistant can answer q
 - **A browser piece.** It streams the answer to the page, listens to the microphone, and speaks replies. It has no design of its own. You build the buttons and chat window.
 - **React helpers.** A provider and a few hooks, so a chat box takes about 30 lines.
 - **Safety built in.** Changes to your data need a Yes from the visitor. Every conversation can be written to an audit log.
+- **A setup command.** `npx speeq init` reads your Next.js app, lists what the assistant could use, and writes the wiring for what you approve. See [Set up with one command](/docs/guides/cli).
+- **Page actions.** The assistant can ask your page to open a panel or change a setting, only through actions you wrote and the visitor can refuse. See [UI actions](/docs/guides/ui-actions).
 
 ## What speeq is not
 

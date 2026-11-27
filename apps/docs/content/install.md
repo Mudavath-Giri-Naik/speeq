@@ -8,6 +8,8 @@ description: How to install speeq, which package to pick, and what you need firs
 
 **What you will learn:** which packages to install, and what your project needs first.
 
+> **Tip** To add speeq to an existing Next.js app with one command, see [Set up with one command](/docs/guides/cli).
+
 ## What you need
 
 - **Node.js 20 or newer.**

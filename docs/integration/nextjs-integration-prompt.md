@@ -5,7 +5,7 @@ agent mode) while it is open at the root of your Next.js project. It makes the a
 app in stages: a working mock assistant first, then your routes, then tools, then a real model, then
 production hardening. The assistant stops and asks you before anything that touches data or secrets.
 
-This prompt targets speeq 0.2.x (`npm i speeq@next`). The accurate reference is the
+This prompt targets speeq 0.6.x (`npm i speeq@next`). The accurate reference is the
 [Next.js guide](../guides/nextjs.md) and the [server configuration](../reference/server-config.md). If
 the assistant's answers disagree with those pages, the pages win.
 

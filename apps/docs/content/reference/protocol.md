@@ -12,15 +12,16 @@ Paths are relative to where you mount the handler (for example `/api/speeq`). Bo
 
 ## Endpoints
 
-| Method and path             | You send                                                                                           | You get                                                |
-| --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `GET /health`               | nothing                                                                                            | `ok`, `protocolVersion`, `sdkVersion`                  |
-| `POST /session`             | optional `language` and `context`                                                                  | `sessionId`, `sessionToken`, `expiresAt`, and `config` |
-| `POST /session/:id/turn`    | `text` (1 to 2,000 characters), `language`, optional `context` and `inputMode` (`text` or `voice`) | a stream of events                                     |
-| `POST /session/:id/confirm` | `confirmationId`, `approved` (true or false)                                                       | a stream that continues the turn                       |
-| `GET /audit/sessions`       | optional `userId`, `from`, `to`, `limit`, `cursor`                                                 | `sessions`, `nextCursor`                               |
-| `GET /audit/sessions/:id`   | admin credentials                                                                                  | `session`, `events`                                    |
-| `OPTIONS`                   | origin check                                                                                       | `204` when allowed                                     |
+| Method and path               | You send                                                                                                            | You get                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `GET /health`                 | nothing                                                                                                             | `ok`, `protocolVersion`, `sdkVersion`                  |
+| `POST /session`               | optional `language`, `context` and `capabilities` (`["ui-actions"]`)                                                | `sessionId`, `sessionToken`, `expiresAt`, and `config` |
+| `POST /session/:id/turn`      | `text` (1 to 2,000 characters), `language`, optional `context` and `inputMode` (`text` or `voice`)                  | a stream of events                                     |
+| `POST /session/:id/confirm`   | `confirmationId`, `approved` (true or false)                                                                        | a stream that continues the turn                       |
+| `POST /session/:id/ui-result` | `callId`, `status` (`done`, `declined`, `failed` or `unavailable`), optional JSON `result` (kept up to 2,048 bytes) | a stream that continues the turn                       |
+| `GET /audit/sessions`         | optional `userId`, `from`, `to`, `limit`, `cursor`                                                                  | `sessions`, `nextCursor`                               |
+| `GET /audit/sessions/:id`     | admin credentials                                                                                                   | `session`, `events`                                    |
+| `OPTIONS`                     | origin check                                                                                                        | `204` when allowed                                     |
 
 Page context is `{ path, title?, data? }`. If something fails **before** the stream starts, you get `{ "error": { "code", "message", "retryable", "retryAfterMs"? } }`. See [Error codes](/docs/reference/errors).
 
@@ -28,19 +29,20 @@ Page context is `{ path, title?, data? }`. If something fails **before** the str
 
 A turn answers with Server-Sent Events. Each event carries JSON with `type`, `protocolVersion` (1), and `turnId`, plus:
 
-| Event                   | Extra fields                                               |
-| ----------------------- | ---------------------------------------------------------- |
-| `turn.started`          | `sessionId`, `language`                                    |
-| `assistant.delta`       | `text`                                                     |
-| `assistant.message`     | `messageId`, `text`                                        |
-| `tool.started`          | `callId`, `name`, `kind` (`builtin` or `custom`)           |
-| `tool.finished`         | `callId`, `name`, `ok`, `durationMs`, optional `errorCode` |
-| `navigate`              | `routeId`, `href`, `params`                                |
-| `confirmation.required` | `confirmationId`, `toolName`, `summary`, `args`            |
-| `error`                 | `code`, `message`, `retryable`, optional `retryAfterMs`    |
-| `turn.finished`         | `reason`, `latencyMs`, optional `firstTokenMs` and `usage` |
+| Event                   | Extra fields                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `turn.started`          | `sessionId`, `language`                                                                                            |
+| `assistant.delta`       | `text`                                                                                                             |
+| `assistant.message`     | `messageId`, `text`                                                                                                |
+| `tool.started`          | `callId`, `name`, `kind` (`builtin` or `custom`)                                                                   |
+| `tool.finished`         | `callId`, `name`, `ok`, `durationMs`, optional `errorCode`                                                         |
+| `navigate`              | `routeId`, `href`, `params`                                                                                        |
+| `confirmation.required` | `confirmationId`, `toolName`, `summary`, `args`                                                                    |
+| `ui.action`             | `callId`, `name`, `args`, `summary`, `confirm`. Sent only to sessions created with `capabilities: ["ui-actions"]`. |
+| `error`                 | `code`, `message`, `retryable`, optional `retryAfterMs`                                                            |
+| `turn.finished`         | `reason`, `latencyMs`, optional `firstTokenMs` and `usage`                                                         |
 
-`reason` is one of `completed`, `max_steps`, `confirmation_required`, `error`, or `aborted`. On `confirmation_required`, show the pending choice, then call the confirm endpoint.
+`reason` is one of `completed`, `max_steps`, `confirmation_required`, `ui_action_required`, `error`, or `aborted`. On `confirmation_required`, show the pending choice, then call the confirm endpoint. On `ui_action_required`, run the page action (after approval if `confirm` is true), then call `ui-result`. An unknown or foreign `callId` gets `NOT_FOUND`, and a second answer gets `CONFLICT`. See [UI actions](/docs/guides/ui-actions).
 
 ## Try it with curl
 

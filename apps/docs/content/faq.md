@@ -40,7 +40,7 @@ The handler is a standard web handler that takes a `Request` and returns a `Resp
 
 ## Is it ready for production?
 
-It is **pre-1.0** (version 0.2.x). It has tests and a security design, but APIs can still change. Pin your versions and read the [Releases](/docs/releases) before upgrading.
+It is **pre-1.0** (version 0.6.x). It has tests and a security design, but APIs can still change. Pin your versions and read the [Releases](/docs/releases) before upgrading.
 
 ## Why does my conversation vanish when I restart?
 
