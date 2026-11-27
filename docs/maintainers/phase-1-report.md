@@ -114,6 +114,6 @@ available. **This is a judgement call for the owner**: a 4x install size for SDK
 1. `SPEEQ_PACKAGE_VERSION` (`packages/cli/src/version.ts`) is checked against `packages/speeq/package.json`
    by a test. When `changeset version` bumps the lockstep group the constant must be bumped in the same
    commit.
-2. Registry-level `npx speeq init` (fetching from npm) can only be tested after the first publish.
+2. Registry-level install was tested on 2026-11-27 with `speeq@0.6.0` from npm (`next` tag) in a clean Next.js app: `speeq --version`, `scan`, `capabilities enable`, `init`, a second `init` (no-op), `verify` (static pass, runtime pass), `tsc --noEmit`, `verify --run-host` (pass) and `rollback` (tree identical) all passed. Plain `npx speeq` still resolves the `latest` tag (0.2.0, no executable) until `latest` is moved to 0.6.0.
 3. Pages Router projects get guidance, not an automatic handler; MongoDB is not detected.
 4. The install-size decision above.
