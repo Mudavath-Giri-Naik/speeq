@@ -36,6 +36,7 @@ records measured evidence for ADR-0013. No Next.js discovery logic yet (tasks 01
 ## 4. Scope
 
 Create:
+
 - `packages/core/src/schemas/manifest.ts`, `packages/core/src/schemas/status.ts`,
   `packages/core/src/manifest.ts` (subpath entry), `packages/core/test/manifest.test.ts`,
   `packages/core/test/status.test.ts`
@@ -110,62 +111,65 @@ export type Sensitivity = "none" | "personal" | "financial" | "credentials" | "a
 export type Framework = "nextjs-app" | "nextjs-pages";
 
 export interface Evidence {
-  detector: string;            // stable detector id, e.g. "next-app-page"
-  file: string;                // repo-relative
-  line: number;                // 1-based
-  note: string;                // <= 200 chars, no source text
+  detector: string; // stable detector id, e.g. "next-app-page"
+  file: string; // repo-relative
+  line: number; // 1-based
+  note: string; // <= 200 chars, no source text
 }
 
 export interface AuthObservation {
   observed: "none-found" | "present" | "unknown";
-  evidence: Evidence[];        // e.g. middleware matcher, getServerSession call. Evidence only, never proof
+  evidence: Evidence[]; // e.g. middleware matcher, getServerSession call. Evidence only, never proof
 }
 
 export interface CapabilityBase {
-  id: string;                  // "<kind>:<key>" per ADR-0015
+  id: string; // "<kind>:<key>" per ADR-0015
   kind: CapabilityKind;
-  title: string;               // from metadata/JSDoc or derived from path; <= 80 chars
-  description?: string;        // from JSDoc/metadata only; <= 300 chars, control chars stripped
+  title: string; // from metadata/JSDoc or derived from path; <= 80 chars
+  description?: string; // from JSDoc/metadata only; <= 300 chars, control chars stripped
   framework: Framework;
   source: { file: string; line: number };
-  evidence: Evidence[];        // at least one
+  evidence: Evidence[]; // at least one
   support: Support;
-  supportReason?: string;      // required when support !== "proven"
+  supportReason?: string; // required when support !== "proven"
   access: Access;
   sensitivity: Sensitivity;
   auth: AuthObservation;
-  fingerprint: string;         // sha256 hex
-  related: string[];           // capability ids
+  fingerprint: string; // sha256 hex
+  related: string[]; // capability ids
 }
 
-export interface JsonSchemaLite { /* JSON Schema draft 2020-12 subset: type, properties, required,
-  enum, items, minimum, maximum, minLength, maxLength, pattern, default, description, anyOf */ }
+export interface JsonSchemaLite {
+  /* JSON Schema draft 2020-12 subset: type, properties, required,
+  enum, items, minimum, maximum, minLength, maxLength, pattern, default, description, anyOf */
+}
 
 export interface RouteCapability extends CapabilityBase {
   kind: "route";
-  path: string;                // "/subjects/[slug]" framework form
-  pathPattern: string;         // "/subjects/:slug" speeq form
+  path: string; // "/subjects/[slug]" framework form
+  pathPattern: string; // "/subjects/:slug" speeq form
   dynamic: "static" | "dynamic" | "catch-all" | "optional-catch-all";
   pathParams: string[];
   queryParams: { name: string; schema?: JsonSchemaLite }[];
 }
 export interface EndpointCapability extends CapabilityBase {
   kind: "endpoint";
-  path: string; methods: ("GET"|"POST"|"PUT"|"PATCH"|"DELETE"|"HEAD"|"OPTIONS")[];
+  path: string;
+  methods: ("GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS")[];
   input?: { query?: JsonSchemaLite; body?: JsonSchemaLite; source: "zod" | "openapi" | "none" };
 }
 export interface FunctionCapability extends CapabilityBase {
   kind: "function";
   export: { file: string; name: string; isServerAction: boolean };
-  input?: { schema: JsonSchemaLite; source: "zod" };   // absent => needs-review
+  input?: { schema: JsonSchemaLite; source: "zod" }; // absent => needs-review
   validatesAtRuntime: boolean;
 }
 export interface FormCapability extends CapabilityBase {
   kind: "form";
   routeId?: string;
   fields: { name: string; type: string; required: boolean; sensitive: boolean }[];
-  actionRef?: string;          // capability id of the function it submits to
-  runtimeBinding: "none";      // always "none" in Phase 1
+  actionRef?: string; // capability id of the function it submits to
+  runtimeBinding: "none"; // always "none" in Phase 1
 }
 export interface FilterSetCapability extends CapabilityBase {
   kind: "filter-set";
@@ -173,39 +177,55 @@ export interface FilterSetCapability extends CapabilityBase {
   parameters: { name: string; schema?: JsonSchemaLite }[];
 }
 export type Capability =
-  | RouteCapability | EndpointCapability | FunctionCapability | FormCapability | FilterSetCapability;
+  | RouteCapability
+  | EndpointCapability
+  | FunctionCapability
+  | FormCapability
+  | FilterSetCapability;
 
 export interface Diagnostic {
-  code: string;                // "SQ####", must exist in the registry
+  code: string; // "SQ####", must exist in the registry
   severity: "info" | "warning" | "error";
-  message: string;             // <= 300 chars, no source text
-  file?: string; line?: number;
+  message: string; // <= 300 chars, no source text
+  file?: string;
+  line?: number;
 }
 
 export interface Manifest {
   manifestVersion: 1;
   generator: { name: "speeq"; version: string };
-  project: { root: string; framework: Framework | "unknown"; packageManager: "npm"|"pnpm"|"yarn"|"bun"|"unknown";
-             appDir?: string; language: "typescript" | "javascript" | "mixed" };
-  capabilities: Capability[];  // sorted by id, ids unique
-  diagnostics: Diagnostic[];   // sorted by file, line, code
+  project: {
+    root: string;
+    framework: Framework | "unknown";
+    packageManager: "npm" | "pnpm" | "yarn" | "bun" | "unknown";
+    appDir?: string;
+    language: "typescript" | "javascript" | "mixed";
+  };
+  capabilities: Capability[]; // sorted by id, ids unique
+  diagnostics: Diagnostic[]; // sorted by file, line, code
   extensions?: Record<string, unknown>;
 }
 
 // decisions (same subpath)
 export interface CapabilityDecision {
   review: "approved" | "disabled";
-  approvedFingerprint?: string;        // required when review === "approved"
-  access?: "read" | "write";           // required when capability.access === "unknown"
+  approvedFingerprint?: string; // required when review === "approved"
+  access?: "read" | "write"; // required when capability.access === "unknown"
   auth?: { requirement: "public" | "authenticated" | "roles"; roles?: string[] };
-  confirm?: boolean;                   // write default true
-  allowSensitive?: boolean;            // admin | financial only
-  forwardAuth?: boolean;               // endpoint binding only (task 020)
-  name?: string; title?: string; description?: string;     // overrides
-  rateLimitPerMinute?: number; timeoutMs?: number;
+  confirm?: boolean; // write default true
+  allowSensitive?: boolean; // admin | financial only
+  forwardAuth?: boolean; // endpoint binding only (task 020)
+  name?: string;
+  title?: string;
+  description?: string; // overrides
+  rateLimitPerMinute?: number;
+  timeoutMs?: number;
   note?: string;
 }
-export interface DecisionsFile { decisionsVersion: 1; capabilities: Record<string, CapabilityDecision> }
+export interface DecisionsFile {
+  decisionsVersion: 1;
+  capabilities: Record<string, CapabilityDecision>;
+}
 
 // status
 export interface CapabilityStatus {
@@ -216,31 +236,60 @@ export interface CapabilityStatus {
   verification: "unverified" | "verified" | "failed";
   freshness: "current" | "stale";
   executable: boolean;
-  headline: "executable" | "stale" | "blocked" | "unsupported" | "disabled" | "needs-review" | "pending";
+  headline:
+    | "executable"
+    | "stale"
+    | "blocked"
+    | "unsupported"
+    | "disabled"
+    | "needs-review"
+    | "pending";
 }
-export interface StatusContext { binding: "none" | "bound"; verification: "unverified" | "verified" | "failed" }
-export function resolveStatus(c: Capability, d: CapabilityDecision | undefined, ctx: StatusContext): CapabilityStatus;
+export interface StatusContext {
+  binding: "none" | "bound";
+  verification: "unverified" | "verified" | "failed";
+}
+export function resolveStatus(
+  c: Capability,
+  d: CapabilityDecision | undefined,
+  ctx: StatusContext,
+): CapabilityStatus;
 ```
 
 ```ts
 // @speeq/compiler
-export class ToolError extends Error { readonly code: string; readonly details?: Record<string, string|number> }
+export class ToolError extends Error {
+  readonly code: string;
+  readonly details?: Record<string, string | number>;
+}
 
-export interface RepoFsOptions { root: string; maxFileBytes?: number; maxFiles?: number;
-  extraIgnore?: string[]; signal?: AbortSignal }
+export interface RepoFsOptions {
+  root: string;
+  maxFileBytes?: number;
+  maxFiles?: number;
+  extraIgnore?: string[];
+  signal?: AbortSignal;
+}
 export interface RepoFs {
-  readonly root: string;                                // real path
-  listFiles(): Promise<readonly string[]>;              // sorted, repo-relative, already filtered
-  readText(path: string): Promise<string>;              // throws ToolError SQ0001 outside root, SQ0002 denied, SQ0004 too big
-  exists(path: string): Promise<boolean>;               // false for denied and outside-root paths
-  readonly diagnostics: readonly Diagnostic[];          // skipped symlinks, big files, cap hit
+  readonly root: string; // real path
+  listFiles(): Promise<readonly string[]>; // sorted, repo-relative, already filtered
+  readText(path: string): Promise<string>; // throws ToolError SQ0001 outside root, SQ0002 denied, SQ0004 too big
+  exists(path: string): Promise<boolean>; // false for denied and outside-root paths
+  readonly diagnostics: readonly Diagnostic[]; // skipped symlinks, big files, cap hit
 }
 export function openRepoFs(options: RepoFsOptions): Promise<RepoFs>;
 
-export interface DetectResult { matches: boolean; framework?: Framework; evidence: Evidence[] }
-export interface DiscoveryResult { capabilities: Capability[]; diagnostics: Diagnostic[] }
+export interface DetectResult {
+  matches: boolean;
+  framework?: Framework;
+  evidence: Evidence[];
+}
+export interface DiscoveryResult {
+  capabilities: Capability[];
+  diagnostics: Diagnostic[];
+}
 export interface FrameworkAdapter {
-  readonly id: string;                                   // e.g. "nextjs"
+  readonly id: string; // e.g. "nextjs"
   detect(fs: RepoFs): Promise<DetectResult>;
   discover(fs: RepoFs, options: { signal?: AbortSignal }): Promise<DiscoveryResult>;
 }
@@ -261,22 +310,30 @@ skipped, `SQ0004` file too large, `SQ0005` file cap reached, `SQ0006` scan deadl
 ```ts
 interface GroundTruth {
   fixture: string;
-  supported: boolean;                                   // false => hostile or unsupported-only fixture
-  capabilities: { id: string; kind: CapabilityKind; support: Support; access: Access;
-                  evidence: { file: string; line: number }[]; executableWhenApproved: boolean }[];
-  unsupported: { code: string; file: string }[];        // diagnostics that MUST be reported
-  forbidden: string[];                                  // capability ids that MUST NOT be discovered (false-positive traps)
+  supported: boolean; // false => hostile or unsupported-only fixture
+  capabilities: {
+    id: string;
+    kind: CapabilityKind;
+    support: Support;
+    access: Access;
+    evidence: { file: string; line: number }[];
+    executableWhenApproved: boolean;
+  }[];
+  unsupported: { code: string; file: string }[]; // diagnostics that MUST be reported
+  forbidden: string[]; // capability ids that MUST NOT be discovered (false-positive traps)
 }
 ```
 
 ## 7. Tests required
 
 Core manifest and status:
+
 - Valid manifest round-trips. Duplicate capability ids, unsorted capabilities, unknown top-level field, missing `supportReason` when not proven, bad id grammar, absolute or `..` paths, `fingerprint` not 64 hex: each rejected with a clear issue path.
 - `resolveStatus`: table-driven over every combination of support, review, fingerprint match, access known/unknown with and without decision access, sensitivity (`credentials`, `admin` with and without `allowSensitive`, `financial`), binding. Asserts `executable` is true **only** for the one valid combination class and that stale (fingerprint mismatch) is never executable. A decision without `approvedFingerprint` while approved is invalid.
 - A decision cannot make a `credentials` capability executable.
 
 Compiler:
+
 - `RepoFs`: file outside root via `..`; absolute path; a symlink to a file outside the repo and a symlink to a directory (skipped and reported, not followed; if the OS cannot create symlinks, skip that test with a clear reason and say so in the report); denied `.env`, `.env.local`, `.env.example`, `key.pem`, `.git/config` unreadable and unlisted; `.gitignore` honoured including a nested one and negation; `node_modules`, `.next` never listed; file over limit; cap of files; aborted signal; Windows-style separators in input are normalised; deterministic ordering; a path with unicode.
 - `ids.ts`: round-trip, rejects bad kinds, `assignToolNames` stable under input reordering, collisions, 64-char limit.
 - `fingerprint`: key-order independence, rejects `undefined`/function/cycle, stable known sha256 vector.
