@@ -8,16 +8,16 @@ Timings are wall-clock on this laptop, single run each, so treat them as orders 
 
 ## Gate (master plan section 5)
 
-| Gate item                                              | Result | Evidence                                                                                                                                                                  |
-| ------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ground-truth fixtures 100% on supported contracts      | PASS   | `pnpm --filter @speeq/compiler eval`: 21 fixtures, every precision and recall row 100%, exit 0                                                                            |
-| At least three real external Next.js apps, with verify | PASS   | 6 apps, pinned revisions, licences read (5 MIT, 1 Apache-2.0), see below                                                                                                  |
-| `npx speeq init` works from a packed tarball           | PASS   | `bash scripts/pack-all.sh && bash scripts/pack-cli-test.sh`: clean Next.js app, `npx speeq` from the tarballs, PASS (about 75 s including `npm install`)                  |
-| Repeated init is a no-op                               | PASS   | tarball app and 6 of 6 real apps: second `init` applied nothing and the file tree hash was identical                                                                      |
-| Rollback restores owned files                          | PASS   | tarball app and 6 of 6 real apps: tree hash after `rollback` equals the tree hash before `init`                                                                           |
-| Security matrix passes                                 | PASS   | table below                                                                                                                                                               |
+| Gate item                                              | Result | Evidence                                                                                                                                                                       |
+| ------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ground-truth fixtures 100% on supported contracts      | PASS   | `pnpm --filter @speeq/compiler eval`: 21 fixtures, every precision and recall row 100%, exit 0                                                                                 |
+| At least three real external Next.js apps, with verify | PASS   | 6 apps, pinned revisions, licences read (5 MIT, 1 Apache-2.0), see below                                                                                                       |
+| `npx speeq init` works from a packed tarball           | PASS   | `bash scripts/pack-all.sh && bash scripts/pack-cli-test.sh`: clean Next.js app, `npx speeq` from the tarballs, PASS (about 75 s including `npm install`)                       |
+| Repeated init is a no-op                               | PASS   | tarball app and 6 of 6 real apps: second `init` applied nothing and the file tree hash was identical                                                                           |
+| Rollback restores owned files                          | PASS   | tarball app and 6 of 6 real apps: tree hash after `rollback` equals the tree hash before `init`                                                                                |
+| Security matrix passes                                 | PASS   | table below                                                                                                                                                                    |
 | Current SDK tests still pass                           | PASS   | `scripts/verify.sh`: lint, typecheck, build pass, 734 tests pass, 0 fail; `scripts/pack-test.sh` (packed SDK in a clean app, type-check and mock turn) passes after the change |
-| Measured numbers, not estimates                        | PASS   | sections below                                                                                                                                                            |
+| Measured numbers, not estimates                        | PASS   | sections below                                                                                                                                                                 |
 
 ## Real external apps
 
@@ -31,14 +31,14 @@ Accuracy is measured against an **independent baseline** that does not use the c
 handler methods and `"use server"` exported functions are counted directly from the files. Each cell is
 matched / baseline (items the compiler found in total).
 
-| App                          | Rev     | Licence    | Scan   | Caps | Routes     | Endpoints   | Server actions | Init   | Verify (static / runtime) |
-| ---------------------------- | ------- | ---------- | ------ | ---- | ---------- | ----------- | -------------- | ------ | ------------------------- |
-| saas-starter                 | 6e33e58 | MIT        | 227 ms | 22   | 8/8 (8)    | 4/4 (4)     | 1/1 (1)        | 206 ms | fail S9 / pass            |
-| commerce                     | f7521d5 | MIT        | 193 ms | 18   | 5/5 (5)    | 1/1 (1)     | 5/5 (5)        | 187 ms | fail S9 / pass            |
-| taxonomy                     | 298a885 | MIT        | 615 ms | 28   | 14/14 (14) | 8/8 (8)     | 0/0 (0)        | 654 ms | fail S9 / pass            |
-| nextjs-subscription-payments | bdd0813 | MIT        | 260 ms | 27   | 4/4 (4)    | 3/3 (3)     | 11/11 (11)     | 261 ms | fail S9 / pass            |
-| next-saas-stripe-starter     | c6df229 | MIT        | 660 ms | 31   | 23/23 (23) | 3/3 (3)     | 3/3 (3)        | 424 ms | fail S9 / pass            |
-| ai-chatbot                   | a8989b5 | Apache-2.0 | 775 ms | 26   | 4/4 (4)    | 15/15 (15)  | 6/6 (6)        | 509 ms | fail S9 / pass            |
+| App                          | Rev     | Licence    | Scan   | Caps | Routes     | Endpoints  | Server actions | Init   | Verify (static / runtime) |
+| ---------------------------- | ------- | ---------- | ------ | ---- | ---------- | ---------- | -------------- | ------ | ------------------------- |
+| saas-starter                 | 6e33e58 | MIT        | 227 ms | 22   | 8/8 (8)    | 4/4 (4)    | 1/1 (1)        | 206 ms | fail S9 / pass            |
+| commerce                     | f7521d5 | MIT        | 193 ms | 18   | 5/5 (5)    | 1/1 (1)    | 5/5 (5)        | 187 ms | fail S9 / pass            |
+| taxonomy                     | 298a885 | MIT        | 615 ms | 28   | 14/14 (14) | 8/8 (8)    | 0/0 (0)        | 654 ms | fail S9 / pass            |
+| nextjs-subscription-payments | bdd0813 | MIT        | 260 ms | 27   | 4/4 (4)    | 3/3 (3)    | 11/11 (11)     | 261 ms | fail S9 / pass            |
+| next-saas-stripe-starter     | c6df229 | MIT        | 660 ms | 31   | 23/23 (23) | 3/3 (3)    | 3/3 (3)        | 424 ms | fail S9 / pass            |
+| ai-chatbot                   | a8989b5 | Apache-2.0 | 775 ms | 26   | 4/4 (4)    | 15/15 (15) | 6/6 (6)        | 509 ms | fail S9 / pass            |
 
 - Static `fail S9` is expected and honest: the apps were never installed, so `speeq` (and `zod` in two) is
   not declared. Every other static check passes. The runtime level (mock conversation, confirmation,
@@ -85,19 +85,19 @@ available. **This is a judgement call for the owner**: a 4x install size for SDK
 
 ## Security matrix (master plan section 6)
 
-| Threat                         | Control and the test that proves it                                                                                                                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Path traversal, symlinks       | `compiler/test/fs.test.ts`, `security.test.ts` ("rejects app directories outside", "does not follow a linked app directory"); `integrate/test/units.test.ts` (nodeFs rejects unsafe paths and symlink escapes)              |
-| Secret exposure                | `security.test.ts` ("keeps secrets and planted instructions out of every output"); verify never stores env values (`verify.test.ts`, "values are never reported")                                                          |
-| Code execution during scan     | `security.test.ts` ("never executes repository code", "uses only read operations and no process or network APIs"). Runtime verification runs only hash-verified generated files with host imports stubbed (`sandbox.ts`)    |
-| Resource exhaustion            | `security.test.ts` (pathological sources, deadline)                                                                                                                                                                       |
-| Prompt injection in comments   | `security.test.ts` (planted instructions absent from output)                                                                                                                                                              |
-| Unsafe generated code          | `units.test.ts` ("never embeds injected text as code"), `engine.test.ts` ("refuses to write generated source that does not parse"), `typecheck.test.ts`, and `tsc` in the tarball test                                    |
-| Overwriting developer files    | `engine.test.ts` (hand-edited file never overwritten, marker removal hands over ownership, config and layout never edited, rollback skips files changed since); real apps and tarball: rollback restores the tree          |
-| Silent privilege grant         | `engine.test.ts` (credentials never wrapped, unknown access skipped, fingerprint change stops execution); `verify` S10 and exit 3                                                                                         |
-| Arbitrary URL or request tools | `server/test/endpoint.test.ts` (41 tests: same origin, no redirects, size cap, timeout, no credentials unless `forwardAuth`)                                                                                              |
-| Supply chain                   | `cli.test.ts` ("installs dependencies only on request, with exact versions and no scripts")                                                                                                                               |
-| New in 018                     | `verify.test.ts`: write tools do not run before approval or after denial, anonymous and wrong-role users blocked, a guard or confirmation removed from the generated code is detected, audit 404 without `authorize`        |
+| Threat                         | Control and the test that proves it                                                                                                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Path traversal, symlinks       | `compiler/test/fs.test.ts`, `security.test.ts` ("rejects app directories outside", "does not follow a linked app directory"); `integrate/test/units.test.ts` (nodeFs rejects unsafe paths and symlink escapes)           |
+| Secret exposure                | `security.test.ts` ("keeps secrets and planted instructions out of every output"); verify never stores env values (`verify.test.ts`, "values are never reported")                                                        |
+| Code execution during scan     | `security.test.ts` ("never executes repository code", "uses only read operations and no process or network APIs"). Runtime verification runs only hash-verified generated files with host imports stubbed (`sandbox.ts`) |
+| Resource exhaustion            | `security.test.ts` (pathological sources, deadline)                                                                                                                                                                      |
+| Prompt injection in comments   | `security.test.ts` (planted instructions absent from output)                                                                                                                                                             |
+| Unsafe generated code          | `units.test.ts` ("never embeds injected text as code"), `engine.test.ts` ("refuses to write generated source that does not parse"), `typecheck.test.ts`, and `tsc` in the tarball test                                   |
+| Overwriting developer files    | `engine.test.ts` (hand-edited file never overwritten, marker removal hands over ownership, config and layout never edited, rollback skips files changed since); real apps and tarball: rollback restores the tree        |
+| Silent privilege grant         | `engine.test.ts` (credentials never wrapped, unknown access skipped, fingerprint change stops execution); `verify` S10 and exit 3                                                                                        |
+| Arbitrary URL or request tools | `server/test/endpoint.test.ts` (41 tests: same origin, no redirects, size cap, timeout, no credentials unless `forwardAuth`)                                                                                             |
+| Supply chain                   | `cli.test.ts` ("installs dependencies only on request, with exact versions and no scripts")                                                                                                                              |
+| New in 018                     | `verify.test.ts`: write tools do not run before approval or after denial, anonymous and wrong-role users blocked, a guard or confirmation removed from the generated code is detected, audit 404 without `authorize`     |
 
 ## Verification methodology notes
 
