@@ -171,7 +171,7 @@ describe("apply, idempotency and rollback", () => {
     const p = await make("server-actions");
     let d = await approved(p, [ADD]);
     await applyPlan(p.fs, await p.plan(d));
-    await writeDecisions(p.fs, "", d);
+    await writeDecisions(p.fs, "", d as DecisionsFile);
     d = await readDecisions(p.fs, "");
     expect(d?.capabilities[ADD]?.review).toBe("approved");
     await p.scan();
