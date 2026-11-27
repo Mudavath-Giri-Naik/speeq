@@ -29,7 +29,7 @@ export function readConfig(
         let target: string;
         if (spec.startsWith(".")) target = posix.join(posix.dirname(name), spec);
         else {
-          const pkg = [...packages.keys()].find((k) => spec === k || spec.startsWith(k + "/"));
+          const pkg = [...packages.keys()].find((k) => spec === k || spec.startsWith(`${k}/`));
           if (!pkg) {
             // A parent config outside the scanned files (an npm package) cannot be read.
             // The file's own options are still used and the omission is reported.

@@ -32,13 +32,13 @@ export function existingSpeeq(
   counts: { tools: number; routes: number }[],
 ): ExistingSpeeq {
   const configFile = ["ts", "js", "mjs"]
-    .map((ext) => prefix + "speeq.config." + ext)
+    .map((ext) => `${prefix}speeq.config.${ext}`)
     .find((f) => files.includes(f));
   return {
     installed,
     configFile,
-    manifestPresent: files.includes(prefix + ".speeq/manifest.json"),
-    decisionsPresent: files.includes(prefix + ".speeq/decisions.json"),
+    manifestPresent: files.includes(`${prefix}.speeq/manifest.json`),
+    decisionsPresent: files.includes(`${prefix}.speeq/decisions.json`),
     existingTools: counts.reduce((n, c) => n + c.tools, 0),
     existingRoutes: counts.reduce((n, c) => n + c.routes, 0),
   };

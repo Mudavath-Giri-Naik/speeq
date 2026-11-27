@@ -7,6 +7,8 @@ import { RULES } from "./deps-rules.js";
 
 const root = join(fileURLToPath(import.meta.url), "..", "..");
 
+const DEV_ONLY = ["@speeq/compiler", "@speeq/integrate", "@speeq/cli"];
+
 describe("dependency direction", () => {
   it("the repository follows the rules", () => {
     expect(checkRepo(root)).toEqual([]);
@@ -30,7 +32,7 @@ describe("dependency direction", () => {
   });
 
   it("allows the umbrella to re-export all scoped packages", () => {
-    const names = Object.keys(RULES).filter((name) => name !== "@speeq/compiler");
+    const names = Object.keys(RULES).filter((name) => !DEV_ONLY.includes(name));
     expect(
       checkPackage({
         dir: "x",
@@ -45,7 +47,7 @@ describe("dependency direction", () => {
 
   it("keeps development tooling out of every runtime package", () => {
     for (const name of [
-      ...Object.keys(RULES).filter((n) => n !== "@speeq/compiler"),
+      ...Object.keys(RULES).filter((n) => !DEV_ONLY.includes(n)),
       "@speeq/speech",
       "speeq",
     ]) {

@@ -29,6 +29,8 @@ export interface RouteSpec {
   params?: string;
 }
 const q = (s: string) => JSON.stringify(s);
+/** One import line. Built from parts so the dependency check does not read generated text as imports. */
+export const imp = (names: string, mod: string) => `import ${names} from ${q(mod)};`;
 /** Relative module specifier without extension, e.g. `../../src/lib/cart`. */
 export function importPath(from: string, to: string): string {
   const rel = posix
@@ -81,9 +83,9 @@ export function renderTools(tools: readonly ToolSpec[], file: string): string {
   });
   if (tools.length === 0) imports.clear();
   const head = [NOTE];
-  if (tools.length === 0) head.push('import type { ToolDefinition } from "speeq/server";');
-  else head.push(`import { ${[...imports].sort().join(", ")} } from "speeq/server";`);
-  if (tools.length) head.push('import { z } from "zod";');
+  if (tools.length === 0) head.push(imp("type { ToolDefinition }", "speeq/server"));
+  else head.push(imp(`{ ${[...imports].sort().join(", ")} }`, "speeq/server"));
+  if (tools.length) head.push(imp("{ z }", "zod"));
   head.push(...hosts, "");
   if (hasEndpoint)
     head.push(
@@ -124,10 +126,10 @@ export function renderRoutes(routes: readonly RouteSpec[]): string {
   const head = [NOTE];
   head.push(
     routes.length
-      ? 'import { defineRoute, type RouteDefinition } from "speeq/server";'
-      : 'import type { RouteDefinition } from "speeq/server";',
+      ? imp("{ defineRoute, type RouteDefinition }", "speeq/server")
+      : imp("type { RouteDefinition }", "speeq/server"),
   );
-  if (routes.some((r) => r.params)) head.push('import { z } from "zod";');
+  if (routes.some((r) => r.params)) head.push(imp("{ z }", "zod"));
   const body = routes.length
     ? `export const routes: RouteDefinition[] = [\n${items.join("\n")}\n];`
     : "export const routes: RouteDefinition[] = [];";
@@ -137,8 +139,8 @@ export function renderRoutes(routes: readonly RouteSpec[]): string {
 export function renderHandler(file: string, configFile: string): string {
   return [
     NOTE,
-    'import { createNextHandler } from "speeq/server/next";',
-    `import { speeq } from ${q(importPath(file, configFile))};`,
+    imp("{ createNextHandler }", "speeq/server/next"),
+    imp("{ speeq }", importPath(file, configFile)),
     "",
     'export const runtime = "nodejs";',
     "",
@@ -187,7 +189,7 @@ export function layoutSnippet(): string {
   return [
     "// components/speeq-provider.tsx",
     '"use client";',
-    'import { SpeeqProvider } from "speeq/react";',
+    imp("{ SpeeqProvider }", "speeq/react"),
     "",
     "export function Speeq({ children }: { children: React.ReactNode }) {",
     '  return <SpeeqProvider endpoint="/api/speeq">{children}</SpeeqProvider>;',

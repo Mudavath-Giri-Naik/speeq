@@ -116,7 +116,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
       );
     }
     const major = nextMajor(info.chosen.nextVersion);
-    const pkgFile = info.prefix + "package.json";
+    const pkgFile = `${info.prefix}package.json`;
     if (major !== undefined && major < 13)
       return unsupported("Next.js older than version 13 is not supported.", "SQ0103", pkgFile);
     const app = project.app;

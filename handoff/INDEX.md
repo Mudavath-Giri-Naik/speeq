@@ -20,3 +20,4 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 014 | Natural conversation: endpointing, voices, reliability, analytics, latency, docs             | briefed           | task/014-natural-voice      |
 | 015 | Compiler foundation: manifest contracts, jailed fs, research evidence, eval harness          | reviewed-accepted | task/015-compiler-contracts |
 | 016 | The whole compiler: discovery, schemas, forms, filters, manifest, reconcile, incremental     | reviewed-accepted | task/016-compiler-discovery |
+| 017 | CLI and integration engine: @speeq/integrate, @speeq/cli, bindEndpoint, registries, rollback | reviewed-accepted | task/017-cli-integration    |

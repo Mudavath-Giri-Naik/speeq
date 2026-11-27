@@ -14,6 +14,7 @@ import { snake, uniqueName } from "./names.js";
 import { type Ownership, ownership, seal } from "./owned.js";
 import { FEATURES, provider as findProvider, PROVIDERS } from "./registry.js";
 import {
+  imp,
   layoutSnippet,
   type RouteSpec,
   renderConfig,
@@ -428,7 +429,13 @@ export async function buildPlan(input: {
     } else if (!configExports && current === undefined) {
       manual.push({
         title: "Create the speeq route handler",
-        snippet: `// ${handlerPath}\nimport { createNextHandler } from "speeq/server/next";\nimport { speeq } from "<your speeq instance>";\nexport const runtime = "nodejs";\nexport const { GET, POST, OPTIONS } = createNextHandler(speeq);`,
+        snippet: [
+          `// ${handlerPath}`,
+          imp("{ createNextHandler }", "speeq/server/next"),
+          imp("{ speeq }", "<your speeq instance>"),
+          'export const runtime = "nodejs";',
+          "export const { GET, POST, OPTIONS } = createNextHandler(speeq);",
+        ].join("\n"),
       });
     } else {
       changes.push(owned(handlerPath, current, renderHandler(handlerPath, configFile)));

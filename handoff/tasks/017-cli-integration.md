@@ -3,17 +3,20 @@
 Branch: task/017-cli-integration (from main). Built by the architect (builder agent unavailable).
 
 ## 1. Read first
+
 `AGENTS.md`, `docs/decisions/0013..0016`, `docs/maintainers/master-plan.md` §5,
 `packages/core/src/schemas/{manifest,status}.ts`, `packages/compiler/src/{scan,reconcile}.ts`,
 `packages/server/src/define.ts`, `apps/demo/app/api/speeq/[[...speeq]]/route.ts`.
 
 ## 2. Goal
+
 `npx speeq init` scans a Next.js app, lets the developer approve capabilities, and writes owned
 wrapper files, a config and a handler route, safely and idempotently, with rollback. Two new private
 packages `@speeq/integrate` (engine, the only writer of host files) and `@speeq/cli` (thin shell), plus
 `bindEndpoint` in `@speeq/server`.
 
 ## 3. Decisions (do not re-decide)
+
 - Engine is pure over a `ProjectFs` (node impl + in-memory impl for tests). Plan first, apply second.
 - **Ownership** (ADR-0016): owned files start with `// speeq:generated sha256=<hash of the rest>`.
   States: `missing | owned | edited | foreign`. Overwrite only `owned` (and `missing`). `edited` and
@@ -56,12 +59,14 @@ packages `@speeq/integrate` (engine, the only writer of host files) and `@speeq/
   Model ids come only from env. Store is `store-memory` (MongoDB is only suggested when detected).
 
 ## 4. Scope
+
 Create `packages/integrate/**`, `packages/cli/**`, `packages/server/src/endpoint.ts` (+ test),
 `docs/reference/cli.md`, `handoff/reports/017-cli-integration.md`.
 Modify `scripts/deps-rules.ts`, `packages/server/src/index.ts`, `pnpm-lock.yaml`, `handoff/INDEX.md`.
 Do NOT touch the compiler, core schemas, protocol, or the umbrella package (task 018 adds the bin).
 
 ## 5. Requirements
+
 1. `bindEndpoint` per §6; every restriction has a test.
 2. `buildPlan` is pure and deterministic; the plan after an apply has no changes.
 3. `applyPlan` and `rollback` per §3; `--dry-run` writes nothing (asserted with an fs spy).
@@ -73,33 +78,59 @@ Do NOT touch the compiler, core schemas, protocol, or the umbrella package (task
 6. `upgrade` rescans, reconciles, prints stale/new/moved/orphaned, regenerates owned files, never approves.
 
 ## 6. Contracts
+
 ```ts
 // @speeq/server
 export interface EndpointBindingOptions {
-  baseUrl: string;            // origin only, from config. https, or http for localhost/127.0.0.1/[::1]. No credentials.
+  baseUrl: string; // origin only, from config. https, or http for localhost/127.0.0.1/[::1]. No credentials.
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  path: string;               // "/api/x/:id": starts with "/", no "//", "..", backslash, "?", "#", scheme, control chars
-  query?: readonly string[];  // allowed query keys; other input keys go to the JSON body (non-GET) or are rejected (GET)
-  forwardAuth?: boolean;      // default false. When true forwards only `cookie` and `authorization` of ctx.request
-  timeoutMs?: number;         // default 8000, max 30000
-  maxResponseBytes?: number;  // default 262144, max 2097152
+  path: string; // "/api/x/:id": starts with "/", no "//", "..", backslash, "?", "#", scheme, control chars
+  query?: readonly string[]; // allowed query keys; other input keys go to the JSON body (non-GET) or are rejected (GET)
+  forwardAuth?: boolean; // default false. When true forwards only `cookie` and `authorization` of ctx.request
+  timeoutMs?: number; // default 8000, max 30000
+  maxResponseBytes?: number; // default 262144, max 2097152
   fetch?: typeof fetch;
 }
-export function bindEndpoint(o: EndpointBindingOptions): (input: Record<string, unknown>, ctx: AgentContext) => Promise<unknown>;
+export function bindEndpoint(
+  o: EndpointBindingOptions,
+): (input: Record<string, unknown>, ctx: AgentContext) => Promise<unknown>;
 // Errors: INVALID_INPUT (bad parameter), TOOL_ERROR (non-2xx, redirect, oversize, bad body), TOOL_TIMEOUT.
 // Messages never include response bodies, URLs with query strings, or headers.
 
 // @speeq/integrate
-export interface ProjectFs { read(p: string): Promise<string | undefined>; write(p: string, c: string): Promise<void>; remove(p: string): Promise<void>; }
+export interface ProjectFs {
+  read(p: string): Promise<string | undefined>;
+  write(p: string, c: string): Promise<void>;
+  remove(p: string): Promise<void>;
+}
 export type Ownership = "missing" | "owned" | "edited" | "foreign";
-export interface PlannedChange { path: string; action: "create" | "update" | "delete" | "keep"; ownership: Ownership; content?: string; before?: string; reason?: string; conflict?: boolean }
-export interface IntegrationPlan { changes: PlannedChange[]; wrapped: { id: string; tool: string }[]; skipped: { id: string; reason: string }[]; stale: string[]; pending: string[]; manual: { title: string; snippet: string }[]; dependencies: { name: string; version: string }[]; env: { name: string; note: string }[]; conflicts: string[] }
+export interface PlannedChange {
+  path: string;
+  action: "create" | "update" | "delete" | "keep";
+  ownership: Ownership;
+  content?: string;
+  before?: string;
+  reason?: string;
+  conflict?: boolean;
+}
+export interface IntegrationPlan {
+  changes: PlannedChange[];
+  wrapped: { id: string; tool: string }[];
+  skipped: { id: string; reason: string }[];
+  stale: string[];
+  pending: string[];
+  manual: { title: string; snippet: string }[];
+  dependencies: { name: string; version: string }[];
+  env: { name: string; note: string }[];
+  conflicts: string[];
+}
 ```
 Renderable schema subset: string (minLength, maxLength, pattern, enum, format email/uri/uuid), number, integer
 (minimum, maximum, exclusive*), boolean, null, array (items, minItems, maxItems), object (properties, required,
 `additionalProperties: false` becomes `.strict()`), `anyOf`, `default`.
 
 ## 7. Tests
+
 bindEndpoint: absolute, `//`, `..`, scheme and encoded-slash paths rejected; non-loopback http baseUrl rejected;
 param `..` and `/` rejected or encoded; origin never changes; redirect refused; oversize aborted; timeout;
 forwardAuth false sends no cookie, true sends only cookie and authorization; errors carry no body or URL.
@@ -111,8 +142,10 @@ CLI: exit codes 0/1/2/3/4; `--json` one parseable document with fixed keys; `--d
 command is usage (2); non-TTY is non-interactive; `capabilities enable` stores the current fingerprint.
 
 ## 8. Acceptance
+
 `scripts/verify.sh` passes; `check-deps` knows both packages; a temp copy of a fixture app integrates, a
 second `init` is a no-op, and `rollback` restores the pre-init tree.
 
 ## 9. Finish
+
 Commit on the branch (Conventional Commits, no attribution), write the report, fast-forward merge, push.

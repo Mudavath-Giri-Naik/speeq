@@ -268,7 +268,10 @@ describe("interactive and CI mode", () => {
     const a = await make("next-app-minimal");
     await a.cli(["capabilities", "enable", ROUTE]);
     const calls: string[][] = [];
-    const exec = async (c: string, args: string[]) => (calls.push([c, ...args]), 0);
+    const exec = async (c: string, args: string[]) => {
+      calls.push([c, ...args]);
+      return 0;
+    };
     await a.cli(["init"], { exec });
     expect(calls).toEqual([]);
     await a.cli(["rollback"]);

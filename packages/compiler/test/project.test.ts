@@ -7,7 +7,7 @@ import { parseSource } from "../src/ts/parse.js";
 
 async function inspect(name: string, appDir?: string) {
   const fs = await openRepoFs({
-    root: fileURLToPath(new URL("../../../fixtures/compiler/" + name + "/", import.meta.url)),
+    root: fileURLToPath(new URL(`../../../fixtures/compiler/${name}/`, import.meta.url)),
   });
   return inspectProject(fs, await fs.listFiles(), appDir);
 }

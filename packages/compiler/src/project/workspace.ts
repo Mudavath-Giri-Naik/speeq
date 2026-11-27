@@ -121,7 +121,7 @@ export async function inspectProject(fs: RepoFs, files: readonly string[], appDi
         : undefined
       : apps.find((a) => a.dir === appDir);
   const dir = chosen?.dir ?? ".",
-    prefix = dir === "." ? "" : dir + "/",
+    prefix = dir === "." ? "" : `${dir}/`,
     pkg = manifests.get(dir) ?? {},
     deps = { ...pkg.peerDependencies, ...pkg.devDependencies, ...pkg.dependencies };
   const pm = packageManager([pkg.packageManager, root.packageManager], paths, prefix);
@@ -147,8 +147,8 @@ export async function inspectProject(fs: RepoFs, files: readonly string[], appDi
   const config = conf ? readConfig(conf, configs, packages) : undefined;
   if (chosen) {
     const find = (name: string) =>
-      [prefix + name, prefix + "src/" + name].find((d) =>
-        appFiles.some((f) => f.startsWith(d + "/")),
+      [prefix + name, `${prefix}src/${name}`].find((d) =>
+        appFiles.some((f) => f.startsWith(`${d}/`)),
       );
     const appRouterDir = find("app"),
       pagesDir = find("pages");
@@ -157,16 +157,16 @@ export async function inspectProject(fs: RepoFs, files: readonly string[], appDi
       nextVersion: chosen.nextVersion,
       appRouterDir,
       pagesDir,
-      srcDir: !![appRouterDir, pagesDir].some((f) => f?.startsWith(prefix + "src/")),
+      srcDir: !![appRouterDir, pagesDir].some((f) => f?.startsWith(`${prefix}src/`)),
       routers: [],
     };
     if (appRouterDir) project.app.routers.push("app");
     if (pagesDir) project.app.routers.push("pages");
-    project.language = language(appFiles, paths.has(prefix + "tsconfig.json"));
+    project.language = language(appFiles, paths.has(`${prefix}tsconfig.json`));
     project.tsconfig = config && { ...config.info, references: config.references };
     project.typescriptVersionInRepo = deps.typescript ?? root.devDependencies?.typescript;
   }
-  const packageFile = prefix + "package.json";
+  const packageFile = `${prefix}package.json`;
   return {
     project,
     chosen,
