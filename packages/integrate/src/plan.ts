@@ -25,7 +25,7 @@ import {
 import { renderObject, renderZod } from "./schema.js";
 
 /** Versions the engine may add to the host. Exact, from a fixed allow-list. */
-export const ZOD_VERSION = "4.4.3";
+export const ZOD_VERSION = "4.6.7";
 
 /** Inputs that are not in the manifest. */
 export interface PlanOptions {
