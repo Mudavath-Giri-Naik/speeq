@@ -7,6 +7,7 @@ import {
 import { runAgentLoop } from "../agent/loop.js";
 import { isUiResolved, uiResultContent } from "../agent/ui.js";
 import { AuditRecorder } from "../audit/recorder.js";
+import { resumablePageContext } from "../context/page.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
 import { loadMessages, streamTurn, type TurnSetup, uiEnabled } from "./turn.js";
@@ -45,7 +46,7 @@ export async function handleUiResult<TUser extends AgentUser>(
     user,
     headers,
     language: lastUser?.data.language ?? rt.config.defaultLanguage,
-    pageContext: lastUser?.data.context,
+    pageContext: resumablePageContext(lastUser?.data.context),
     uiEnabled: await uiEnabled(rt, sessionId),
     inputMode: "text",
   };

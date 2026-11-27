@@ -14,6 +14,7 @@ import {
   truncate,
 } from "@speeq/core";
 import { z } from "zod";
+import { loadContext } from "../context/run.js";
 import type { ResolvedConfig, ResolvedTool } from "../resolve.js";
 import { type NavigationTarget, resolveNavigation } from "./routes.js";
 
@@ -69,6 +70,12 @@ function knowledgeSchema(config: ResolvedConfig) {
   });
 }
 
+function contextSchema(config: ResolvedConfig) {
+  const ids = [...config.contextProviders.keys()] as [string, ...string[]];
+  // Strict: the model can name a source, never a user, tenant or record to fetch for.
+  return z.object({ source: z.enum(ids).describe("Which source to read.") }).strict();
+}
+
 /** Builds the tool list sent to the model: built-ins first, then developer tools. */
 export function buildToolDefinitions(config: ResolvedConfig): LLMToolDefinition[] {
   const defs: LLMToolDefinition[] = [];
@@ -86,6 +93,19 @@ export function buildToolDefinitions(config: ResolvedConfig): LLMToolDefinition[
       name: "search_knowledge",
       description: `Search this website's content. Sources: ${sources}`,
       parameters: toParametersSchema(knowledgeSchema(config), "search_knowledge"),
+    });
+  }
+  if (config.contextProviders.size > 0) {
+    const sources = [...config.contextProviders.values()]
+      .map(
+        (p) =>
+          `${p.def.id}: ${p.def.description.slice(0, 90)}${p.auth === "required" ? " (signed-in users)" : ""}`,
+      )
+      .join("; ");
+    defs.push({
+      name: "get_context",
+      description: `Read current, authorized data about the signed-in customer or this app. Use it instead of guessing or asking for things a source can tell you. Sources: ${sources}`,
+      parameters: toParametersSchema(contextSchema(config), "get_context"),
     });
   }
   for (const { def } of config.tools.values()) {
@@ -133,6 +153,11 @@ export function prepareToolCall<TUser extends AgentUser>(
   }
   if (call.name === "search_knowledge" && config.knowledge.length > 0) {
     const parsed = knowledgeSchema(config).safeParse(call.arguments);
+    if (!parsed.success) return rejected("builtin", "INVALID_INPUT", issues(parsed.error));
+    return { status: "ready", kind: "builtin", input: parsed.data };
+  }
+  if (call.name === "get_context" && config.contextProviders.size > 0) {
+    const parsed = contextSchema(config).safeParse(call.arguments);
     if (!parsed.success) return rejected("builtin", "INVALID_INPUT", issues(parsed.error));
     return { status: "ready", kind: "builtin", input: parsed.data };
   }
@@ -253,6 +278,13 @@ async function runTool<TUser extends AgentUser>(
       if (r.status === "rejected") config.logger.error("knowledge source failed", r.reason);
     }
     return { result: { results: results.slice(0, 8) } };
+  }
+  if (name === "get_context") {
+    const { source } = prepared.input as { source: string };
+    const provider = config.contextProviders.get(source);
+    if (!provider)
+      throw new SpeeqError("INVALID_INPUT", { message: `Unknown source "${source}".` });
+    return { result: await loadContext(config, provider, ctx) };
   }
   throw new SpeeqError("INVALID_INPUT", { message: `Unknown tool "${name}".` });
 }

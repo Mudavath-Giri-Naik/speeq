@@ -28,8 +28,12 @@ import { executeTool, prepareToolCall } from "../agent/tools.js";
 import { cancelPendingUiActions, sessionHasUiActions } from "../agent/ui.js";
 import { needsClarification } from "../agent/voice-guard.js";
 import { AuditRecorder } from "../audit/recorder.js";
+import { resumablePageContext, sanitizePageContext, storedPageContext } from "../context/page.js";
+import { loadInitialContext } from "../context/run.js";
+import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
+import { exposedProfile } from "./identity.js";
 import { type Emit, sseResponse } from "./sse.js";
 
 export const HISTORY_EVENT_WINDOW = 300;
@@ -74,10 +78,11 @@ export async function handleTurn<TUser extends AgentUser>(
     language: body.language,
     inputLanguage: body.inputLanguage,
     clarify: needsClarification(body, rt.config.raw.speech?.clarifyBelow),
-    pageContext: body.context,
+    pageContext: sanitizePageContext(rt.config as ResolvedConfig, body.context),
     uiEnabled: await uiEnabled(rt, sessionId),
     inputMode: body.inputMode ?? "text",
   };
+  const stored = storedPageContext(rt.config as ResolvedConfig, setup.pageContext);
   return streamTurn(setup, async (turn) => {
     await cancelPendingConfirmations(turn);
     await cancelPendingUiActions(turn);
@@ -87,7 +92,7 @@ export async function handleTurn<TUser extends AgentUser>(
         text: body.text,
         language: body.language,
         inputMode: setup.inputMode,
-        ...(body.context ? { context: body.context } : {}),
+        ...(stored ? { context: stored } : {}),
       },
       { turnId: turn.turnId },
     );
@@ -125,7 +130,7 @@ export async function handleConfirm<TUser extends AgentUser>(
     user,
     headers,
     language: lastUser?.data.language ?? rt.config.defaultLanguage,
-    pageContext: lastUser?.data.context,
+    pageContext: resumablePageContext(lastUser?.data.context),
     uiEnabled: await uiEnabled(rt, sessionId),
     inputMode: "text",
   };
@@ -252,12 +257,18 @@ export async function loadMessages<TUser extends AgentUser>(
     if (last?.role !== "user" || last.content !== userText)
       history.push({ role: "user", content: userText });
   }
-  const system = buildSystemPrompt(config as never, {
+  const resolved = config as unknown as ResolvedConfig;
+  const customerContext = await loadInitialContext(config, ctx);
+  const profile = exposedProfile(resolved, ctx.user);
+  const system = buildSystemPrompt(resolved, {
     language: ctx.language,
     inputLanguage: turn.inputLanguage,
     clarify: turn.clarify,
     pageContext: ctx.pageContext,
     hasKnowledge: config.knowledge.length > 0,
+    ...(config.raw.resolveUser ? { signedIn: ctx.user !== null } : {}),
+    ...(profile ? { profile: profile as Record<string, string> } : {}),
+    customerContext,
   });
   return [{ role: "system", content: system } satisfies LLMMessage, ...history];
 }

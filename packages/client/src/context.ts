@@ -1,3 +1,4 @@
+import { redactPath } from "@speeq/core/utils";
 import type { PageContextInput, SpeeqClientOptions } from "./types.js";
 
 /** Collects page metadata only when a request needs it. */
@@ -10,5 +11,6 @@ export function pageContext(getContext: SpeeqClientOptions["getContext"]) {
   } catch (error) {
     console.error("[speeq] getContext threw", error);
   }
-  return context.path ? context : undefined;
+  // Reset links, magic links and OAuth callbacks carry secrets in the query: never send them.
+  return context.path ? { ...context, path: redactPath(context.path) } : undefined;
 }

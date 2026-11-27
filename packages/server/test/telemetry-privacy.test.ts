@@ -1,7 +1,8 @@
 import { LATENCY_BUCKETS_MS, type TelemetryBatch, TelemetryBatchSchema } from "@speeq/core";
 import { startSession } from "@speeq/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SpeeqConfig } from "../src/index.js";
+import { z } from "zod";
+import { defineContext, type SpeeqConfig } from "../src/index.js";
 import { makeSpeeq, userResolver } from "./helpers.js";
 
 /*
@@ -29,6 +30,8 @@ const CANARIES = {
   tenantId: "tenant-canary-6120",
   displayName: "CANARY_DISPLAY_NAME_2291",
   preferredName: "CANARY_PREFERRED_4417",
+  contextSource: "canary_source_5511",
+  contextData: "CANARY_CONTEXT_8820",
 } as const;
 
 /** The test user, with a tenant and an exposed profile (release 0.12 identity fields). */
@@ -100,12 +103,27 @@ describe("telemetry privacy contract", () => {
       { text: "Found." },
       { toolCalls: [{ name: "bookmark_question", arguments: { questionId: "7" } }] },
       { text: "Saved." },
+      { toolCalls: [{ name: "get_context", arguments: { source: CANARIES.contextSource } }] },
+      { text: "Context read." },
       { error: new Error(CANARIES.providerError) },
     ];
     const { speeq } = makeSpeeq(script, {
       projectKey: "pk_abcdefgh12345678",
       resolveUser: canaryUser,
       identity: { expose: ["displayName", "preferredName", "locale"] },
+      context: {
+        page: { allow: ["selected"] },
+        providers: [
+          defineContext({
+            id: CANARIES.contextSource,
+            description: "Canary source",
+            category: "commerce",
+            output: z.object({ items: z.array(z.string()) }),
+            expose: ["items"],
+            fetch: () => ({ items: [CANARIES.contextData] }),
+          }),
+        ],
+      },
       allowedOrigins: [CANARIES.origin],
       telemetry: { transport, flushIntervalMs: 0 },
     });
@@ -122,6 +140,7 @@ describe("telemetry privacy contract", () => {
     const events = await session.turn("bookmark 7");
     const pending = events.find((e) => e.type === "confirmation.required");
     if (pending && "confirmationId" in pending) await session.confirm(pending.confirmationId, true);
+    await session.turn("my cart please");
     await session.turn("this one fails");
     const probe = await speeq.handler(
       new Request("http://localhost/api/speeq/identity", { headers }),
@@ -182,18 +201,18 @@ describe("telemetry privacy contract", () => {
     const sum = (pick: (c: (typeof rollups)[number]["counters"]) => number) =>
       rollups.reduce((n, e) => n + pick(e.counters), 0);
     expect(sum((c) => c.sessions)).toBe(1);
-    expect(sum((c) => c.turns)).toBe(5);
-    expect(sum((c) => c.textTurns)).toBe(5);
+    expect(sum((c) => c.turns)).toBe(6);
+    expect(sum((c) => c.textTurns)).toBe(6);
     expect(sum((c) => c.voiceTurns)).toBe(0);
     expect(sum((c) => c.navigations)).toBe(1);
     expect(sum((c) => c.knowledgeSearches)).toBe(1);
-    expect(sum((c) => c.toolCalls.builtin)).toBe(2); // navigate + search_knowledge
+    expect(sum((c) => c.toolCalls.builtin)).toBe(3); // navigate + search_knowledge + get_context
     expect(sum((c) => c.toolCalls.custom)).toBe(2); // count_questions + bookmark_question
     expect(sum((c) => c.confirmations.requested)).toBe(1);
     expect(sum((c) => c.confirmations.approved)).toBe(1);
     expect(sum((c) => c.confirmations.rejected)).toBe(0);
     const langs = rollups.flatMap((e) => Object.entries(e.counters.languages));
-    expect(langs.reduce((n, [, v]) => n + v, 0)).toBe(5);
+    expect(langs.reduce((n, [, v]) => n + v, 0)).toBe(6);
     expect(new Set(langs.map(([k]) => k))).toEqual(new Set(["en-IN", "te-IN"]));
     const errors = batches.flatMap((b) => b.events).filter((e) => e.type === "error.rollup");
     expect(errors.reduce((n, e) => n + (e.errors.PROVIDER_ERROR ?? 0), 0)).toBe(1);
@@ -210,7 +229,7 @@ describe("telemetry privacy contract", () => {
       (n, e) => n + e.counters.latencyMs.total.reduce((a, b) => a + b, 0),
       0,
     );
-    expect(total).toBe(5);
+    expect(total).toBe(6);
   });
 
   it("sends sdk.init once per instance with feature flags and no values", async () => {

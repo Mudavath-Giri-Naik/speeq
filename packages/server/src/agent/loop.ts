@@ -10,6 +10,7 @@ import {
   type Usage,
 } from "@speeq/core";
 import type { AuditRecorder } from "../audit/recorder.js";
+import { contextPlaceholder } from "../context/run.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { TelemetrySink } from "../telemetry/sink.js";
 import { executeTool, prepareToolCall, type ToolOutcome } from "./tools.js";
@@ -262,7 +263,11 @@ export async function recordOutcome<TUser extends AgentUser>(
       args,
       durationMs: outcome.durationMs,
       ok: outcome.ok,
-      result: outcome.content,
+      // Customer context is never stored: history keeps a note, so later turns fetch fresh data.
+      result:
+        call.name === "get_context" && outcome.ok
+          ? contextPlaceholder((args as { source?: unknown } | undefined)?.source)
+          : outcome.content,
       truncated: outcome.truncated,
       ...(outcome.errorCode ? { errorCode: outcome.errorCode } : {}),
     },

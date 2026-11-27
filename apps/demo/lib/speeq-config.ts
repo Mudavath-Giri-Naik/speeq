@@ -72,6 +72,8 @@ export function createDemoSpeeq({
         : demoMemoryStore()),
     resolveUser,
     allowAnonymous: true,
+    // Only the question on screen reaches the agent; the audit log keeps the key, not the value.
+    context: { page: { allow: ["questionId"] } },
     audit: {
       authorize: async (request) => (await resolveUser(request))?.role === "admin",
       retentionDays: 30,

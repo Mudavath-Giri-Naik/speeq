@@ -6,6 +6,10 @@ import {
   SpeeqError,
 } from "@speeq/core";
 import type { AuditConfig, SpeeqConfig, SpeeqLogger } from "./config.js";
+import { CONTEXT_CATEGORIES } from "./context/define.js";
+import type { ResolvedPagePolicy } from "./context/page.js";
+import { exposeTree, isExposePath } from "./context/project.js";
+import type { ContextBudget, ResolvedProvider } from "./context/run.js";
 import type { RouteDefinition, ToolDefinition, UiActionDefinition } from "./define.js";
 
 /** A tool after defaults are applied. */
@@ -27,6 +31,11 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
   maxSteps: number;
   historyTurns: number;
   allowAnonymous: boolean;
+  /** Context sources by id. */
+  contextProviders: Map<string, ResolvedProvider<TUser>>;
+  /** `null` when the config has no `context.page` block. */
+  contextPage: ResolvedPagePolicy | null;
+  contextBudget: ContextBudget;
   /** Exposed profile fields, validated. */
   identityExpose: ("displayName" | "preferredName" | "locale")[];
   routes: Map<string, RouteDefinition>;
@@ -47,11 +56,19 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
 }
 
 /** Names reserved for built-in tools. */
-export const BUILTIN_TOOL_NAMES = ["navigate", "search_knowledge"] as const;
+export const BUILTIN_TOOL_NAMES = [
+  "navigate",
+  "search_knowledge",
+  "get_context",
+  "remember_preference",
+] as const;
 
 const TOOL_NAME_RE = /^[a-zA-Z0-9_-]{1,64}$/;
 const UI_ACTION_NAME_RE = /^ui_[a-z0-9_]{1,60}$/;
 const ROUTE_ID_RE = /^[a-zA-Z0-9_.-]{1,64}$/;
+const PROVIDER_ID_RE = /^[a-z][a-z0-9_]{0,40}$/;
+const clamp = (n: number, lo: number, hi: number) =>
+  Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : lo;
 
 const defaultLogger: SpeeqLogger = {
   error: (m, d) => console.error(`[speeq] ${m}`, d ?? ""),
@@ -159,6 +176,45 @@ export function resolveConfig<TUser extends AgentUser>(
     ids.add(k.id);
   }
 
+  const contextProviders = new Map<string, ResolvedProvider<TUser>>();
+  for (const def of config.context?.providers ?? []) {
+    const where = `context source "${String(def?.id)}"`;
+    if (!PROVIDER_ID_RE.test(def?.id ?? ""))
+      throw fail(`${where}: id must match ${PROVIDER_ID_RE}.`);
+    if (contextProviders.has(def.id)) throw fail(`duplicate context source id "${def.id}".`);
+    if (!def.description?.trim()) throw fail(`${where} needs a \`description\`.`);
+    if (!CONTEXT_CATEGORIES.includes(def.category))
+      throw fail(`${where}: category must be one of ${CONTEXT_CATEGORIES.join(", ")}.`);
+    if (typeof def.fetch !== "function") throw fail(`${where} needs a \`fetch\` function.`);
+    if (typeof def.output?.safeParse !== "function")
+      throw fail(`${where} needs an \`output\` schema.`);
+    if (!Array.isArray(def.expose) || def.expose.length === 0)
+      throw fail(`${where} needs a non-empty \`expose\` list: only listed fields reach the model.`);
+    for (const p of def.expose)
+      if (!isExposePath(p)) throw fail(`${where}: "${p}" is not a valid expose path.`);
+    for (const g of def.greeting ?? [])
+      if (!def.expose.includes(g)) throw fail(`${where}: greeting field "${g}" must be exposed.`);
+    if (def.auth !== undefined && def.auth !== "required" && def.auth !== "optional")
+      throw fail(`${where}: auth must be "required" or "optional".`);
+    if (def.load !== undefined && def.load !== "initial" && def.load !== "on-demand")
+      throw fail(`${where}: load must be "initial" or "on-demand".`);
+    contextProviders.set(def.id, {
+      def,
+      auth: def.auth ?? "required",
+      load: def.load ?? "on-demand",
+      tree: exposeTree(def.expose),
+      maxItems: clamp(def.maxItems ?? 20, 1, 100),
+      maxChars: clamp(def.maxChars ?? 2000, 100, 20_000),
+      timeoutMs: clamp(def.timeoutMs ?? 1500, 50, 15_000),
+    });
+  }
+  const page = config.context?.page;
+  if (page && (!Array.isArray(page.allow) || page.allow.some((k) => typeof k !== "string")))
+    throw fail("`context.page.allow` must be a list of data keys.");
+  if (page?.store !== undefined && !["keys", "full", "none"].includes(page.store))
+    throw fail('`context.page.store` must be "keys", "full" or "none".');
+  const budget = config.context?.budget;
+
   const rl = config.guardrails?.rateLimit;
   return {
     raw: config,
@@ -171,6 +227,19 @@ export function resolveConfig<TUser extends AgentUser>(
     historyTurns: Math.max(0, config.agent.historyTurns ?? 8),
     allowAnonymous: config.allowAnonymous ?? config.resolveUser === undefined,
     identityExpose,
+    contextProviders,
+    contextPage: page
+      ? {
+          allow: new Set(page.allow),
+          maxBytes: clamp(page.maxBytes ?? 2000, 100, 16_000),
+          store: page.store ?? "keys",
+        }
+      : null,
+    contextBudget: {
+      maxInitial: clamp(budget?.maxInitial ?? 2, 0, 6),
+      maxCalls: clamp(budget?.maxCalls ?? 4, 1, 12),
+      maxChars: clamp(budget?.maxChars ?? 6000, 500, 40_000),
+    },
     routes,
     tools,
     uiActions,

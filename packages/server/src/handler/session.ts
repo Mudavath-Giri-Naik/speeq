@@ -8,6 +8,7 @@ import {
   SpeeqError,
 } from "@speeq/core";
 import { AuditRecorder } from "../audit/recorder.js";
+import { sanitizePageContext, storedPageContext } from "../context/page.js";
 import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { signSessionToken } from "../security/token.js";
@@ -58,10 +59,14 @@ export async function handleCreateSession<TUser extends AgentUser>(
     startedAt,
   });
   const recorder = new AuditRecorder(rt.config, rt.config.raw.store, sessionId, userId);
+  const storedContext = storedPageContext(
+    rt.config as ResolvedConfig,
+    sanitizePageContext(rt.config as ResolvedConfig, body.context),
+  );
   await recorder.record("session.started", {
     userId,
     language,
-    ...(body.context ? { context: body.context } : {}),
+    ...(storedContext ? { context: storedContext } : {}),
     // Recorded only if the server has UI actions, so the capability is never granted by default.
     ...(body.capabilities?.includes("ui-actions") && rt.config.uiActions.size > 0
       ? { capabilities: ["ui-actions" as const] }

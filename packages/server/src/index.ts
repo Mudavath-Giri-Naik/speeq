@@ -69,6 +69,7 @@ export { SpeeqError } from "@speeq/core";
 export type {
   AgentConfig,
   AuditConfig,
+  ContextConfig,
   GuardrailsConfig,
   IdentityConfig,
   SpeechConfig,
@@ -76,6 +77,12 @@ export type {
   SpeeqLogger,
   TelemetryConfig,
 } from "./config.js";
+export {
+  CONTEXT_CATEGORIES,
+  type ContextCategory,
+  type ContextProviderDefinition,
+  defineContext,
+} from "./context/define.js";
 export {
   defineKnowledgeSource,
   defineRoute,

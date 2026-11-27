@@ -22,6 +22,13 @@ export {
   readSseData,
 } from "./provider-http.js";
 export { DEFAULT_SECRET_KEYS, REDACTED, redactKeys, redactText } from "./redact.js";
+export {
+  isRestrictedName,
+  isSensitiveName,
+  looksSecret,
+  nameWords,
+  redactPath,
+} from "./sensitive.js";
 export { SentenceChunker, type SentenceChunkerOptions } from "./sentence-chunker.js";
 export { encodeSse, type SseMessage, SseParser } from "./sse.js";
 export type { CorrectionResult, Vocabulary } from "./vocabulary.js";

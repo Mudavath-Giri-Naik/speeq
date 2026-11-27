@@ -10,6 +10,7 @@ client session, client, types, index, tsup wire list; react hooks and index; bot
 privacy test; demo UI test mock; reference docs (errors, protocol, server config, client, react); ADR-0022.
 
 What I did:
+
 - v2 session tokens with tenant, `IDENTITY_CHANGED` / `AUTH_UNAVAILABLE`, strict `authenticate` (architect commit).
 - `identity` summary in `POST /session` and new `GET /identity` (cookies only, no store writes, own rate limit).
 - `identity.expose` (displayName, preferredName, locale) with cleaning (control chars, line separators, 80 chars).
@@ -21,12 +22,14 @@ What I did:
 - Telemetry contract extended with tenant, profile, fingerprint canaries and field names.
 
 Deviations from the brief:
+
 - Non-GET `/identity` answers 404 like every other unmatched route (the router has no 405).
 - Identity probe has its own limiter (max(30, 3 × sessionsPerMinute)) instead of sharing session creation's, so
   focus checks can never block session creation.
 - `UseSpeeqResult` gained `refreshIdentity` (code that hand-builds that type must add it; demo test updated).
 
 Decisions I had to make (please review):
+
 - Turn retry after `IDENTITY_CHANGED` keeps the user's latest message (it was typed by the new identity).
 - ADR-0022 wording fixed: the signed token still carries uid/tid (signed, not encrypted), as before.
 

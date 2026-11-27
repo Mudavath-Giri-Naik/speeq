@@ -11,6 +11,7 @@ import type {
 } from "@speeq/core";
 import { SpeeqError } from "@speeq/core";
 import { z } from "zod";
+import type { ContextProviderDefinition } from "./context/define.js";
 import type { RouteDefinition, ToolDefinition, UiActionDefinition } from "./define.js";
 
 const updateCheckSchema = z.boolean().default(true);
@@ -123,6 +124,35 @@ export interface IdentityConfig {
   expose?: ("displayName" | "preferredName" | "locale")[];
 }
 
+/** What the agent may know about the current page and the customer (ADR-0023). */
+export interface ContextConfig<TUser extends AgentUser = AgentUser> {
+  /**
+   * Page context from the browser. With this block, only the listed `data` keys reach the agent
+   * (set them with `useSpeeqContext`), screened and size-limited. Without it, `data` passes as in
+   * 0.11 (screened, with a warning). The path always loses secret-like query parameters.
+   */
+  page?: {
+    /** `data` keys the agent may see, e.g. `["selected", "filters", "search"]`. */
+    allow: string[];
+    /** Maximum JSON size of the allowed data. Default 2000. */
+    maxBytes?: number;
+    /** What the conversation store keeps: `keys` (default), `full` values, or `none`. */
+    store?: "keys" | "full" | "none";
+  };
+  /** Sources of customer and app data, wrapping your existing services. See `defineContext`. */
+  // biome-ignore lint/suspicious/noExplicitAny: outputs differ per source; each is validated by its own schema.
+  providers?: ContextProviderDefinition<any, TUser>[];
+  /** Limits per message. */
+  budget?: {
+    /** Initial sources loaded per message. Default 2. */
+    maxInitial?: number;
+    /** Source fetches per message (initial and `get_context`). Default 4. */
+    maxCalls?: number;
+    /** Total characters of fetched data per message. Default 6000. */
+    maxChars?: number;
+  };
+}
+
 /** Everything `createSpeeq` accepts. */
 export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   /** Public project key (`pk_…`) from the speeq platform. Used only for telemetry. */
@@ -138,6 +168,8 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   resolveUser?(request: Request): TUser | null | Promise<TUser | null>;
   /** What may be shared about the signed-in user. */
   identity?: IdentityConfig;
+  /** Page context and customer context sources. */
+  context?: ContextConfig<TUser>;
   /** Allow sessions without a user. Default: `true` if `resolveUser` is not set, else `false`. */
   allowAnonymous?: boolean;
   routes?: RouteDefinition[];

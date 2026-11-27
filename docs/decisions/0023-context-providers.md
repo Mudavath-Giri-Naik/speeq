@@ -1,6 +1,6 @@
 # ADR-0023 — Context providers: the host app's own services, projected, bounded and fresh
 
-Status: Proposed (accepted with task 023). Implements ADR-0019 and fixes its open questions.
+Status: Accepted (task 023). Implements ADR-0019 and fixes its open questions.
 
 ## Context
 
@@ -16,9 +16,9 @@ the DOM or sending whole records to a model are all wrong (privacy, staleness, i
    maxChars?: number, timeoutMs?: number, fetch(ctx: AgentContext<TUser>): Promise<unknown> }`.
    `category` is one of `identity | ownership | activity | commerce | learning | application | custom`.
    `fetch` receives the **server-verified** user (never client data) and calls the app's existing service.
-2. **Pipeline, every call, in this order:** `auth: "required"` without a user → `AUTH_REQUIRED` result,
+2. **Pipeline, every call, in this order:** `auth: "required"` without a user → `UNAUTHENTICATED` result,
    `fetch` not called → timeout (default 1500 ms) → output schema (`safeParse`; failure →
-   `CONTEXT_UNAVAILABLE`) → **projection**: keep only `expose` paths (`a.b`, `items[].title`); everything
+   `TOOL_ERROR`, timeouts `TOOL_TIMEOUT`, budget `RATE_LIMITED`: existing codes, so no protocol change) → **projection**: keep only `expose` paths (`a.b`, `items[].title`); everything
    else is dropped, never "everything but secrets" → screen: drop any key on the shared sensitive-name
    list or in `sensitive`, and secret-shaped values (JWT, long hex/base64, card number) → bound arrays to
    `maxItems` (default 20) and the JSON to `maxChars` (default 2000), marking `truncated: true` →
