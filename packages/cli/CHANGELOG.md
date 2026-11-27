@@ -1,5 +1,15 @@
 # @speeq/cli
 
+## 0.11.0
+
+### Patch Changes
+
+- 1a150cf: `npx speeq setup` now also refreshes a chat box that an older speeq generated (updating the package does not rewrite it), and the CLI guide explains that `npx speeq upgrade` is the step after updating.
+- Updated dependencies [111447c]
+  - @speeq/integrate@0.11.0
+  - @speeq/compiler@0.11.0
+  - @speeq/core@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes

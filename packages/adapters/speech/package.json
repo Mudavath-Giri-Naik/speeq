@@ -1,6 +1,6 @@
 {
   "name": "@speeq/speech",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Buffered OpenAI-compatible speech recognition and synthesis adapters for speeq.",
   "license": "MIT",
   "type": "module",
