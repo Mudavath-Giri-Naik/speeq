@@ -24,6 +24,7 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 018 | Verification, doctor, real-app validation, umbrella executable, packed tarball               | reviewed-accepted | task/018-verification-release |
 | 019 | UI bridge: contract, server runtime, client registry, React hook, feature entry              | reviewed-accepted | task/019-ui-bridge            |
 | 020 | Forms and filters: draft-only form fill, generated UI descriptors, filter application        | reviewed-accepted | task/020-forms-filters        |
-| 021 | Zero-code onboarding: provider choice, env names, generated chat UI with voice               | briefed           | task/021-zero-code-onboarding |
+| 021 | Zero-code onboarding: provider choice, env names, generated chat UI with voice               | reviewed-accepted | task/021-zero-code-onboarding |
+| 022 | Identity lifecycle and account isolation (release 0.12)                                     | briefed           | task/022-identity-lifecycle   |
 
-Tasks 022 and 023 (page context and universal agent; workflows and the Phase 2 gate) are planned in `docs/maintainers/phase-2-plan.md` and are briefed one at a time after the previous task is accepted.
+Release 0.12 (tasks 022 to 028) is planned in `docs/maintainers/release-0.12-plan.md`; it replaces the Phase 2 tasks 022 and 023. Briefs are written one at a time after the previous task is accepted.
