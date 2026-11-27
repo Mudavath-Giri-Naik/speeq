@@ -2,6 +2,7 @@ import {
   createFormFillHandler,
   type FormBinding,
   formFillActionName,
+  type IdentitySummary,
   type SpeeqClient,
   type SpeeqClientEvents,
   type SpeeqSnapshot,
@@ -24,6 +25,7 @@ export interface UseSpeeqResult extends SpeeqSnapshot {
   /** Approves or declines `pendingUiAction`. */
   resolveUiAction: SpeeqClient["resolveUiAction"];
   speak: SpeeqClient["speak"];
+  refreshIdentity: SpeeqClient["refreshIdentity"];
 }
 
 /** Reads the current snapshot and actions of the provider's client. */
@@ -45,6 +47,7 @@ export function useSpeeq(): UseSpeeqResult {
         confirm: client.confirm.bind(client),
         resolveUiAction: client.resolveUiAction.bind(client),
         speak: client.speak.bind(client),
+        refreshIdentity: client.refreshIdentity.bind(client),
       },
     }),
     [client],
@@ -105,4 +108,35 @@ export function useSpeeqEvent<K extends keyof SpeeqClientEvents>(
   const current = useRef(handler);
   current.current = handler;
   useEffect(() => client.on(event, (payload) => current.current(payload)), [client, event]);
+}
+
+/** Result of {@link useSpeeqIdentity}. */
+export interface UseSpeeqIdentityResult {
+  /** Who the server says is talking, or `null` before the first session or check. */
+  identity: IdentitySummary | null;
+  /** Checks again now (for example right after your app's own login or logout). */
+  refresh: SpeeqClient["refreshIdentity"];
+}
+
+/**
+ * The signed-in identity as the speeq server sees it. Updates when the user logs in, logs out or
+ * switches account; after such a change the conversation has already been reset.
+ */
+export function useSpeeqIdentity(): UseSpeeqIdentityResult {
+  const { client, getServerSnapshot } = useProvider("useSpeeqIdentity");
+  const store = useMemo(
+    () => ({
+      subscribe: client.subscribe.bind(client),
+      get: () => client.getSnapshot().identity,
+      refresh: client.refreshIdentity.bind(client),
+    }),
+    [client],
+  );
+  const identity = useSyncExternalStore(
+    store.subscribe,
+    store.get,
+    () => getServerSnapshot().identity,
+  );
+  const refresh = store.refresh;
+  return { identity, refresh };
 }

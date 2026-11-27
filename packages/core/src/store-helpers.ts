@@ -7,6 +7,7 @@ export function emptySummary(session: NewSession): SessionSummary {
   return {
     id: session.id,
     userId: session.userId,
+    tenantId: session.tenantId ?? null,
     language: session.language,
     startedAt: session.startedAt,
     lastEventAt: session.startedAt,

@@ -64,12 +64,13 @@ export function createSpeeq<TUser extends AgentUser = AgentUser>(
   };
 }
 
-export type { AgentContext, AgentUser } from "@speeq/core";
+export type { AgentContext, AgentUser, AgentUserProfile, IdentitySummary } from "@speeq/core";
 export { SpeeqError } from "@speeq/core";
 export type {
   AgentConfig,
   AuditConfig,
   GuardrailsConfig,
+  IdentityConfig,
   SpeechConfig,
   SpeeqConfig,
   SpeeqLogger,

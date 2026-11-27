@@ -1,6 +1,6 @@
 # ADR-0022 — Identity lifecycle: the server decides who is talking, on every request
 
-Status: Proposed (accepted with task 022).
+Status: Accepted (task 022).
 
 ## Context
 
@@ -20,7 +20,7 @@ Status: Proposed (accepted with task 022).
 1. **AgentUser grows additively.**
    `AgentUser { id: string; tenantId?: string; profile?: AgentUserProfile }`, with
    `AgentUserProfile { displayName?, preferredName?, locale?, roles?: string[], attributes?: Record<string, string | number | boolean> }`.
-   `id` and `tenantId` are for isolation only and never reach the prompt, the client or telemetry.
+   `id` and `tenantId` are for isolation only: never in the prompt, the identity summary or telemetry. (The signed session token, which the browser holds, carries them as it carried `uid` before; it is signed, not encrypted.)
    Profile fields reach the model only if listed in `identity.expose` (default `[]`, so existing apps
    behave as today). `roles` is never an authorisation input for the model; tools keep using `ctx.user`.
 2. **Token claims v2**: `{ v: 2, sid, uid, tid, exp }`, `tid` = `tenantId ?? null`. v1 tokens still verify
@@ -39,7 +39,7 @@ Status: Proposed (accepted with task 022).
    `"identity\0" + uid + "\0" + (tid ?? "")`), or `"anonymous"`. It is opaque, never stored, never in
    telemetry. `profile` has only the exposed fields.
 5. **Identity probe.** `GET {endpoint}/identity` (cookies only, no session token) returns the same summary,
-   rate-limited like session creation, same CORS rules. The client calls it when the page becomes visible,
+   rate-limited with its own budget (so focus checks never use up session creation), same CORS rules. The client calls it when the page becomes visible,
    on window focus (at most once per 5 s), when the chat box opens, and from `client.refreshIdentity()`.
 6. **Client reset** on `IDENTITY_CHANGED` or a probe fingerprint different from the session's: abort the
    in-flight stream and ignore any of its late events (a session generation counter); clear messages,

@@ -15,6 +15,7 @@ const moduleSymbol = file && checker.getSymbolAtLocation(file);
 if (!moduleSymbol) throw new Error("Could not load core types");
 const names = new Set([
   "ClientConfig",
+  "IdentitySummary",
   "ProtocolEvent",
   "SessionListResponse",
   "SessionDetailResponse",

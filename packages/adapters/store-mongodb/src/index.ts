@@ -48,7 +48,8 @@ function isDuplicateKey(error: unknown): boolean {
 
 function toSummary(doc: SessionDoc): SessionSummary {
   const { _id, nextSeq: _seq, ...rest } = doc;
-  return { id: _id, ...rest };
+  // Sessions stored before 0.12 have no tenant field.
+  return { id: _id, ...rest, tenantId: rest.tenantId ?? null };
 }
 
 function toEvent(doc: EventDoc): ConversationEvent {
@@ -121,6 +122,7 @@ export class MongoStore implements ConversationStore {
       await sessions.insertOne({
         _id: session.id,
         userId: session.userId,
+        tenantId: session.tenantId ?? null,
         language: session.language,
         startedAt: session.startedAt,
         lastEventAt: session.startedAt,
@@ -205,6 +207,7 @@ export class MongoStore implements ConversationStore {
     const limit = filter.limit ?? 20;
     const and: Filter<SessionDoc>[] = [];
     if (filter.userId !== undefined) and.push({ userId: filter.userId });
+    if (filter.tenantId !== undefined) and.push({ tenantId: filter.tenantId });
     if (filter.from !== undefined) and.push({ startedAt: { $gte: filter.from } });
     if (filter.to !== undefined) and.push({ startedAt: { $lte: filter.to } });
     const after = cursor ? decodeCursor(cursor) : null;

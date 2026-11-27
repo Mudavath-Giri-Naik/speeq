@@ -1,4 +1,10 @@
-import type { ClientConfig, ProtocolEvent, SpeechInput, SpeechOutput } from "@speeq/core";
+import type {
+  ClientConfig,
+  IdentitySummary,
+  ProtocolEvent,
+  SpeechInput,
+  SpeechOutput,
+} from "@speeq/core";
 import type { PublicError } from "@speeq/core/errors";
 import type { Vocabulary } from "@speeq/core/utils";
 import type { MicMonitor, MicMonitorHandlers } from "./mic-monitor.js";
@@ -122,6 +128,11 @@ export interface SpeeqSnapshot {
   support: { speechInput: boolean; speechOutput: boolean; voiceForLanguage: boolean | null };
   config: ClientConfig | null;
   sessionId: string | null;
+  /**
+   * Who the server says is talking (signed in or not, and the profile fields the server exposes).
+   * `null` until the first session or identity check. Never holds a user or tenant id.
+   */
+  identity: IdentitySummary | null;
 }
 
 /** Configures transport, speech and host callbacks. */
@@ -166,6 +177,8 @@ export interface SpeeqClientEvents {
   event: ProtocolEvent; // every valid protocol event received
   navigate: NavigateAction;
   error: PublicError; // every time snapshot.error becomes non-null
+  /** The signed-in identity is known or changed. After a change the conversation was reset. */
+  identity: IdentitySummary;
 }
 
 /** Controls a headless conversation and exposes its current snapshot. */
@@ -200,6 +213,13 @@ export interface SpeeqClient {
   cancel(): void;
   setLanguage(language: string): void;
   confirm(confirmationId: string, approved: boolean): Promise<void>;
+  /**
+   * Asks the server who is signed in now (cookies only). If it is a different user or tenant than
+   * the current session's, the conversation is reset and a fresh one starts with the next message.
+   * Resolves to `null` when the check fails or the server is older than 0.12. The client also checks
+   * by itself on window focus and when the page becomes visible, once a conversation exists.
+   */
+  refreshIdentity(): Promise<IdentitySummary | null>;
   /**
    * Registers the page code for a UI action the server declared with `defineUiAction`. Register
    * before the first turn: the session tells the server whether any handler exists. Returns a

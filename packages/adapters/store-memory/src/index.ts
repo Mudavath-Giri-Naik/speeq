@@ -102,6 +102,7 @@ export class MemoryStore implements ConversationStore {
     const matching = [...this.sessions.values()]
       .map((e) => e.summary)
       .filter((s) => filter.userId === undefined || s.userId === filter.userId)
+      .filter((s) => filter.tenantId === undefined || (s.tenantId ?? null) === filter.tenantId)
       .filter((s) => filter.from === undefined || s.startedAt >= filter.from)
       .filter((s) => filter.to === undefined || s.startedAt <= filter.to)
       .filter((s) => after === null || isAfterCursor(s, after))

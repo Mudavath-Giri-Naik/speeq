@@ -42,6 +42,33 @@ export const ClientConfigSchema = z.object({
 /** Public configuration the client receives when a session starts. */
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
 
+/**
+ * Who the server says is talking. `fingerprint` is opaque (an HMAC on the server); it only lets the
+ * browser notice that the signed-in user or tenant changed. `profile` holds only fields the server
+ * config exposes.
+ */
+export const IdentitySummarySchema = z.object({
+  state: z.enum(["anonymous", "authenticated"]),
+  fingerprint: z.string().min(1).max(32),
+  profile: z
+    .object({
+      displayName: z.string().max(80).optional(),
+      preferredName: z.string().max(80).optional(),
+      locale: z.string().max(35).optional(),
+    })
+    .optional(),
+});
+/** Who the server says is talking. */
+export type IdentitySummary = z.infer<typeof IdentitySummarySchema>;
+
+/** Response of `GET /identity`. */
+export const IdentityResponseSchema = z.object({
+  protocolVersion: z.literal(PROTOCOL_VERSION),
+  identity: IdentitySummarySchema,
+});
+/** Response of `GET /identity`. */
+export type IdentityResponse = z.infer<typeof IdentityResponseSchema>;
+
 /** Response of `POST /session`. */
 export const CreateSessionResponseSchema = z.object({
   protocolVersion: z.literal(PROTOCOL_VERSION),
@@ -50,6 +77,8 @@ export const CreateSessionResponseSchema = z.object({
   /** ISO timestamp after which the token is rejected with `SESSION_EXPIRED`. */
   expiresAt: z.string(),
   config: ClientConfigSchema,
+  /** Absent from servers older than 0.12. */
+  identity: IdentitySummarySchema.optional(),
 });
 /** Response of `POST /session`. */
 export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;

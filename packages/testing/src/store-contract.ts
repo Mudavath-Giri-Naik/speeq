@@ -136,6 +136,20 @@ export function runConversationStoreContract(
       expect(ranged.sessions.map((s) => s.id)).toEqual(["s3", "s2", "s1"]);
     });
 
+    it("stores the tenant, filters by it and reads sessions without one as null", async () => {
+      const base = { userId: "u1", language: "en-IN" } as const;
+      await store.createSession({ ...base, id: "t1", tenantId: "acme", startedAt: iso(0) });
+      await store.createSession({ ...base, id: "t2", tenantId: "globex", startedAt: iso(60_000) });
+      // A record written by 0.11 has no tenantId at all.
+      await store.createSession({ ...base, id: "t3", startedAt: iso(120_000) });
+      expect((await store.getSessionSummary("t1"))?.tenantId).toBe("acme");
+      expect((await store.getSessionSummary("t3"))?.tenantId).toBeNull();
+      const acme = await store.listSessions({ userId: "u1", tenantId: "acme" });
+      expect(acme.sessions.map((s) => s.id)).toEqual(["t1"]);
+      const all = await store.listSessions({ userId: "u1" });
+      expect(all.sessions.map((s) => s.id)).toEqual(["t3", "t2", "t1"]);
+    });
+
     it("deletes sessions older than a date with their events", async () => {
       await session("old", 0);
       await store.appendEvents("old", [userMessage("old", 1)]);

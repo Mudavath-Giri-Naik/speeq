@@ -6,6 +6,7 @@
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | useSpeeqForm(formId, binding) | Fill a draft of one form; never submits; skips fields the visitor edited.                                                                                      |
 | useSpeeq()                    | Live snapshot, client, sendText, startListening, stopListening, cancel, setLanguage, confirm, resolveUiAction and speak, plus pendingUiAction in the snapshot. |
+| useSpeeqIdentity()            | `{ identity, refresh }`: who the server says is talking. Call `refresh()` right after your own login or logout.                                                |
 | useSpeeqEvent(event, handler) | Subscribes to one public client event for the component lifetime.                                                                                              |
 | useSpeeqContext(data)         | Merges mounted page data into requests on a provider-owned client. Later registrations take precedence.                                                        |
 | useSpeeqAudit(options)        | Independent audit client with listSessions and getSession.                                                                                                     |

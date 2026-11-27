@@ -8,9 +8,11 @@ import {
   SpeeqError,
 } from "@speeq/core";
 import { AuditRecorder } from "../audit/recorder.js";
+import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { signSessionToken } from "../security/token.js";
 import { json, readJson } from "./http.js";
+import { identitySummary } from "./identity.js";
 
 /** Public client configuration derived from the server config. */
 export function clientConfig(rt: Runtime<AgentUser>): ClientConfig {
@@ -48,7 +50,13 @@ export async function handleCreateSession<TUser extends AgentUser>(
       : rt.config.defaultLanguage;
   const sessionId = createId("ses");
   const startedAt = new Date().toISOString();
-  await rt.config.raw.store.createSession({ id: sessionId, userId, language, startedAt });
+  await rt.config.raw.store.createSession({
+    id: sessionId,
+    userId,
+    tenantId: user?.tenantId ?? null,
+    language,
+    startedAt,
+  });
   const recorder = new AuditRecorder(rt.config, rt.config.raw.store, sessionId, userId);
   await recorder.record("session.started", {
     userId,
@@ -72,6 +80,7 @@ export async function handleCreateSession<TUser extends AgentUser>(
     ),
     expiresAt: new Date(exp * 1000).toISOString(),
     config: clientConfig(rt as Runtime<AgentUser>),
+    identity: await identitySummary(rt.config as ResolvedConfig, user),
   };
   return json(response, 200, headers);
 }

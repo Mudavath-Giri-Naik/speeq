@@ -12,7 +12,7 @@ export {
   TELEMETRY_SCHEMA_VERSION,
 } from "./constants.js";
 export * from "./errors.js";
-export type { AgentContext, AgentUser } from "./interfaces/context.js";
+export type { AgentContext, AgentUser, AgentUserProfile } from "./interfaces/context.js";
 export type { KnowledgeResult, KnowledgeSource } from "./interfaces/knowledge.js";
 export type {
   JsonSchema,

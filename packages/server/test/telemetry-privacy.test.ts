@@ -26,7 +26,25 @@ const CANARIES = {
   agentName: "Helper",
   agentInstructions: "Help the user.",
   knowledgeTitle: "Refunds",
+  tenantId: "tenant-canary-6120",
+  displayName: "CANARY_DISPLAY_NAME_2291",
+  preferredName: "CANARY_PREFERRED_4417",
 } as const;
+
+/** The test user, with a tenant and an exposed profile (release 0.12 identity fields). */
+function canaryUser(request: Request) {
+  const user = userResolver(request);
+  if (!user) return null;
+  return {
+    ...user,
+    tenantId: CANARIES.tenantId,
+    profile: {
+      displayName: CANARIES.displayName,
+      preferredName: CANARIES.preferredName,
+      locale: "te-IN",
+    },
+  };
+}
 
 function capture() {
   const batches: TelemetryBatch[] = [];
@@ -86,7 +104,8 @@ describe("telemetry privacy contract", () => {
     ];
     const { speeq } = makeSpeeq(script, {
       projectKey: "pk_abcdefgh12345678",
-      resolveUser: userResolver,
+      resolveUser: canaryUser,
+      identity: { expose: ["displayName", "preferredName", "locale"] },
       allowedOrigins: [CANARIES.origin],
       telemetry: { transport, flushIntervalMs: 0 },
     });
@@ -104,7 +123,11 @@ describe("telemetry privacy contract", () => {
     const pending = events.find((e) => e.type === "confirmation.required");
     if (pending && "confirmationId" in pending) await session.confirm(pending.confirmationId, true);
     await session.turn("this one fails");
-    return { batches, session };
+    const probe = await speeq.handler(
+      new Request("http://localhost/api/speeq/identity", { headers }),
+    );
+    const { identity } = (await probe.json()) as { identity: { fingerprint: string } };
+    return { batches, session, fingerprint: identity.fingerprint };
   }
 
   it("sends only schema-valid batches", async () => {
@@ -114,12 +137,21 @@ describe("telemetry privacy contract", () => {
   });
 
   it("never contains user content, identifiers, tool or route names, secrets or headers", async () => {
-    const { batches, session } = await richConversation();
+    const { batches, session, fingerprint } = await richConversation();
     const wire = JSON.stringify(batches);
     const forbidden = [
       ...Object.values(CANARIES),
       session.sessionId,
       session.token,
+      fingerprint,
+      // Identity and personalisation field names (release 0.12) must never appear either.
+      "tenantId",
+      "profile",
+      "fingerprint",
+      "identity",
+      "displayName",
+      "preferredName",
+      "locale",
       "test-secret-test-secret", // the signing secret
       "CANARY_PATH",
       "x-test-user",

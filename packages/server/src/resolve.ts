@@ -27,6 +27,8 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
   maxSteps: number;
   historyTurns: number;
   allowAnonymous: boolean;
+  /** Exposed profile fields, validated. */
+  identityExpose: ("displayName" | "preferredName" | "locale")[];
   routes: Map<string, RouteDefinition>;
   tools: Map<string, ResolvedTool<TUser>>;
   // biome-ignore lint/suspicious/noExplicitAny: heterogeneous UI action inputs, validated per action.
@@ -101,6 +103,16 @@ export function resolveConfig<TUser extends AgentUser>(
   if (!languages.includes(defaultLanguage))
     throw fail("`agent.defaultLanguage` must be in `agent.languages`.");
 
+  const exposable = ["displayName", "preferredName", "locale"] as const;
+  const identityExpose: (typeof exposable)[number][] = [];
+  for (const field of config.identity?.expose ?? []) {
+    if (!(exposable as readonly string[]).includes(field))
+      throw fail(
+        `identity.expose: "${String(field)}" cannot be exposed (allowed: ${exposable.join(", ")}).`,
+      );
+    if (!identityExpose.includes(field)) identityExpose.push(field);
+  }
+
   const routes = new Map<string, RouteDefinition>();
   for (const r of config.routes ?? []) {
     if (!ROUTE_ID_RE.test(r.id)) throw fail(`route id "${r.id}" must match ${ROUTE_ID_RE}.`);
@@ -158,6 +170,7 @@ export function resolveConfig<TUser extends AgentUser>(
     maxSteps: Math.max(1, Math.min(config.agent.maxSteps ?? 5, 12)),
     historyTurns: Math.max(0, config.agent.historyTurns ?? 8),
     allowAnonymous: config.allowAnonymous ?? config.resolveUser === undefined,
+    identityExpose,
     routes,
     tools,
     uiActions,

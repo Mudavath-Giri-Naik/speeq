@@ -1,5 +1,5 @@
-import type { ProtocolEvent, SpeechInput } from "@speeq/core";
-import { type PublicError, SpeeqError, toPublicError } from "@speeq/core/errors";
+import type { IdentitySummary, ProtocolEvent, SpeechInput } from "@speeq/core";
+import { isSpeeqError, type PublicError, SpeeqError, toPublicError } from "@speeq/core/errors";
 import {
   baseLanguage,
   correctWithVocabulary,
@@ -9,6 +9,7 @@ import {
   TypedEmitter,
 } from "@speeq/core/utils";
 import { pageContext } from "./context.js";
+import { fetchIdentity, watchIdentity } from "./identity.js";
 import { LanguageMode } from "./language-mode.js";
 import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
 import { ServerSpeechInput, type SpeechRequest } from "./server-speech-input.js";
@@ -59,7 +60,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         });
         if (!response.ok) {
           const error = (await response.json().catch(() => null))?.error;
-          if (error?.code === "SESSION_EXPIRED" || error?.code === "UNAUTHENTICATED")
+          if (
+            ["SESSION_EXPIRED", "UNAUTHENTICATED", "IDENTITY_CHANGED", "AUTH_UNAVAILABLE"].includes(
+              error?.code,
+            )
+          )
             throw new RequestError(response.status, error);
           throw new SpeeqError("SPEECH_UNAVAILABLE");
         }
@@ -117,6 +122,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     },
     config: null,
     sessionId: null,
+    identity: null,
   } satisfies SpeeqSnapshot);
   const emitter = new TypedEmitter<{ [K in keyof SpeeqClientEvents]: SpeeqClientEvents[K] }>();
   const speech = new SpeechQueue(output, options.speakReplies !== false);
@@ -219,9 +225,22 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     commitTimer = undefined;
   }
 
+  /** Records who the server says is talking and tells listeners when that changes. */
+  function setIdentity(identity: IdentitySummary) {
+    const before = snapshot.identity;
+    if (
+      before?.fingerprint === identity.fingerprint &&
+      JSON.stringify(before.profile) === JSON.stringify(identity.profile)
+    )
+      return;
+    update({ identity });
+    emitter.emit("identity", identity);
+  }
+
   const request = sessions(
     options,
-    ({ sessionId, config }) => {
+    ({ sessionId, config, identity }) => {
+      if (identity) setIdentity(identity);
       if (input instanceof ServerSpeechInput)
         input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
       const languages =
@@ -259,7 +278,57 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       });
     },
     () => (uiHandlers.size > 0 ? ["ui-actions"] : []),
+    // A speech request found the identity changed: reset outside that request.
+    () => queueMicrotask(() => !destroyed && resetIdentity()),
   );
+
+  /**
+   * The signed-in user changed (login, logout, account or tenant switch). Nothing of the previous
+   * conversation survives: stream, transcript, confirmation, UI action, speech and stored session.
+   */
+  function resetIdentity(error: PublicError | null = null) {
+    uiAbort?.abort();
+    uiAbort = undefined;
+    if (callActive) endCall();
+    interrupt(true);
+    request.forget();
+    if (input instanceof ServerSpeechInput) input.clearLast();
+    update({
+      messages: [],
+      interimTranscript: "",
+      pendingConfirmation: null,
+      pendingUiAction: null,
+      activeTools: [],
+      error,
+      sessionId: null,
+      state: error ? "error" : "idle",
+    });
+  }
+
+  let probing: Promise<IdentitySummary | null> | undefined;
+  /** Checks who is signed in now; resets the conversation if it is someone else. */
+  function refreshIdentity(): Promise<IdentitySummary | null> {
+    if (destroyed) return Promise.resolve(null);
+    probing ??= (async () => {
+      const endpoint = options.endpoint.replace(/\/+$/, "");
+      const identity = await fetchIdentity(
+        (url, init) => (options.fetch ?? globalThis.fetch)(url, init),
+        endpoint,
+      );
+      if (!identity || destroyed) return identity;
+      const known = request.current()?.identity?.fingerprint ?? snapshot.identity?.fingerprint;
+      if (known && known !== identity.fingerprint) resetIdentity();
+      setIdentity(identity);
+      return identity;
+    })().finally(() => {
+      probing = undefined;
+    });
+    return probing;
+  }
+  // Automatic checks only once a conversation exists: before that there is nothing to protect.
+  const unwatch = watchIdentity(() => {
+    if (!destroyed && request.current()) void refreshIdentity();
+  });
 
   function markStreaming(status: "interrupted" | "error") {
     return snapshot.messages.some((m) => m.status === "streaming")
@@ -334,7 +403,8 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     } | null,
     confirmation?: { confirmationId: string; approved: boolean },
     uiResult?: UiOutcome,
-  ) {
+    retried = false,
+  ): Promise<void> {
     interrupt();
     if (user) uiAbort?.abort();
     let uiCall: (PendingUiAction & { confirm: boolean }) | undefined;
@@ -470,6 +540,16 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         emitter.emit("event", event);
       }
     } catch (error) {
+      if (!signal.aborted && isSpeeqError(error) && error.code === "IDENTITY_CHANGED") {
+        // A new message from the new identity is sent again in a fresh session, once. A confirmation
+        // or UI result belonged to the previous identity: it is dropped, never replayed.
+        if (user && !retried) {
+          resetIdentity();
+          return run(user, undefined, undefined, true);
+        }
+        resetIdentity(toPublicError(error));
+        return;
+      }
       if (!signal.aborted) fail(toPublicError(error));
     }
     if (signal.aborted) return;
@@ -798,6 +878,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
       if (callActive) endCall();
       else if (snapshot.state === "listening") input?.stop();
     },
+    refreshIdentity,
     async confirm(confirmationId, approved) {
       if (!destroyed) await run(null, { confirmationId, approved });
     },
@@ -847,6 +928,7 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         input.clearLast();
       }
       destroyed = true;
+      unwatch();
       uiAbort?.abort();
       callActive = false;
       callId++;

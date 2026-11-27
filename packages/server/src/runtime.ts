@@ -17,6 +17,7 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
   readonly telemetry: TelemetrySink;
   private readonly turnLimiter: RateLimiter | null;
   private readonly sessionLimiter: RateLimiter | null;
+  private readonly identityLimiter: RateLimiter | null;
   private lastRetentionRun = 0;
 
   constructor(config: SpeeqConfig<TUser>, telemetry: TelemetrySink = noopTelemetry) {
@@ -29,6 +30,10 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
       : null;
     this.sessionLimiter = this.config.sessionsPerMinute
       ? new RateLimiter(this.config.sessionsPerMinute)
+      : null;
+    // Its own budget, so focus probes never use up session creation.
+    this.identityLimiter = this.config.sessionsPerMinute
+      ? new RateLimiter(Math.max(30, this.config.sessionsPerMinute * 3))
       : null;
   }
 
@@ -98,6 +103,13 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
   limitSession(request: Request, userId: string | null): void {
     if (!this.sessionLimiter) return;
     const wait = this.sessionLimiter.hit(userId ? `u:${userId}` : `ip:${clientKey(request)}`);
+    if (wait !== null) throw new SpeeqError("RATE_LIMITED", { retryAfterMs: wait });
+  }
+
+  /** Throws `RATE_LIMITED` if this user/IP probed the identity too often. Best effort. */
+  limitIdentity(request: Request, userId: string | null): void {
+    if (!this.identityLimiter) return;
+    const wait = this.identityLimiter.hit(userId ? `u:${userId}` : `ip:${clientKey(request)}`);
     if (wait !== null) throw new SpeeqError("RATE_LIMITED", { retryAfterMs: wait });
   }
 

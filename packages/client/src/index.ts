@@ -1,3 +1,4 @@
+export type { IdentitySummary } from "@speeq/core";
 export { isSpeeqError, SpeeqError } from "@speeq/core/errors";
 export { formFillActionName } from "@speeq/core/utils";
 export type {

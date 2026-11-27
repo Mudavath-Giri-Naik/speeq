@@ -114,6 +114,15 @@ export interface SpeechConfig {
   };
 }
 
+/** What the browser and the model may know about the signed-in user. */
+export interface IdentityConfig {
+  /**
+   * Profile fields (from `resolveUser`'s `profile`) sent to the browser in the identity summary
+   * and, later, to the model. Default `[]`: nothing. User and tenant ids are never exposed.
+   */
+  expose?: ("displayName" | "preferredName" | "locale")[];
+}
+
 /** Everything `createSpeeq` accepts. */
 export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   /** Public project key (`pk_…`) from the speeq platform. Used only for telemetry. */
@@ -127,6 +136,8 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   store: ConversationStore;
   /** Returns the signed-in user for a request (e.g. from your NextAuth session), or `null`. */
   resolveUser?(request: Request): TUser | null | Promise<TUser | null>;
+  /** What may be shared about the signed-in user. */
+  identity?: IdentityConfig;
   /** Allow sessions without a user. Default: `true` if `resolveUser` is not set, else `false`. */
   allowAnonymous?: boolean;
   routes?: RouteDefinition[];

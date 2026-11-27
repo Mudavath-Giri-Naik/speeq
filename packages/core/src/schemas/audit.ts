@@ -165,6 +165,8 @@ export type NewConversationEventOf<T extends ConversationEventType> = Extract<
 export const NewSessionSchema = z.object({
   id: z.string(),
   userId: z.string().nullable(),
+  /** Tenant of the user, or `null`. Optional so records written before 0.12 still parse. */
+  tenantId: z.string().nullable().optional(),
   language: LanguageSchema,
   startedAt: z.string(),
 });
@@ -175,6 +177,8 @@ export type NewSession = z.infer<typeof NewSessionSchema>;
 export const SessionSummarySchema = z.object({
   id: z.string(),
   userId: z.string().nullable(),
+  /** Tenant of the user, or `null` (also for sessions stored before 0.12). */
+  tenantId: z.string().nullable().optional(),
   language: LanguageSchema,
   startedAt: z.string(),
   lastEventAt: z.string(),
@@ -192,6 +196,7 @@ export type SessionSummary = z.infer<typeof SessionSummarySchema>;
 /** Filter for listing sessions. Dates are ISO strings. */
 export const SessionFilterSchema = z.object({
   userId: z.string().optional(),
+  tenantId: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),

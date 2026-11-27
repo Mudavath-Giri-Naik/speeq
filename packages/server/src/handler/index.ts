@@ -11,6 +11,7 @@ import { speechRoutes } from "../speech/handlers.js";
 import { SDK_VERSION } from "../version.js";
 import { handleGetSession, handleListSessions } from "./audit.js";
 import { errorResponse, json } from "./http.js";
+import { handleIdentity } from "./identity.js";
 import { handleCreateSession } from "./session.js";
 import { handleConfirm, handleTurn } from "./turn.js";
 import { handleUiResult } from "./ui.js";
@@ -20,7 +21,7 @@ export type SpeeqHandler = (request: Request) => Promise<Response>;
 
 // Matches the speeq route at the end of the path, wherever the handler is mounted.
 const ROUTE_RE =
-  /\/(health|session|session\/([^/]+)\/(turn|confirm|ui-result|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
+  /\/(health|identity|session|session\/([^/]+)\/(turn|confirm|ui-result|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
 
 /**
  * Creates the request handler. It only uses `Request`/`Response`, so it runs on Next.js route
@@ -50,6 +51,8 @@ export function createRequestHandler<TUser extends AgentUser>(rt: Runtime<TUser>
         };
         return json(body, 200, headers);
       }
+      if (route === "identity" && method === "GET")
+        return await handleIdentity(rt, request, headers);
       if (route === "session" && method === "POST") {
         const response = await handleCreateSession(rt, request, headers);
         if (!speech) return response;

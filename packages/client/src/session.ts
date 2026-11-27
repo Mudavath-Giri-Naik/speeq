@@ -1,10 +1,12 @@
 import type { CreateSessionResponse } from "@speeq/core";
 import { SpeeqError } from "@speeq/core/errors";
 import { pageContext } from "./context.js";
+import { validIdentity } from "./identity.js";
 import { post, RequestError } from "./stream.js";
 import type { SpeeqClientOptions } from "./types.js";
 
-type Session = Omit<CreateSessionResponse, "protocolVersion">;
+/** A session as the client keeps it. */
+export type Session = Omit<CreateSessionResponse, "protocolVersion">;
 
 function valid(s: Session | null): s is Session {
   const c = s?.config;
@@ -27,7 +29,8 @@ function valid(s: Session | null): s is Session {
       (k) => typeof c.features[k] === "boolean",
     ) &&
     Array.isArray(c.routes) &&
-    c.routes.every((r) => typeof r?.id === "string" && typeof r.title === "string")
+    c.routes.every((r) => typeof r?.id === "string" && typeof r.title === "string") &&
+    (s.identity === undefined || validIdentity(s.identity))
   );
 }
 
@@ -36,6 +39,8 @@ export function sessions(
   options: SpeeqClientOptions,
   onSession: (s: Session) => void,
   capabilities: () => string[] = () => [],
+  /** Called when a speech request learns that the signed-in identity changed. */
+  onIdentityChanged: () => void = () => {},
 ) {
   const endpoint = options.endpoint.replace(/\/+$/, "");
   const key = `speeq:session:${endpoint}`;
@@ -65,8 +70,8 @@ export function sessions(
     const data: Session = await response.json();
     signal.throwIfAborted();
     if (!valid(data)) throw new SpeeqError("INTERNAL", { retryable: true });
-    const { sessionId, sessionToken, expiresAt, config } = data;
-    return { sessionId, sessionToken, expiresAt, config };
+    const { sessionId, sessionToken, expiresAt, config, identity } = data;
+    return { sessionId, sessionToken, expiresAt, config, ...(identity ? { identity } : {}) };
   }
   async function ensure(language: string, signal: AbortSignal, refresh: boolean): Promise<Session> {
     signal.throwIfAborted();
@@ -94,7 +99,14 @@ export function sessions(
     return session as Session;
   }
 
-  return async (
+  /** Drops the current session (memory and storage); the next request opens a new one. */
+  function forget() {
+    current = null;
+    opening = undefined;
+    storage((s) => s.removeItem(key));
+  }
+
+  const requestWith = async (
     path: "turn" | "confirm" | "ui-result" | ((base: string, token: string) => Promise<Response>),
     language: string,
     makeBody: () => unknown,
@@ -117,6 +129,12 @@ export function sessions(
       return await send();
     } catch (error) {
       signal.throwIfAborted();
+      if (error instanceof RequestError && error.code === "IDENTITY_CHANGED") {
+        // This session belonged to someone else (or to nobody): never reuse it.
+        if (current === session) forget();
+        if (typeof path === "function") onIdentityChanged();
+        throw error;
+      }
       if (
         !(error instanceof RequestError) ||
         error.httpStatus !== 401 ||
@@ -131,4 +149,9 @@ export function sessions(
       return send();
     }
   };
+  return Object.assign(requestWith, {
+    forget,
+    /** The current session, if one is open. */
+    current: () => current,
+  });
 }
