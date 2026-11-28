@@ -13,7 +13,8 @@
       "!**/dist-packs",
       "!apps/docs/components/animate-ui",
       "!apps/docs/components/ui",
-      "!**/.pglite"
+      "!**/.pglite",
+      "!.changeset"
     ]
   },
   "formatter": {
