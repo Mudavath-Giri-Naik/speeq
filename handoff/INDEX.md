@@ -31,5 +31,6 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 025 | Memory modes: persistent conversations, preferences, clearing                                | reviewed-accepted | task/025-memory-modes         |
 | 026 | Discovery: auth bindings, customer data sources, business facts                              | reviewed-accepted | task/026-discovery            |
 | 027 | Terminal control center                                                                      | reviewed-accepted | task/027-control-center       |
+| 028 | Verification, doctor, scenarios A to D, benchmarks, docs, release prep                       | reviewed-accepted | task/028-verification-release |
 
-Release 0.12 (tasks 022 to 028) is planned in `docs/maintainers/release-0.12-plan.md`; it replaces the Phase 2 tasks 022 and 023. Briefs are written one at a time after the previous task is accepted.
+Release 0.12 (tasks 022 to 028) is complete: plan `docs/maintainers/release-0.12-plan.md`, report `docs/maintainers/release-0.12-report.md`. Publishing to `next` happens through the Version Packages PR; `latest` only on the owner's word.
