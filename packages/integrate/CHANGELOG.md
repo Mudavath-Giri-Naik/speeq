@@ -1,5 +1,18 @@
 # @speeq/integrate
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [3ab2636]
+- Updated dependencies [847c752]
+  - @speeq/compiler@0.12.1
+  - @speeq/server@0.12.1
+  - @speeq/store-memory@0.12.1
+  - @speeq/store-mongodb@0.12.1
+  - @speeq/core@0.12.1
+  - @speeq/testing@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes

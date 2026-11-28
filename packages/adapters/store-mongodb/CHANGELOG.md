@@ -1,5 +1,11 @@
 # @speeq/store-mongodb
 
+## 0.12.1
+
+### Patch Changes
+
+- @speeq/core@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes

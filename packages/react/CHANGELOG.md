@@ -1,5 +1,11 @@
 # @speeq/react
 
+## 0.12.1
+
+### Patch Changes
+
+- @speeq/client@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes

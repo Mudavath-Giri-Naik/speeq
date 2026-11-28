@@ -1,5 +1,11 @@
 # @speeq/llm-gemini
 
+## 0.12.1
+
+### Patch Changes
+
+- @speeq/core@0.12.1
+
 ## 0.12.0
 
 ### Patch Changes

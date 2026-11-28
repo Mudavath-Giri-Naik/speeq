@@ -1,6 +1,6 @@
 {
   "name": "@speeq/integrate",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Plans, applies and rolls back speeq integration in a Next.js app. Writes only files it owns.",
   "license": "MIT",
   "type": "module",

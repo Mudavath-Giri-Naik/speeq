@@ -1,5 +1,22 @@
 # speeq
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [847c752]
+  - @speeq/server@0.12.1
+  - @speeq/cli@0.12.1
+  - @speeq/client@0.12.1
+  - @speeq/llm-gemini@0.12.1
+  - @speeq/llm-openai-compatible@0.12.1
+  - @speeq/speech@0.12.1
+  - @speeq/store-memory@0.12.1
+  - @speeq/store-mongodb@0.12.1
+  - @speeq/core@0.12.1
+  - @speeq/react@0.12.1
+  - @speeq/testing@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes
