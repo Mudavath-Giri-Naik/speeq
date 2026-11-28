@@ -1,5 +1,29 @@
 # @speeq/integrate
 
+## 0.12.0
+
+### Minor Changes
+
+- 840a1a1: `speeq setup` is now the control center: a status card, twelve sections (agent identity and personality, business, model and behavior, voice and languages, authentication, customer context, page context, greetings and starters, memory, storage and retention, chat box, verification), each with a badge and one deterministically ranked recommendation. Business facts, presets and sign-in come from the code with file and line evidence. Bind a detected sign-in system, approve discovered customer data fields (restricted fields can never be approved; endpoints without a visible sign-in check need an explicit confirmation), preview greetings with sample data, choose memory modes, and set up MongoDB with a hidden URI and an optional connection check. Edits go to a draft; Save shows a diff, writes `.speeq/setup.json` (version 2), a server-only `.speeq/generated/agent.ts` (plus `identity.ts` and `context.ts`) and wires `...agentSettings` into `speeq.config.ts` once, through the integration journal so `speeq rollback` undoes it. Settings your own config overrides are reported. `speeq setup <section>` deep-links and `speeq setup --json` prints the state without secrets.
+- 80daf07: Discovery for personalisation. `discoverPersonalization({ root, manifest })` finds the app's sign-in system with file and line evidence (Auth.js v5, NextAuth v4, Supabase Auth, Clerk, Better Auth bound automatically; Kinde and your own helpers flagged for review; Firebase Auth reported as unsupported with what to do), candidate customer data sources from GET endpoints (category, response fields, sensitive fields, auth and user-scope evidence, whether they can be bound without code) and business facts from layout metadata, package.json and the README. It runs separately from `scan`, so rescans stay incremental. The integration engine renders a server-only `resolveUser` for a detected sign-in system and context sources that call your own endpoints with the visitor's cookies, exposing only approved fields; sensitive fields can never be approved and endpoints without a visible sign-in check need an explicit review.
+- b43d094: The assistant can know the business and sound the way you want. New `business` profile and `agent.description` / `agent.style` (personality, response length, explanation depth, name usage, follow-ups) map to fixed prompt lines that never touch the safety rules. Greetings and starter prompts are now chosen on the server, without a model call, from `greeting` templates (guest, member, returning, per page) and `starters` filtered by sign-in, page and the capabilities the app really has; a template whose value is missing is skipped, so names and counts are never invented. They arrive with the session and with `GET /identity?path=`; the client exposes `snapshot.greeting` and `newConversation()`. Errors carry a stable `reason` (rate limited, quota exhausted, invalid key, model unavailable, busy, network, timeout and more) with calm customer messages, and the server logs one actionable diagnostic line in development without keys or customer data. The generated chat box shows the server greeting and starters, checks who is signed in when it opens, says when an account change started a fresh conversation, and has a New conversation button. Agent presets (general, e-commerce, education, admissions, SaaS, logistics, support, custom) are available as data for the setup wizard.
+- 22327d0: Conversation memory. New `memory.mode`: `session` (default, unchanged), `persistent` (signed-in users continue their own latest conversation, chosen and checked by the server for the same user and tenant) and `preferences` (also keeps preferences the user states, through a built-in `remember_preference` tool offered only to signed-in users, in fixed categories, screened for contact details and secrets, shown to the model as "may be outdated" data and never as proof of access). New endpoints `GET /session/:id/messages` (own transcript) and `POST /session/:id/clear-memory` (forget or delete conversations and delete preferences; a cleared session answers `SESSION_EXPIRED`). Stores gain optional `getPreferences`, `setPreference` and `clearScope`; the memory and MongoDB stores implement them and the contract suite tests them. The client adds `restoreConversation()`, `clearMemory()` and `snapshot.memory`, and a session kept across a reload shows its transcript again. The generated chat box continues conversations, offers Forget, and notes saved preferences. `memory.retentionDays` shortens retention together with `audit.retentionDays`.
+- 600f773: `speeq verify` and `speeq doctor` check personalisation: settings wired into speeq.config.ts, the bound sign-in still exists, cross-session memory has a signed-in user, the store fits the memory mode (MongoDB URI present and persistence verified), and approved context sources are generated. The runtime level runs your settings with a mock model and a test user: guest, sign-in, sign-out, account and tenant switch, a forged browser identity, greetings that use only real values, and memory that continues only the owner's conversation. `speeq verify --live-store` proves persistence in your MongoDB using temporary collections it drops afterwards. Fixed: the generated chat box passed a wrongly shaped `getContext`, which failed strict type checks (`next build`) in host apps; the client already sends the page path and title.
+
+### Patch Changes
+
+- Updated dependencies [ca00970]
+- Updated dependencies [80daf07]
+- Updated dependencies [b43d094]
+- Updated dependencies [eafb316]
+- Updated dependencies [22327d0]
+  - @speeq/core@0.12.0
+  - @speeq/server@0.12.0
+  - @speeq/compiler@0.12.0
+  - @speeq/store-memory@0.12.0
+  - @speeq/store-mongodb@0.12.0
+  - @speeq/testing@0.12.0
+
 ## 0.11.0
 
 ### Minor Changes

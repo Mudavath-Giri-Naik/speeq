@@ -1,5 +1,15 @@
 # @speeq/speech
 
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [ca00970]
+- Updated dependencies [b43d094]
+- Updated dependencies [eafb316]
+- Updated dependencies [22327d0]
+  - @speeq/core@0.12.0
+
 ## 0.11.0
 
 ### Patch Changes
