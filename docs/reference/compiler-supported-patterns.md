@@ -6,13 +6,13 @@ stable `SQ` code.
 
 ## What it finds
 
-| Kind         | Source                                                                                          |
-| ------------ | ----------------------------------------------------------------------------------------------- |
-| `route`      | App Router `page` files (`app/`, `src/app/`), Pages Router files (`pages/`, `src/pages/`)       |
-| `endpoint`   | App Router `route` files (one capability per exported method), Pages Router `pages/api` files   |
-| `function`   | Exports of `"use server"` files, and exports tagged `@speeq` in JSDoc                           |
-| `form`       | Native `<form>` elements and React Hook Form `register("name")` calls                           |
-| `filter-set` | A Zod schema parsed from a page's `searchParams`, or literal `useSearchParams().get("x")` reads |
+| Kind         | Source                                                                                                                                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `route`      | App Router `page` files (`app/`, `src/app/`), Pages Router files (`pages/`, `src/pages/`)                                                                                                                  |
+| `endpoint`   | App Router `route` files (one capability per exported method), Pages Router `pages/api` files                                                                                                              |
+| `function`   | Exports of `"use server"` files, and exports tagged `@speeq` in JSDoc                                                                                                                                      |
+| `form`       | Native `<form>` elements and React Hook Form `register("name")` calls                                                                                                                                      |
+| `filter-set` | A Zod schema parsed from a page's `searchParams`, or literal `useSearchParams().get("x")` reads in the page or in components it imports from its own route folder (two levels, never shared `components/`) |
 
 Plain exported helper functions are **never** candidates. Tag one with `@speeq`, `@speeq read` or
 `@speeq write` to offer it, or `@speeq-ignore` to exclude a server action.
