@@ -44,6 +44,13 @@ export interface AgentConfig {
   description?: string;
   /** Tone and length. Absent: the default warm, short spoken style. */
   style?: AgentStyle;
+  /**
+   * How long a model call may go without sending anything (before its first chunk and between
+   * chunks), in milliseconds. A slower model ends the turn with a `PROVIDER_ERROR` whose reason is
+   * `timeout` ("That took too long. Please try again.") instead of leaving the visitor waiting.
+   * Default 20000, from 3000 to 120000.
+   */
+  modelTimeoutMs?: number;
   /** Maximum LLM calls per turn (tool round-trips). Default 5. */
   maxSteps?: number;
   /** How many previous user turns are sent to the model. Default 8. */

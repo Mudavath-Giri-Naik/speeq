@@ -36,6 +36,8 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
   defaultLanguage: string;
   maxSteps: number;
   historyTurns: number;
+  /** Silence allowed from the model, see `agent.modelTimeoutMs`. */
+  modelTimeoutMs: number;
   allowAnonymous: boolean;
   /** Context sources by id. */
   contextProviders: Map<string, ResolvedProvider<TUser>>;
@@ -248,6 +250,7 @@ export function resolveConfig<TUser extends AgentUser>(
     defaultLanguage,
     maxSteps: Math.max(1, Math.min(config.agent.maxSteps ?? 5, 12)),
     historyTurns: Math.max(0, config.agent.historyTurns ?? 8),
+    modelTimeoutMs: clamp(config.agent.modelTimeoutMs ?? 20_000, 3000, 120_000),
     allowAnonymous: config.allowAnonymous ?? config.resolveUser === undefined,
     identityExpose,
     contextProviders,

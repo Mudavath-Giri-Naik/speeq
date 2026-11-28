@@ -6,6 +6,7 @@ import {
   type LLMToolCall,
   type LLMToolDefinition,
   type ProtocolEventInput,
+  SpeeqError,
   type TurnEndReason,
   type Usage,
 } from "@speeq/core";
@@ -169,26 +170,51 @@ async function callModel<TUser extends AgentUser>(
 ): Promise<{ text: string; calls: LLMToolCall[] }> {
   let text = "";
   const calls: LLMToolCall[] = [];
+  // A model that goes silent ends the turn with a clear timeout instead of an endless "thinking".
+  const silence = new AbortController();
+  const limit = rt.config.modelTimeoutMs;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const arm = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => silence.abort(), limit);
+  };
   const request = {
     messages,
     tools,
-    signal: rt.ctx.signal,
+    signal: AbortSignal.any([rt.ctx.signal, silence.signal]),
     ...(rt.config.raw.agent.temperature !== undefined
       ? { temperature: rt.config.raw.agent.temperature }
       : {}),
   };
-  for await (const chunk of rt.config.raw.llm.stream(request)) {
-    if (chunk.type === "text-delta") {
-      if (!chunk.text) continue;
-      rt.firstTokenAt ??= performance.now();
-      text += chunk.text;
-      rt.emit({ type: "assistant.delta", text: chunk.text });
-    } else if (chunk.type === "tool-call") {
-      calls.push(chunk.call);
-    } else if (chunk.usage) {
-      addUsage(rt.usage, chunk.usage);
+  const timedOut = () =>
+    new SpeeqError("PROVIDER_ERROR", {
+      reason: "timeout",
+      retryable: true,
+      details: { provider: rt.config.raw.llm.kind, timeoutMs: limit, reason: "timeout" },
+    });
+  arm();
+  try {
+    for await (const chunk of rt.config.raw.llm.stream(request)) {
+      if (silence.signal.aborted) throw timedOut();
+      arm();
+      if (chunk.type === "text-delta") {
+        if (!chunk.text) continue;
+        rt.firstTokenAt ??= performance.now();
+        text += chunk.text;
+        rt.emit({ type: "assistant.delta", text: chunk.text });
+      } else if (chunk.type === "tool-call") {
+        calls.push(chunk.call);
+      } else if (chunk.usage) {
+        addUsage(rt.usage, chunk.usage);
+      }
     }
+  } catch (error) {
+    if (silence.signal.aborted && !rt.ctx.signal.aborted) throw timedOut();
+    throw error;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
+  if (silence.signal.aborted && !rt.ctx.signal.aborted) throw timedOut();
   return { text, calls };
 }
 
