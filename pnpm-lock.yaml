@@ -621,6 +621,9 @@ importers:
       '@speeq/store-memory':
         specifier: workspace:*
         version: link:../adapters/store-memory
+      '@speeq/store-mongodb':
+        specifier: workspace:*
+        version: link:../adapters/store-mongodb
       '@speeq/testing':
         specifier: workspace:*
         version: link:../testing
@@ -634,6 +637,12 @@ importers:
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
+      mongodb:
+        specifier: 7.9.1
+        version: 7.9.1
+      mongodb-memory-server:
+        specifier: 11.4.0
+        version: 11.4.0(bare-buffer@3.7.3)
       zod:
         specifier: 4.6.7
         version: 4.6.7

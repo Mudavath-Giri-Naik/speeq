@@ -48,17 +48,20 @@
   "dependencies": {
     "@speeq/compiler": "workspace:*",
     "@speeq/core": "workspace:*",
-    "typescript": "6.0.3",
     "@speeq/server": "workspace:*",
     "@speeq/store-memory": "workspace:*",
-    "@speeq/testing": "workspace:*"
+    "@speeq/store-mongodb": "workspace:*",
+    "@speeq/testing": "workspace:*",
+    "typescript": "6.0.3"
   },
   "peerDependencies": {
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@speeq/tsconfig": "workspace:*",
-    "zod": "4.6.7",
-    "@types/node": "26.6.6"
+    "@types/node": "26.6.6",
+    "mongodb": "7.9.1",
+    "mongodb-memory-server": "11.4.0",
+    "zod": "4.6.7"
   }
 }

@@ -49,6 +49,8 @@ export interface Flags {
   forwardAuth: boolean;
   noConfirm: boolean;
   runHost: boolean;
+  /** `verify`: round trip against the configured MongoDB. */
+  liveStore: boolean;
   help: boolean;
   version: boolean;
   cwd?: string;

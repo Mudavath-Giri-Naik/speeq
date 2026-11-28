@@ -18,7 +18,18 @@ The SDK is pre-1.0. The release script publishes prereleases under the `next` ta
 
 ## Quickstart
 
-Install `npm i speeq zod`, or use `npm i speeq@next zod@4` for the pre-1.0 channel. The examples use the umbrella package. To use scoped imports instead, install `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. In your App Router catch-all route, mount the handler:
+The terminal does it for you in an existing Next.js app:
+
+```bash
+npx speeq@next init    # scan, approve what the assistant may use, write the glue code
+npx speeq@next setup   # control center: name, personality, model, voice, sign-in, customer data,
+                       # greetings, memory, MongoDB, checks (reviewed diffs, undo with speeq rollback)
+npx speeq@next verify  # static checks plus a mock-model smoke, identity and memory test
+```
+
+[Control center](docs/guides/control-center.md) · [Personalisation](docs/guides/personalisation.md) · [Memory](docs/guides/memory.md)
+
+By hand, install `npm i speeq zod`, or use `npm i speeq@next zod@4` for the pre-1.0 channel. The examples use the umbrella package. To use scoped imports instead, install `pnpm add @speeq/server@next @speeq/react@next @speeq/testing@next @speeq/store-memory@next zod@4`. In your App Router catch-all route, mount the handler:
 
 ```ts
 import { createSpeeq } from "speeq/server";

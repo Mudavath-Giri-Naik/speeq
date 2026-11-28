@@ -25,7 +25,7 @@ interface MongoModule {
 }
 
 /** Load `mongodb` from the app's own dependencies (speeq does not ship a driver). */
-async function driver(root: string): Promise<MongoModule | undefined> {
+export async function driver(root: string): Promise<MongoModule | undefined> {
   try {
     const req = createRequire(join(root, "package.json"));
     return (await import(pathToFileURL(req.resolve("mongodb")).href)) as MongoModule;

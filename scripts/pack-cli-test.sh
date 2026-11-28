@@ -59,6 +59,38 @@ echo "verify: exit $code, readiness $(field verify.json 'JSON.stringify(j.readin
 npx tsc --noEmit
 echo "tsc --noEmit: generated code compiles against the packed packages"
 
+# Release 0.12: personalised settings through the packed integration engine (what `speeq setup` saves).
+cat > "$scratch/out/personalise.mjs" <<'EOF'
+import { applyPlan, nodeFs, planSettingsSave, readSetup } from "@speeq/integrate";
+const fs = nodeFs(process.cwd());
+const setup = await readSetup(fs, "");
+const next = {
+  ...setup,
+  name: "Seekh",
+  agent: { description: "Helps shoppers.", style: { personality: "friendly", responseLength: "short" } },
+  business: { name: "Clean Shop", description: "A test shop for the packed release" },
+  greeting: { guest: ["Welcome to {business}!"], member: ["Welcome back, {name}!"] },
+  starters: [{ label: "Show subjects", when: { requires: ["navigation"] } }],
+  memory: { mode: "persistent" },
+  identity: { expose: ["displayName"] },
+};
+const saved = await planSettingsSave({ fs, prefix: "", setup: next, candidates: [] });
+const r = await applyPlan(fs, saved.plan);
+if (r.status !== "applied" || saved.overrides.length) { console.error(JSON.stringify({ r, saved: saved.overrides })); process.exit(1); }
+EOF
+cp "$scratch/out/personalise.mjs" ./speeq-personalise.mjs
+node ./speeq-personalise.mjs
+rm ./speeq-personalise.mjs
+grep -q "\.\.\.agentSettings," speeq.config.ts || { echo "FAIL: settings not wired"; exit 1; }
+npx tsc --noEmit
+npx speeq setup --json > "$scratch/out/state.json"
+[[ "$(field state.json 'j.sections.length')" == "12" && "$(field state.json 'j.wiring')" == "wired" ]] || { echo "FAIL: setup --json"; exit 1; }
+code=0; npx speeq verify --json > "$scratch/out/verify2.json" || code=$?
+[[ "$(field verify2.json 'j.readiness.runtime')" == "pass" ]] || { echo "FAIL: personalised runtime"; exit 1; }
+[[ "$(field verify2.json "j.checks.find(c=>c.id==='RP3').status")" == "pass" ]] || { echo "FAIL: memory isolation"; exit 1; }
+echo "personalised settings: saved, wired, compiled, state readable, identity and memory checks pass"
+npx speeq rollback --json > "$scratch/out/rollback-settings.json"
+
 code=0; npx speeq verify --json --run-host > "$scratch/out/host.json" || code=$?
 [[ "$(field host.json 'j.readiness.host')" == "pass" ]] || { echo "FAIL: host"; exit 1; }
 echo "verify --run-host: host level pass"

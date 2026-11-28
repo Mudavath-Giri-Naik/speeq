@@ -37,6 +37,7 @@ export function parseCommandLine(argv: string[]): {
       "forward-auth": { type: "boolean", default: false },
       "no-confirm": { type: "boolean", default: false },
       "run-host": { type: "boolean", default: false },
+      "live-store": { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
       version: { type: "boolean", short: "v", default: false },
       cwd: { type: "string" },
@@ -68,6 +69,7 @@ export function parseCommandLine(argv: string[]): {
     forwardAuth: values["forward-auth"] === true,
     noConfirm: values["no-confirm"] === true,
     runHost: values["run-host"] === true,
+    liveStore: values["live-store"] === true,
     help: values.help === true,
     version: values.version === true,
     ...(values.cwd ? { cwd: values.cwd } : {}),
@@ -119,6 +121,7 @@ Options
   --access <read|write> --auth <public|authenticated|roles> --roles a,b
   --forward-auth --no-confirm --name <tool>   (capabilities enable)
   --run-host     verify: also run the app's own type check (runs host commands)
+  --live-store   verify: prove MongoDB persistence (temporary speeq_verify_* collections, dropped after)
 
 Exit codes: 0 ok, 1 failure, 2 usage, 3 needs review, 4 unsupported
 `;

@@ -27,6 +27,7 @@ export const RULES: Readonly<Record<string, PackageRule>> = {
       "@speeq/compiler",
       "@speeq/server",
       "@speeq/store-memory",
+      "@speeq/store-mongodb",
       "@speeq/testing",
     ],
     internalImports: [
@@ -34,6 +35,7 @@ export const RULES: Readonly<Record<string, PackageRule>> = {
       "@speeq/compiler",
       "@speeq/server",
       "@speeq/store-memory",
+      "@speeq/store-mongodb",
       "@speeq/testing",
     ],
     externalDeps: ["typescript", "zod"],

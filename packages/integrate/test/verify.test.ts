@@ -49,15 +49,9 @@ describe("verify", () => {
     expect(r.checks.filter((c) => c.status === "fail")).toEqual([]);
     expect(r.levels).toEqual({ static: "pass", runtime: "pass", host: "not-run" });
     expect(r.ok).toBe(true);
-    expect(r.checks.filter((c) => c.level === "runtime").map((c) => c.id)).toEqual([
-      "R1",
-      "R2",
-      "R3",
-      "R4",
-      "R5",
-      "R6",
-      "R7",
-    ]);
+    expect(
+      r.checks.filter((c) => c.level === "runtime" && /^R\d/.test(c.id)).map((c) => c.id),
+    ).toEqual(["R1", "R2", "R3", "R4", "R5", "R6", "R7"]);
     expect(await snapshot(p.dir)).toEqual(before);
   });
 

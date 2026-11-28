@@ -170,6 +170,17 @@ speeq never claims "live provider verified" or "production ready".
 | runtime | `verify`            | Loads the generated tools and routes with a mock model. Write tools ask first and do not run before approval or after a denial. Auth guards block anonymous users and wrong roles. Audit routes return 404 without `authorize`. **Your code is not run:** host imports are replaced by stubs.           |
 | host    | `verify --run-host` | Runs your own `typecheck` script (or `tsc --noEmit`). This is the only level that executes commands from your project.                                                                                                                                                                                  |
 
+**Personalisation (0.12).** Static: settings from `speeq setup` are wired into `speeq.config.ts` (P1),
+the bound sign-in file and export still exist (P2), cross-session memory has a signed-in user (P3),
+the conversation store fits the memory mode, and MongoDB has its URI and verified persistence (P4),
+approved customer data sources are generated (P5). Runtime, with your settings, a mock model and a test
+user instead of your sign-in: guest, sign-in, sign-out, account and tenant switch and a forged browser
+identity behave (RP1), greetings use only real values and never an unexposed name (RP2), and memory
+continues only the owner's conversation and clears (RP3). `speeq verify --live-store` runs the RP1 and
+RP3 round trip in your MongoDB, in temporary `speeq_verify_*` collections that it drops afterwards (L1,
+host level). `speeq doctor` shows the static ones with what to do, for example "MongoDB is configured
+but persistence has not been verified".
+
 A generated file you edited (marker still present) fails S1 and its runtime tests are skipped, never
 run. Environment variable names are read from the process and `.env*` files; values are never stored or
 printed. Exit codes follow the table above: 1 if any check fails, 3 if nothing failed but capabilities

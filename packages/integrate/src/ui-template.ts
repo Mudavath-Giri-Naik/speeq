@@ -90,7 +90,6 @@ export function SpeeqAssistant() {
       onNavigate={(action) => {
         if (safePath(action.href)) router.push(action.href);
       }}
-      getContext={() => ({ page: { path: window.location.pathname, title: document.title } })}
       {...(VOICE === "none" ? { speech: { input: null, output: null }, speakReplies: false } : {})}
       {...(VOICE === "cloud" ? { voice: { input: "server", output: "browser" } } : {})}
       {...(VOICE === "sarvam" ? { voice: { input: "server", output: "server" } } : {})}

@@ -122,3 +122,9 @@ export {
   type VerifyReport,
   verifyProject,
 } from "./verify.js";
+export {
+  type LiveDb,
+  liveStoreCheck,
+  personalRuntimeChecks,
+  personalStaticChecks,
+} from "./verify-personal.js";

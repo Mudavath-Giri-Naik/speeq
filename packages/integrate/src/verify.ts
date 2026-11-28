@@ -4,6 +4,8 @@ import type { ProjectFs } from "./fsx.js";
 import { ownership } from "./owned.js";
 import { buildPlan, type PlanOptions, reviewState } from "./plan.js";
 import { runtimeChecks } from "./runtime.js";
+import { readSetup } from "./setup.js";
+import { personalRuntimeChecks, personalStaticChecks } from "./verify-personal.js";
 
 /** Readiness levels. They are reported separately and never merged. */
 export type Level = "static" | "runtime" | "host";
@@ -295,6 +297,17 @@ export async function verifyProject(input: VerifyInput): Promise<VerifyReport> {
   const stat = await staticChecks(input, decisions, decisionsError);
   reviewPending = stat.reviewPending;
   if (want.has("static")) checks.push(...stat.checks);
+  const setup = await readSetup(fs, options.prefix);
+  const names = await envNames(fs, options.prefix);
+  if (want.has("static"))
+    checks.push(
+      ...(await personalStaticChecks({
+        fs,
+        prefix: options.prefix,
+        setup,
+        envHas: (n) => names.has(n) || !!input.env[n],
+      })),
+    );
   if (want.has("runtime")) {
     const gen = `${options.prefix}.speeq/generated`;
     const read = async (n: string) => {
@@ -311,6 +324,7 @@ export async function verifyProject(input: VerifyInput): Promise<VerifyReport> {
       })),
     );
   }
+  if (want.has("runtime")) checks.push(...(await personalRuntimeChecks(setup)));
   if (want.has("host")) checks.push(await hostCheck(input));
   const level = (l: Level): VerifyReport["levels"][Level] => {
     if (!want.has(l)) return "not-run";

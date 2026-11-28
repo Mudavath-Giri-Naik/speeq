@@ -126,7 +126,8 @@ describe("the generated chat box", () => {
     expect(widget).toContain("latest?.text");
     expect(widget).toContain(".sq-log{flex:1 1 auto;min-height:0;overflow-y:auto");
     expect(widget).toContain("sq-typing");
-    expect(widget).toContain("getContext={() =>");
+    // The client sends the page path and title itself; a getContext of the wrong shape broke strict type checks.
+    expect(widget).not.toContain("getContext=");
   });
   it("is syntactically valid", () => {
     const out = ts.transpileModule(widget.replace(/^\/\/.*\n/, ""), {
