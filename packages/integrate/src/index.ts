@@ -42,6 +42,15 @@ export { memoryFs, nodeFs, type ProjectFs } from "./fsx.js";
 export { type LayoutSplice, spliceLayout } from "./layout.js";
 export { type Ownership, ownership, seal, sha256 } from "./owned.js";
 export {
+  authStatus,
+  type BindingStatus,
+  type ContextRefusal,
+  type ContextSourceSpec,
+  contextSpec,
+  renderContext,
+  renderIdentity,
+} from "./personal.js";
+export {
   buildPlan,
   type IntegrationPlan,
   isEmptyPlan,

@@ -13,6 +13,7 @@ export * from "./fs/repo-fs.js";
 export * from "./ids.js";
 export { GENERATOR_VERSION } from "./manifest/build.js";
 export { fingerprintOf } from "./manifest/fingerprint-of.js";
+export * from "./personalize/index.js";
 export type { ExistingSpeeq } from "./project/existing-speeq.js";
 export * from "./project/integrations.js";
 export type { AppCandidate, ProjectInfo } from "./project/workspace.js";

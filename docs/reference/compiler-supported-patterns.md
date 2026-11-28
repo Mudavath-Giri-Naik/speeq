@@ -70,6 +70,40 @@ string-literal names (`SQ0240` otherwise). Password, card and one-time-code fiel
 sensitive. Filter parameters come only from a schema or from literal reads in the page file itself,
 never from labels or variable names (`SQ0250` when not understood).
 
+## Sign-in, customer data and business facts
+
+`discoverPersonalization({ root, manifest })` runs after `scan` (separately, so rescans stay
+incremental). `speeq setup` uses it to suggest what to bind. Every answer carries file and line
+evidence and is a suggestion until you approve it.
+
+| Sign-in system        | Found when                                                                         | Generated `resolveUser` calls                         |
+| --------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Auth.js (NextAuth v5) | `export const { auth, ... } = NextAuth(...)`                                       | `auth()`; id is `user.id`, else the email             |
+| NextAuth v4           | an exported `authOptions` (or `NextAuthOptions` typed) object, not in a route file | `getServerSession(authOptions)`                       |
+| Supabase Auth         | an exported function calling `createServerClient` from `@supabase/ssr`             | `supabase.auth.getUser()` (validated, not the cookie) |
+| Clerk                 | `@clerk/nextjs` plus `clerkMiddleware()` in `middleware.ts`                        | `auth()`; `orgId` becomes the tenant                  |
+| Better Auth           | an exported `betterAuth(...)` instance                                             | `auth.api.getSession({ headers })`                    |
+
+Levels: `implementation-detected` (the server entry point was found, a binding can be generated),
+`provider-detected` (only the package is installed), `requires-review` (for example `authOptions`
+exported from a route file, Kinde, or your own `getCurrentUser`-style helper), `unsupported`
+(Firebase Auth, which has no standard server session: verify the cookie with `firebase-admin` in your
+own `resolveUser`). An installed package alone never produces a binding.
+
+Customer data sources are GET endpoints whose path suggests customer data (`/api/me`, `/api/cart`,
+`/api/orders`, `/api/subscriptions`, `/api/enrollments`, `/api/progress`, `/api/bookmarks`,
+`/api/recent-searches` and similar; `/api/auth`, `/api/speeq` and webhooks are skipped). Each one
+reports its top-level response fields (from literal `json({...})` calls), which look sensitive,
+whether the handler or middleware calls an auth helper, whether it mentions the session user, and
+whether it can be bound without code (no path or required query parameters). A bound source calls
+the endpoint with the visitor's own cookies, so your endpoint keeps deciding what they may see.
+Sensitive fields can never be approved, and an endpoint without a visible sign-in check needs your
+explicit review.
+
+Business facts come from the root layout `metadata`, then `package.json` (`description`,
+`homepage`; the package name only as a hint), then the README's first heading and paragraph.
+When nothing describes the business, setup asks you for one sentence.
+
 ## Not covered yet
 
 OpenAPI documents, `tsconfig` project references, auth in layouts, filters that cross files, i18n and
