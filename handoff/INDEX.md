@@ -30,5 +30,6 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 024 | Business profile, style, greetings, starters, error reasons, presets                         | reviewed-accepted | task/024-greetings-and-style  |
 | 025 | Memory modes: persistent conversations, preferences, clearing                                | reviewed-accepted | task/025-memory-modes         |
 | 026 | Discovery: auth bindings, customer data sources, business facts                              | reviewed-accepted | task/026-discovery            |
+| 027 | Terminal control center                                                                      | reviewed-accepted | task/027-control-center       |
 
 Release 0.12 (tasks 022 to 028) is planned in `docs/maintainers/release-0.12-plan.md`; it replaces the Phase 2 tasks 022 and 023. Briefs are written one at a time after the previous task is accepted.
