@@ -37,6 +37,8 @@ const snapshot: UseSpeeqResult = {
   speak: vi.fn(async () => {}),
   refreshIdentity: vi.fn(async () => null),
   newConversation: vi.fn(),
+  restoreConversation: vi.fn(async () => false),
+  clearMemory: vi.fn(async () => true),
 };
 
 beforeAll(() => {

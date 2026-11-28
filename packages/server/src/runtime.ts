@@ -1,5 +1,5 @@
 import { type AgentUser, type LLMToolDefinition, SpeeqError } from "@speeq/core";
-import { buildToolDefinitions } from "./agent/tools.js";
+import { buildToolDefinitions, preferenceToolDefinition } from "./agent/tools.js";
 import { buildUiToolDefinitions } from "./agent/ui.js";
 import type { SpeeqConfig } from "./config.js";
 import { bearerToken } from "./handler/http.js";
@@ -14,6 +14,8 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
   readonly toolDefs: LLMToolDefinition[];
   /** UI action definitions, appended to `toolDefs` only for sessions that opted in. */
   readonly uiToolDefs: LLMToolDefinition[];
+  /** `remember_preference`, appended only for signed-in users in `preferences` mode. */
+  readonly preferenceToolDef: LLMToolDefinition | null;
   readonly telemetry: TelemetrySink;
   private readonly turnLimiter: RateLimiter | null;
   private readonly sessionLimiter: RateLimiter | null;
@@ -24,6 +26,7 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
     this.config = resolveConfig(config);
     this.toolDefs = buildToolDefinitions(this.config as ResolvedConfig);
     this.uiToolDefs = buildUiToolDefinitions(this.config as ResolvedConfig);
+    this.preferenceToolDef = preferenceToolDefinition(this.config as ResolvedConfig);
     this.telemetry = telemetry;
     this.turnLimiter = this.config.turnsPerMinute
       ? new RateLimiter(this.config.turnsPerMinute)
@@ -88,6 +91,11 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
     if ((user?.id ?? null) !== claims.uid || (user?.tenantId ?? null) !== claims.tid) {
       throw new SpeeqError("IDENTITY_CHANGED");
     }
+    // A conversation the user cleared is never continued, even from another open tab.
+    if (claims.uid !== null && this.config.raw.store.clearScope) {
+      const summary = await this.config.raw.store.getSessionSummary(sessionId);
+      if (summary?.forgottenAt) throw new SpeeqError("SESSION_EXPIRED");
+    }
     return { claims, user };
   }
 
@@ -123,15 +131,18 @@ export class Runtime<TUser extends AgentUser = AgentUser> {
 
   /** Runs retention at most once a day per instance, in the background. */
   maybeRunRetention(): void {
-    const days = this.config.audit.retentionDays;
+    const days = this.config.memory.retentionDays;
     if (!days || Date.now() - this.lastRetentionRun < 86_400_000) return;
     this.lastRetentionRun = Date.now();
     this.background(this.purgeExpired());
   }
 
-  /** Deletes sessions older than `audit.retentionDays`. Call it from your own cron for reliability. */
+  /**
+   * Deletes sessions older than the retention period (the smaller of `audit.retentionDays` and
+   * `memory.retentionDays`). Call it from your own cron for reliability.
+   */
   async purgeExpired(): Promise<{ sessions: number; events: number }> {
-    const days = this.config.audit.retentionDays;
+    const days = this.config.memory.retentionDays;
     if (!days) return { sessions: 0, events: 0 };
     return this.config.raw.store.deleteOlderThan(new Date(Date.now() - days * 86_400_000));
   }

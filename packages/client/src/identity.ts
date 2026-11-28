@@ -1,4 +1,4 @@
-import type { ClientGreeting, IdentitySummary } from "@speeq/core";
+import type { ClientGreeting, ClientMemory, IdentitySummary } from "@speeq/core";
 
 /** Minimum time between automatic identity checks (focus, visibility). */
 export const PROBE_THROTTLE_MS = 5000;
@@ -36,6 +36,17 @@ export function validGreeting(value: unknown): value is ClientGreeting {
   );
 }
 
+/** True for a well-formed memory description from the server. */
+export function validMemory(value: unknown): value is ClientMemory {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.resume === "boolean" &&
+    typeof v.clear === "boolean" &&
+    typeof v.preferences === "boolean"
+  );
+}
+
 /**
  * Asks the server who is signed in (`GET {endpoint}/identity`, cookies only). Returns `null` when the
  * server is older than 0.12, unreachable, rate limited or answers anything unexpected: a failed check
@@ -45,7 +56,11 @@ export async function fetchIdentity(
   fetcher: typeof fetch,
   endpoint: string,
   path?: string,
-): Promise<{ identity: IdentitySummary; greeting: ClientGreeting | null } | null> {
+): Promise<{
+  identity: IdentitySummary;
+  greeting: ClientGreeting | null;
+  memory: ClientMemory | null;
+} | null> {
   try {
     const query = path ? `?path=${encodeURIComponent(path)}` : "";
     const response = await fetcher(`${endpoint}/identity${query}`, {
@@ -55,11 +70,16 @@ export async function fetchIdentity(
       cache: "no-store",
     });
     if (!response.ok) return null;
-    const body = (await response.json()) as { identity?: unknown; greeting?: unknown } | null;
+    const body = (await response.json()) as {
+      identity?: unknown;
+      greeting?: unknown;
+      memory?: unknown;
+    } | null;
     if (!validIdentity(body?.identity)) return null;
     return {
       identity: body.identity,
       greeting: validGreeting(body.greeting) ? body.greeting : null,
+      memory: validMemory(body.memory) ? body.memory : null,
     };
   } catch {
     return null;

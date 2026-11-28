@@ -123,6 +123,50 @@ export interface StarterDefinition {
   };
 }
 
+/** Preference categories the agent may keep when the user states them (ADR-0025). */
+export const PREFERENCE_CATEGORIES = [
+  "language",
+  "explanation_depth",
+  "subject",
+  "product_category",
+  "communication_style",
+] as const;
+/** One of {@link PREFERENCE_CATEGORIES}. */
+export type PreferenceCategory = (typeof PREFERENCE_CATEGORIES)[number];
+
+/**
+ * What the assistant remembers between visits. Absent: `session` mode, exactly as before 0.12.
+ * Memory never replaces the app's own data: a remembered subject is not proof of an enrollment.
+ */
+export interface MemoryConfig {
+  /**
+   * `session` (default): only the current conversation. `persistent`: signed-in users continue their
+   * latest conversation. `preferences`: persistent plus preferences the user states. Anonymous
+   * visitors always get `session`.
+   */
+  mode?: "session" | "persistent" | "preferences";
+  /** A conversation older than this is not continued. Default 72, max 2160 (90 days). */
+  resumeWithinHours?: number;
+  /** User turns shown when a conversation is continued. Default 20, max 100. */
+  historyTurns?: number;
+  /**
+   * Days conversations are kept. Conversations are also the audit log, so the shorter of this and
+   * `audit.retentionDays` is used.
+   */
+  retentionDays?: number;
+  /** Days a stated preference is kept. Default 180. */
+  preferenceDays?: number;
+  /** Which preferences may be kept. Default: all of {@link PREFERENCE_CATEGORIES}. */
+  categories?: PreferenceCategory[];
+  /**
+   * What "clear my memory" does to conversations. `forget` (default) hides them from resume,
+   * transcripts and the model, and keeps the audit rows until retention. `delete` removes them.
+   */
+  clear?: "forget" | "delete";
+  /** Signed-in users may clear their conversations and preferences. Default true. */
+  allowClear?: boolean;
+}
+
 /** Audit-log options. */
 export interface AuditConfig {
   /**
@@ -252,6 +296,8 @@ export interface SpeeqConfig<TUser extends AgentUser = AgentUser> {
   starters?: StarterDefinition[];
   /** Page context and customer context sources. */
   context?: ContextConfig<TUser>;
+  /** Conversation memory between visits and stated preferences. Default: session only. */
+  memory?: MemoryConfig;
   /** Allow sessions without a user. Default: `true` if `resolveUser` is not set, else `false`. */
   allowAnonymous?: boolean;
   routes?: RouteDefinition[];

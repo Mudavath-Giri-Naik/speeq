@@ -195,6 +195,75 @@ describe("telemetry privacy contract", () => {
           for (const k of Object.keys(e.sdkVersions)) expect(k).toMatch(/^@speeq\/[a-z0-9-]+$/);
   });
 
+  it("never contains preferences, resumed transcripts or memory clearing (release 0.12)", async () => {
+    const { batches, transport } = capture();
+    const preference = "CANARY_PREFERENCE_7342";
+    const { speeq } = makeSpeeq(
+      [
+        {
+          toolCalls: [
+            {
+              name: "remember_preference",
+              arguments: { category: "explanation_depth", value: preference },
+            },
+          ],
+        },
+        { text: "Saved." },
+        { text: `Hello again ${CANARIES.reply}` },
+      ],
+      {
+        projectKey: "pk_abcdefgh12345678",
+        resolveUser: canaryUser,
+        memory: { mode: "preferences" },
+        telemetry: { transport, flushIntervalMs: 0 },
+      },
+    );
+    const headers = { "x-test-user": CANARIES.userId };
+    const first = await startSession(speeq.handler, { headers });
+    await first.turn(`${CANARIES.userText} keep answers short`);
+    const again = await speeq.handler(
+      new Request("http://localhost/api/speeq/session", {
+        method: "POST",
+        headers: { ...headers, "content-type": "application/json" },
+        body: JSON.stringify({ language: "en-IN", resume: true }),
+      }),
+    );
+    const resumed = (await again.json()) as { sessionId: string; sessionToken: string };
+    const auth = { ...headers, authorization: `Bearer ${resumed.sessionToken}` };
+    await speeq.handler(
+      new Request(`http://localhost/api/speeq/session/${resumed.sessionId}/messages`, {
+        headers: auth,
+      }),
+    );
+    await speeq.handler(
+      new Request(`http://localhost/api/speeq/session/${resumed.sessionId}/clear-memory`, {
+        method: "POST",
+        headers: { ...auth, "content-type": "application/json" },
+        body: "{}",
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    expect(batches.length).toBeGreaterThan(0);
+    const wire = JSON.stringify(batches).toLowerCase();
+    for (const needle of [
+      preference,
+      CANARIES.userText,
+      CANARIES.userId,
+      CANARIES.tenantId,
+      CANARIES.reply,
+      first.sessionId,
+      "remember_preference",
+      "explanation_depth",
+      "preference",
+      "forgotten",
+      "resumed",
+      "transcript",
+      "clear-memory",
+    ])
+      expect(wire, `leaked: ${needle}`).not.toContain(needle.toLowerCase());
+    for (const batch of batches) expect(TelemetryBatchSchema.safeParse(batch).success).toBe(true);
+  });
+
   it("counts correctly without exposing what was counted", async () => {
     const { batches } = await richConversation();
     const rollups = batches.flatMap((b) => b.events).filter((e) => e.type === "usage.rollup");

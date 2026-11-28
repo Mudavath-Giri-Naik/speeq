@@ -189,6 +189,8 @@ export const SessionSummarySchema = z.object({
   errorCount: z.number().int().nonnegative(),
   /** First user message, cut to 140 characters, for list previews. */
   preview: z.string().optional(),
+  /** Set when the user cleared their memory (0.12+): never resumed, shown or sent to the model. */
+  forgottenAt: z.string().optional(),
 });
 /** One row in the audit session list. */
 export type SessionSummary = z.infer<typeof SessionSummarySchema>;

@@ -5,7 +5,13 @@ import {
   LanguageSchema,
   SpeeqError,
 } from "@speeq/core";
-import type { AuditConfig, SpeeqConfig, SpeeqLogger } from "./config.js";
+import {
+  type AuditConfig,
+  PREFERENCE_CATEGORIES,
+  type PreferenceCategory,
+  type SpeeqConfig,
+  type SpeeqLogger,
+} from "./config.js";
 import { CONTEXT_CATEGORIES } from "./context/define.js";
 import type { ResolvedPagePolicy } from "./context/page.js";
 import { exposeTree, isExposePath } from "./context/project.js";
@@ -53,6 +59,21 @@ export interface ResolvedConfig<TUser extends AgentUser = AgentUser> {
   sessionTtlSeconds: number;
   allowedOrigins: string[];
   logger: SpeeqLogger;
+  memory: ResolvedMemory;
+}
+
+/** Memory settings with defaults. */
+export interface ResolvedMemory {
+  mode: "session" | "persistent" | "preferences";
+  resumeWithinHours: number;
+  historyTurns: number;
+  preferenceDays: number;
+  categories: PreferenceCategory[];
+  clear: "forget" | "delete";
+  /** Clearing is allowed and the store can do it. */
+  canClear: boolean;
+  /** Days conversations are kept: the smaller of `memory.retentionDays` and `audit.retentionDays`. */
+  retentionDays: number | undefined;
 }
 
 /** Names reserved for built-in tools. */
@@ -215,6 +236,8 @@ export function resolveConfig<TUser extends AgentUser>(
     throw fail('`context.page.store` must be "keys", "full" or "none".');
   const budget = config.context?.budget;
 
+  const memory = resolveMemory(config, logger, fail);
+
   const rl = config.guardrails?.rateLimit;
   return {
     raw: config,
@@ -254,5 +277,53 @@ export function resolveConfig<TUser extends AgentUser>(
     sessionTtlSeconds: config.guardrails?.sessionTtlSeconds ?? 12 * 3600,
     allowedOrigins: config.allowedOrigins ?? [],
     logger,
+    memory,
+  };
+}
+
+function resolveMemory<TUser extends AgentUser>(
+  config: SpeeqConfig<TUser>,
+  logger: SpeeqLogger,
+  fail: (message: string) => SpeeqError,
+): ResolvedMemory {
+  const m = config.memory ?? {};
+  const mode = m.mode ?? "session";
+  if (!["session", "persistent", "preferences"].includes(mode))
+    throw fail('`memory.mode` must be "session", "persistent" or "preferences".');
+  if (m.clear !== undefined && m.clear !== "forget" && m.clear !== "delete")
+    throw fail('`memory.clear` must be "forget" or "delete".');
+  const categories = m.categories ?? [...PREFERENCE_CATEGORIES];
+  for (const c of categories)
+    if (!(PREFERENCE_CATEGORIES as readonly string[]).includes(c))
+      throw fail(
+        `memory.categories: "${String(c)}" is not a preference category (allowed: ${PREFERENCE_CATEGORIES.join(", ")}).`,
+      );
+  const store = config.store;
+  const missing: string[] = [];
+  if (mode !== "session" && typeof store.clearScope !== "function") missing.push("clearScope");
+  if (mode === "preferences") {
+    if (typeof store.getPreferences !== "function") missing.push("getPreferences");
+    if (typeof store.setPreference !== "function") missing.push("setPreference");
+  }
+  if (missing.length > 0)
+    throw fail(
+      `memory.mode "${mode}" needs a store with ${missing.join(", ")} (the memory and MongoDB stores have them; store "${store.kind}" does not).`,
+    );
+  if (mode !== "session" && !config.resolveUser)
+    logger.warn(
+      "memory.mode keeps conversations, but `resolveUser` is not set: every visitor is anonymous, so nothing is kept between visits.",
+    );
+  const days = [m.retentionDays, config.audit?.retentionDays].filter(
+    (d): d is number => typeof d === "number" && d > 0,
+  );
+  return {
+    mode,
+    resumeWithinHours: clamp(m.resumeWithinHours ?? 72, 1, 2160),
+    historyTurns: clamp(m.historyTurns ?? 20, 1, 100),
+    preferenceDays: clamp(m.preferenceDays ?? 180, 1, 3650),
+    categories: [...new Set(categories)],
+    clear: m.clear ?? "forget",
+    canClear: m.allowClear !== false && typeof store.clearScope === "function",
+    retentionDays: days.length > 0 ? Math.min(...days) : undefined,
   };
 }

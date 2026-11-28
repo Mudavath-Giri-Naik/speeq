@@ -18,7 +18,8 @@ export interface Speeq {
   /** Web-standard handler: mount it at a catch-all route such as `/api/speeq/[[...speeq]]`. */
   handler: SpeeqHandler;
   /**
-   * Deletes sessions older than `audit.retentionDays`. It also runs at most daily per instance
+   * Deletes sessions older than the retention period (the smaller of `audit.retentionDays` and
+   * `memory.retentionDays`). It also runs at most daily per instance
    * when sessions start. Call it from a cron job if you need retention to be reliable.
    */
   purgeExpired(): Promise<{ sessions: number; events: number }>;
@@ -75,12 +76,15 @@ export type {
   GreetingConfig,
   GuardrailsConfig,
   IdentityConfig,
+  MemoryConfig,
+  PreferenceCategory,
   SpeechConfig,
   SpeeqConfig,
   SpeeqLogger,
   StarterDefinition,
   TelemetryConfig,
 } from "./config.js";
+export { PREFERENCE_CATEGORIES } from "./config.js";
 export {
   CONTEXT_CATEGORIES,
   type ContextCategory,

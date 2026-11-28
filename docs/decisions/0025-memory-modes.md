@@ -1,6 +1,8 @@
 # ADR-0025 — Memory: session by default, persistent conversations and stated preferences by opt-in
 
-Status: Proposed (accepted with task 025).
+Status: Accepted (task 025). Amended: clearing is `POST /session/:id/clear-memory`, not `DELETE`, because
+existing generated Next.js routes export only GET, POST and OPTIONS; the transcript endpoint works in every
+mode for the caller's own session; decision 7 (MongoDB in the terminal) ships in task 027.
 
 ## Decision
 
@@ -23,7 +25,7 @@ Status: Proposed (accepted with task 025).
    `clearScope(scope, { conversations: "forget" | "delete" | false, preferences: boolean })`.
    `scope = { userId, tenantId: string | null }`. A store without them disables `persistent` with a clear
    `NOT_CONFIGURED` at startup.
-5. **Clearing**: `DELETE /session/:id/memory` (authenticated) and a chat box control. `forget` (default)
+5. **Clearing**: `POST /session/:id/clear-memory` (authenticated) and a chat box control. `forget` (default)
    hides sessions from resume, messages and the model, while the store's audit retention still applies;
    `delete` removes them. Docs say plainly that `forget` keeps audit records until retention.
 6. **Retention**: `memory.retentionDays` (conversations, through the existing `retentionDays` purge) and

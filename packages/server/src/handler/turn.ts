@@ -24,7 +24,7 @@ import {
   type TurnRuntime,
 } from "../agent/loop.js";
 import { buildSystemPrompt } from "../agent/prompt.js";
-import { executeTool, prepareToolCall } from "../agent/tools.js";
+import { executeTool, isPlainPreference, prepareToolCall } from "../agent/tools.js";
 import { cancelPendingUiActions, sessionHasUiActions } from "../agent/ui.js";
 import { needsClarification } from "../agent/voice-guard.js";
 import { AuditRecorder } from "../audit/recorder.js";
@@ -35,6 +35,7 @@ import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { readJson } from "./http.js";
 import { exposedProfile } from "./identity.js";
+import { memoryScope } from "./memory.js";
 import { type Emit, sseResponse } from "./sse.js";
 
 export const HISTORY_EVENT_WINDOW = 300;
@@ -259,7 +260,10 @@ export async function loadMessages<TUser extends AgentUser>(
       history.push({ role: "user", content: userText });
   }
   const resolved = config as unknown as ResolvedConfig;
-  const customerContext = await loadInitialContext(config, ctx);
+  const [customerContext, preferences] = await Promise.all([
+    loadInitialContext(config, ctx),
+    loadPreferences(resolved, ctx.user),
+  ]);
   const profile = exposedProfile(resolved, ctx.user);
   const system = buildSystemPrompt(resolved, {
     language: ctx.language,
@@ -270,8 +274,28 @@ export async function loadMessages<TUser extends AgentUser>(
     ...(config.raw.resolveUser ? { signedIn: ctx.user !== null } : {}),
     ...(profile ? { profile: profile as Record<string, string> } : {}),
     customerContext,
+    preferences,
+    canRememberPreferences: turn.toolDefs.some((d) => d.name === "remember_preference"),
   });
   return [{ role: "system", content: system } satisfies LLMMessage, ...history];
+}
+
+/** Stated preferences of the verified user, only in `preferences` mode. A store failure loses only hints. */
+async function loadPreferences(
+  config: ResolvedConfig,
+  user: AgentUser | null,
+): Promise<{ category: string; value: string }[]> {
+  const store = config.raw.store;
+  if (!user || config.memory.mode !== "preferences" || !store.getPreferences) return [];
+  try {
+    const allowed = new Set<string>(config.memory.categories);
+    return (await store.getPreferences(memoryScope(user)))
+      .filter((p) => allowed.has(p.category) && isPlainPreference(p.value))
+      .map((p) => ({ category: p.category, value: p.value }));
+  } catch (error) {
+    config.logger.error("could not read preferences", error);
+    return [];
+  }
 }
 
 /** Wraps a turn body in an SSE stream with timing, errors, audit and telemetry. */
@@ -298,7 +322,12 @@ export function streamTurn<TUser extends AgentUser>(
         inputLanguage: setup.inputLanguage,
         clarify: setup.clarify,
         config: rt.config,
-        toolDefs: setup.uiEnabled ? [...rt.toolDefs, ...rt.uiToolDefs] : rt.toolDefs,
+        toolDefs: [
+          ...rt.toolDefs,
+          ...(setup.uiEnabled ? rt.uiToolDefs : []),
+          // Only a verified, signed-in user can have preferences saved.
+          ...(setup.user && rt.preferenceToolDef ? [rt.preferenceToolDef] : []),
+        ],
         uiEnabled: setup.uiEnabled === true,
         recorder: new AuditRecorder(
           rt.config,

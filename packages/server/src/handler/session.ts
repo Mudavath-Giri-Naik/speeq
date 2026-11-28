@@ -16,6 +16,7 @@ import type { Runtime } from "../runtime.js";
 import { signSessionToken } from "../security/token.js";
 import { json, readJson } from "./http.js";
 import { identitySummary } from "./identity.js";
+import { clientMemory, findResumable } from "./memory.js";
 
 /** Public client configuration derived from the server config. */
 export function clientConfig(rt: Runtime<AgentUser>): ClientConfig {
@@ -51,30 +52,35 @@ export async function handleCreateSession<TUser extends AgentUser>(
     body.language && rt.config.languages.includes(body.language)
       ? body.language
       : rt.config.defaultLanguage;
-  const sessionId = createId("ses");
-  const startedAt = new Date().toISOString();
-  await rt.config.raw.store.createSession({
-    id: sessionId,
-    userId,
-    tenantId: user?.tenantId ?? null,
-    language,
-    startedAt,
-  });
-  const recorder = new AuditRecorder(rt.config, rt.config.raw.store, sessionId, userId);
-  const storedContext = storedPageContext(
-    rt.config as ResolvedConfig,
-    sanitizePageContext(rt.config as ResolvedConfig, body.context),
-  );
-  await recorder.record("session.started", {
-    userId,
-    language,
-    ...(storedContext ? { context: storedContext } : {}),
-    // Recorded only if the server has UI actions, so the capability is never granted by default.
-    ...(body.capabilities?.includes("ui-actions") && rt.config.uiActions.size > 0
-      ? { capabilities: ["ui-actions" as const] }
-      : {}),
-  });
-  rt.telemetry.session();
+  // Persistent memory: continue the verified user's own latest conversation (never merged, never
+  // chosen by the client). Anonymous visitors and session mode always start fresh.
+  const resumable = body.resume && user ? await findResumable(rt, user) : null;
+  const sessionId = resumable?.id ?? createId("ses");
+  if (!resumable) {
+    const startedAt = new Date().toISOString();
+    await rt.config.raw.store.createSession({
+      id: sessionId,
+      userId,
+      tenantId: user?.tenantId ?? null,
+      language,
+      startedAt,
+    });
+    const recorder = new AuditRecorder(rt.config, rt.config.raw.store, sessionId, userId);
+    const storedContext = storedPageContext(
+      rt.config as ResolvedConfig,
+      sanitizePageContext(rt.config as ResolvedConfig, body.context),
+    );
+    await recorder.record("session.started", {
+      userId,
+      language,
+      ...(storedContext ? { context: storedContext } : {}),
+      // Recorded only if the server has UI actions, so the capability is never granted by default.
+      ...(body.capabilities?.includes("ui-actions") && rt.config.uiActions.size > 0
+        ? { capabilities: ["ui-actions" as const] }
+        : {}),
+    });
+    rt.telemetry.session();
+  }
   rt.maybeRunRetention();
 
   const exp = Math.floor(Date.now() / 1000) + rt.config.sessionTtlSeconds;
@@ -86,8 +92,9 @@ export async function handleCreateSession<TUser extends AgentUser>(
       rt.config.secret,
     ),
     expiresAt: new Date(exp * 1000).toISOString(),
-    config: clientConfig(rt as Runtime<AgentUser>),
+    config: { ...clientConfig(rt as Runtime<AgentUser>), memory: clientMemory(rt, user) },
     identity: await identitySummary(rt.config as ResolvedConfig, user),
+    ...(resumable ? { resumed: true } : {}),
   };
   const greeting = await buildGreeting(rt.config, {
     request,

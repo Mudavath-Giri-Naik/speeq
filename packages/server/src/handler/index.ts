@@ -12,6 +12,7 @@ import { SDK_VERSION } from "../version.js";
 import { handleGetSession, handleListSessions } from "./audit.js";
 import { errorResponse, json } from "./http.js";
 import { handleIdentity } from "./identity.js";
+import { handleClearMemory, handleMessages } from "./memory.js";
 import { handleCreateSession } from "./session.js";
 import { handleConfirm, handleTurn } from "./turn.js";
 import { handleUiResult } from "./ui.js";
@@ -21,7 +22,7 @@ export type SpeeqHandler = (request: Request) => Promise<Response>;
 
 // Matches the speeq route at the end of the path, wherever the handler is mounted.
 const ROUTE_RE =
-  /\/(health|identity|session|session\/([^/]+)\/(turn|confirm|ui-result|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
+  /\/(health|identity|session|session\/([^/]+)\/(turn|confirm|ui-result|messages|clear-memory|speech\/(?:transcribe|synthesize|voices))|audit\/sessions|audit\/sessions\/([^/]+))\/?$/;
 
 /**
  * Creates the request handler. It only uses `Request`/`Response`, so it runs on Next.js route
@@ -73,6 +74,10 @@ export function createRequestHandler<TUser extends AgentUser>(rt: Runtime<TUser>
         return await handleConfirm(rt, request, decodeURIComponent(sessionId), headers);
       if (sessionId && action === "ui-result" && method === "POST")
         return await handleUiResult(rt, request, decodeURIComponent(sessionId), headers);
+      if (sessionId && action === "messages" && method === "GET")
+        return await handleMessages(rt, request, decodeURIComponent(sessionId), headers);
+      if (sessionId && action === "clear-memory" && method === "POST")
+        return await handleClearMemory(rt, request, decodeURIComponent(sessionId), headers);
       if (route === "audit/sessions" && method === "GET")
         return await handleListSessions(runtime, request, headers);
       if (auditId && method === "GET")

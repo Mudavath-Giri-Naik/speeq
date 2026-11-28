@@ -85,7 +85,8 @@ async function isReturning<TUser extends AgentUser>(
       limit: 2,
     });
     return page.sessions.some(
-      (s) => s.id !== sessionId && (s.tenantId ?? null) === (user.tenantId ?? null),
+      (s) =>
+        s.id !== sessionId && !s.forgottenAt && (s.tenantId ?? null) === (user.tenantId ?? null),
     );
   } catch {
     return false; // a store hiccup only loses the "welcome back"

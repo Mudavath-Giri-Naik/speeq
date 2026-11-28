@@ -41,6 +41,8 @@ export function sessions(
   capabilities: () => string[] = () => [],
   /** Called when a speech request learns that the signed-in identity changed. */
   onIdentityChanged: () => void = () => {},
+  /** Whether the next new session may continue the user's latest conversation (server decides). */
+  resume: () => boolean = () => false,
 ) {
   const endpoint = options.endpoint.replace(/\/+$/, "");
   const key = `speeq:session:${endpoint}`;
@@ -64,19 +66,29 @@ export function sessions(
         language,
         context: pageContext(options.getContext),
         ...(capabilities().length ? { capabilities: capabilities() } : {}),
+        ...(resume() ? { resume: true } : {}),
       },
       signal,
     );
     const data: Session = await response.json();
     signal.throwIfAborted();
     if (!valid(data)) throw new SpeeqError("INTERNAL", { retryable: true });
-    const { sessionId, sessionToken, expiresAt, config, identity } = data;
-    return { sessionId, sessionToken, expiresAt, config, ...(identity ? { identity } : {}) };
+    const { sessionId, sessionToken, expiresAt, config, identity, resumed } = data;
+    return {
+      sessionId,
+      sessionToken,
+      expiresAt,
+      config,
+      ...(identity ? { identity } : {}),
+      ...(resumed === true ? { resumed: true } : {}),
+    };
   }
   async function ensure(language: string, signal: AbortSignal, refresh: boolean): Promise<Session> {
     signal.throwIfAborted();
-    let session =
+    let session: Session | null =
       current ?? (refresh ? null : storage((s) => JSON.parse(s.getItem(key) ?? "null")));
+    // A session kept in this tab across a reload is the same conversation, continued.
+    if (!current && valid(session)) session = { ...session, resumed: true };
     if (!valid(session) || Date.parse(session.expiresAt) <= Date.now() + 30000) {
       if (!opening || opening.signal.aborted)
         opening = { signal, result: create(language, signal) };
@@ -151,6 +163,11 @@ export function sessions(
   };
   return Object.assign(requestWith, {
     forget,
+    /** True when a session is open or kept in this tab (nothing is created). */
+    saved: () =>
+      current !== null || valid(storage((s) => JSON.parse(s.getItem(key) ?? "null")) ?? null),
+    /** Opens (or reuses) the session without sending anything. */
+    open: (language: string, signal: AbortSignal) => ensure(language, signal, false),
     /** The current session, if one is open. */
     current: () => current,
   });

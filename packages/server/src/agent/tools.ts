@@ -8,6 +8,8 @@ import {
   type JsonSchema,
   type LLMToolCall,
   type LLMToolDefinition,
+  looksSecret,
+  redactText,
   SpeeqError,
   safeJsonStringify,
   type ToolKind,
@@ -15,6 +17,7 @@ import {
 } from "@speeq/core";
 import { z } from "zod";
 import { loadContext } from "../context/run.js";
+import { memoryScope } from "../handler/memory.js";
 import type { ResolvedConfig, ResolvedTool } from "../resolve.js";
 import { type NavigationTarget, resolveNavigation } from "./routes.js";
 
@@ -74,6 +77,38 @@ function contextSchema(config: ResolvedConfig) {
   const ids = [...config.contextProviders.keys()] as [string, ...string[]];
   // Strict: the model can name a source, never a user, tenant or record to fetch for.
   return z.object({ source: z.enum(ids).describe("Which source to read.") }).strict();
+}
+
+function preferenceSchema(config: ResolvedConfig) {
+  const categories = config.memory.categories as [string, ...string[]];
+  return z
+    .object({
+      category: z.enum(categories).describe("Which kind of preference."),
+      value: z
+        .string()
+        .min(1)
+        .max(120)
+        .describe('The preference in a few words, as the user said it, e.g. "short answers".'),
+    })
+    .strict();
+}
+
+/**
+ * The built-in `remember_preference` tool, offered only to signed-in users in `preferences` mode.
+ * `null` otherwise. It can save a stated preference of the verified user and nothing else.
+ */
+export function preferenceToolDefinition(config: ResolvedConfig): LLMToolDefinition | null {
+  if (config.memory.mode !== "preferences" || config.memory.categories.length === 0) return null;
+  return {
+    name: "remember_preference",
+    description: `Save a lasting preference the user clearly stated about how they want help (${config.memory.categories.join(", ")}). Only when they say it themselves, e.g. "always answer in Telugu" or "I'm preparing for DBMS". Never for purchases, access, account facts, health, money or anything personal.`,
+    parameters: toParametersSchema(preferenceSchema(config), "remember_preference"),
+  };
+}
+
+/** True when `value` is a plain preference: no email, long number, key or token. */
+export function isPlainPreference(value: string): boolean {
+  return redactText(value) === value && !value.split(/\s+/).some((w) => looksSecret(w));
 }
 
 /** Builds the tool list sent to the model: built-ins first, then developer tools. */
@@ -158,6 +193,11 @@ export function prepareToolCall<TUser extends AgentUser>(
   }
   if (call.name === "get_context" && config.contextProviders.size > 0) {
     const parsed = contextSchema(config).safeParse(call.arguments);
+    if (!parsed.success) return rejected("builtin", "INVALID_INPUT", issues(parsed.error));
+    return { status: "ready", kind: "builtin", input: parsed.data };
+  }
+  if (call.name === "remember_preference" && preferenceToolDefinition(config)) {
+    const parsed = preferenceSchema(config).safeParse(call.arguments);
     if (!parsed.success) return rejected("builtin", "INVALID_INPUT", issues(parsed.error));
     return { status: "ready", kind: "builtin", input: parsed.data };
   }
@@ -285,6 +325,23 @@ async function runTool<TUser extends AgentUser>(
     if (!provider)
       throw new SpeeqError("INVALID_INPUT", { message: `Unknown source "${source}".` });
     return { result: await loadContext(config, provider, ctx) };
+  }
+  if (name === "remember_preference") {
+    const store = config.raw.store;
+    // The scope is the verified user of this request; the model cannot name anyone else.
+    if (!ctx.user || !store.setPreference)
+      throw new SpeeqError("FORBIDDEN", { message: "Only signed-in users can save preferences." });
+    const { category, value } = prepared.input as { category: string; value: string };
+    const clean = value.replace(/\s+/g, " ").trim();
+    if (!clean || !isPlainPreference(clean))
+      throw new SpeeqError("INVALID_INPUT", {
+        message: "Not saved: preferences cannot contain contact details, numbers, keys or tokens.",
+      });
+    const expiresAt = new Date(
+      Date.now() + config.memory.preferenceDays * 86_400_000,
+    ).toISOString();
+    await store.setPreference(memoryScope(ctx.user), category, clean, expiresAt);
+    return { result: { ok: true, saved: { category, value: clean } } };
   }
   throw new SpeeqError("INVALID_INPUT", { message: `Unknown tool "${name}".` });
 }

@@ -9,7 +9,7 @@ import {
   TypedEmitter,
 } from "@speeq/core/utils";
 import { pageContext } from "./context.js";
-import { fetchIdentity, validGreeting, watchIdentity } from "./identity.js";
+import { fetchIdentity, validGreeting, validMemory, watchIdentity } from "./identity.js";
 import { LanguageMode } from "./language-mode.js";
 import { createMicMonitor, type MicMonitor } from "./mic-monitor.js";
 import { ServerSpeechInput, type SpeechRequest } from "./server-speech-input.js";
@@ -124,7 +124,11 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     sessionId: null,
     identity: null,
     greeting: null,
+    memory: null,
   } satisfies SpeeqSnapshot);
+  // The next new session may continue the user's latest conversation, unless they asked for a
+  // fresh one. The server decides what, if anything, is continued.
+  let resumeNext = true;
   const emitter = new TypedEmitter<{ [K in keyof SpeeqClientEvents]: SpeeqClientEvents[K] }>();
   const speech = new SpeechQueue(output, options.speakReplies !== false);
   let generation = 0;
@@ -242,7 +246,9 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     options,
     ({ sessionId, config, identity }) => {
       if (identity) setIdentity(identity);
+      resumeNext = true;
       if (config.greeting && validGreeting(config.greeting)) update({ greeting: config.greeting });
+      if (validMemory(config.memory)) update({ memory: config.memory });
       if (input instanceof ServerSpeechInput)
         input.capabilities.detectsLanguage = config.speech?.detectsLanguage ?? false;
       const languages =
@@ -282,7 +288,92 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     () => (uiHandlers.size > 0 ? ["ui-actions"] : []),
     // A speech request found the identity changed: reset outside that request.
     () => queueMicrotask(() => !destroyed && resetIdentity()),
+    () => resumeNext,
   );
+
+  /** An authenticated JSON request on the current session (retried once with a fresh token). */
+  function sessionJson(method: "GET" | "POST", path: string, body?: unknown) {
+    const fetcher = options.fetch ?? globalThis.fetch;
+    const controller = new AbortController();
+    return request(
+      async (base, token) => {
+        const headers: Record<string, string> = {
+          authorization: `Bearer ${token}`,
+          accept: "application/json",
+        };
+        if (body !== undefined) headers["content-type"] = "application/json";
+        let response: Response;
+        try {
+          response = await fetcher(`${base}/${path}`, {
+            method,
+            headers,
+            ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+            signal: controller.signal,
+          });
+        } catch {
+          throw new SpeeqError("INTERNAL", { retryable: true });
+        }
+        if (response.ok) return response;
+        const error = (await response.json().catch(() => null))?.error;
+        if (typeof error?.code === "string")
+          throw new RequestError(response.status, {
+            code: error.code,
+            message: String(error.message ?? ""),
+            retryable: error.retryable === true,
+          });
+        throw new SpeeqError("INTERNAL");
+      },
+      snapshot.language,
+      () => undefined,
+      controller.signal,
+    );
+  }
+
+  async function restoreConversation(): Promise<boolean> {
+    if (destroyed || snapshot.messages.length > 0 || snapshot.state !== "idle") return false;
+    // Nothing to continue: no session in this tab and the server keeps no conversations for this
+    // visitor. Never opens a session just to find that out.
+    if (!request.saved() && snapshot.memory?.resume !== true) return false;
+    try {
+      const session = await request.open(snapshot.language, new AbortController().signal);
+      if (!session.resumed || snapshot.messages.length > 0) return false;
+      const body = (await (await sessionJson("GET", "messages")).json()) as {
+        messages?: unknown;
+      } | null;
+      // Something else happened meanwhile (a message, a reset): keep what the user sees.
+      if (destroyed || snapshot.messages.length > 0) return false;
+      if (request.current()?.sessionId !== session.sessionId) return false;
+      const messages = (Array.isArray(body?.messages) ? body.messages : [])
+        .filter(
+          (m): m is { role: "user" | "assistant"; text: string } =>
+            typeof m === "object" &&
+            m !== null &&
+            (m.role === "user" || m.role === "assistant") &&
+            typeof m.text === "string",
+        )
+        .map(
+          (m): ChatMessage => ({ id: createId("msg"), role: m.role, text: m.text, status: "done" }),
+        );
+      if (messages.length === 0) return false;
+      update({ messages });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function clearMemory(opts: { preferences?: boolean } = {}): Promise<boolean> {
+    if (destroyed) return false;
+    try {
+      await sessionJson("POST", "clear-memory", { preferences: opts.preferences !== false });
+    } catch {
+      return false;
+    }
+    if (destroyed) return false;
+    resetIdentity();
+    resumeNext = false;
+    return true;
+  }
 
   /**
    * The signed-in user changed (login, logout, account or tenant switch). Nothing of the previous
@@ -319,11 +410,12 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
         pageContext(options.getContext)?.path,
       );
       if (!found || destroyed) return found?.identity ?? null;
-      const { identity, greeting } = found;
+      const { identity, greeting, memory } = found;
       const known = request.current()?.identity?.fingerprint ?? snapshot.identity?.fingerprint;
       if (known && known !== identity.fingerprint) resetIdentity();
       setIdentity(identity);
       if (greeting) update({ greeting });
+      if (memory) update({ memory });
       return identity;
     })().finally(() => {
       probing = undefined;
@@ -886,9 +978,13 @@ export function createSpeeqClient(options: SpeeqClientOptions): SpeeqClient {
     refreshIdentity,
     newConversation() {
       if (destroyed) return;
-      // Same person, fresh start: nothing of the current conversation is sent again.
+      // Same person, fresh start: nothing of the current conversation is sent again, and the next
+      // session is a new one rather than the conversation just left.
       resetIdentity();
+      resumeNext = false;
     },
+    restoreConversation,
+    clearMemory,
     async confirm(confirmationId, approved) {
       if (!destroyed) await run(null, { confirmationId, approved });
     },

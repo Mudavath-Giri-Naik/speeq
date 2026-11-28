@@ -1,6 +1,7 @@
 import type {
   ClientConfig,
   ClientGreeting,
+  ClientMemory,
   IdentitySummary,
   ProtocolEvent,
   SpeechInput,
@@ -139,6 +140,11 @@ export interface SpeeqSnapshot {
    * server configures none (older servers too). Updated by sessions and identity checks.
    */
   greeting: ClientGreeting | null;
+  /**
+   * What the server remembers for this visitor (continue a conversation, clear memory, preferences),
+   * or `null` before the first session or identity check and for servers older than 0.12.
+   */
+  memory: ClientMemory | null;
 }
 
 /** Configures transport, speech and host callbacks. */
@@ -231,6 +237,17 @@ export interface SpeeqClient {
    * opens a new session with the next message.
    */
   newConversation(): void;
+  /**
+   * Shows the signed-in user's previous conversation if the server continues it (persistent memory,
+   * or a session kept across a reload). Resolves `true` when a transcript was loaded. Does nothing
+   * once the current conversation has messages.
+   */
+  restoreConversation(): Promise<boolean>;
+  /**
+   * Clears what the server keeps about the signed-in user (conversations and, by default, stated
+   * preferences), then starts fresh. Resolves `false` when the server refused or is unreachable.
+   */
+  clearMemory(options?: { preferences?: boolean }): Promise<boolean>;
   /**
    * Registers the page code for a UI action the server declared with `defineUiAction`. Register
    * before the first turn: the session tells the server whether any handler exists. Returns a

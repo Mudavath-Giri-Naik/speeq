@@ -8,6 +8,8 @@
  */
 import {
   applyEventToSummary,
+  type ClearScopeOptions,
+  type ClearScopeResult,
   type ConversationEvent,
   type ConversationStore,
   decodeCursor,
@@ -15,6 +17,7 @@ import {
   encodeCursor,
   isAfterCursor,
   type ListEventsOptions,
+  type MemoryScope,
   type NewConversationEvent,
   type NewSession,
   type RetentionResult,
@@ -22,6 +25,7 @@ import {
   type SessionPage,
   type SessionSummary,
   SpeeqError,
+  type StoredPreference,
 } from "@speeq/core";
 
 /** Options for {@link createMemoryStore}. */
@@ -38,10 +42,15 @@ interface Entry {
 
 let warned = false;
 
+const scopeKey = (scope: MemoryScope) => JSON.stringify([scope.tenantId, scope.userId]);
+const inScope = (s: SessionSummary, scope: MemoryScope) =>
+  s.userId === scope.userId && (s.tenantId ?? null) === scope.tenantId;
+
 /** An in-memory {@link ConversationStore}. See the package docs for its limits. */
 export class MemoryStore implements ConversationStore {
   readonly kind = "memory";
   private readonly sessions = new Map<string, Entry>();
+  private readonly preferences = new Map<string, Map<string, StoredPreference>>();
 
   constructor(options: MemoryStoreOptions = {}) {
     if (!options.quiet && !warned && isProduction()) {
@@ -131,6 +140,48 @@ export class MemoryStore implements ConversationStore {
         result.events += entry.events.length;
         this.sessions.delete(id);
       }
+    }
+    return result;
+  }
+
+  async getPreferences(scope: MemoryScope): Promise<StoredPreference[]> {
+    const now = new Date().toISOString();
+    const prefs = this.preferences.get(scopeKey(scope));
+    if (!prefs) return [];
+    for (const [category, p] of prefs) if (p.expiresAt <= now) prefs.delete(category);
+    return structuredClone([...prefs.values()]);
+  }
+
+  async setPreference(
+    scope: MemoryScope,
+    category: string,
+    value: string,
+    expiresAt: string,
+  ): Promise<void> {
+    const key = scopeKey(scope);
+    const prefs = this.preferences.get(key) ?? new Map<string, StoredPreference>();
+    prefs.set(category, { category, value, updatedAt: new Date().toISOString(), expiresAt });
+    this.preferences.set(key, prefs);
+  }
+
+  async clearScope(scope: MemoryScope, options: ClearScopeOptions): Promise<ClearScopeResult> {
+    const result: ClearScopeResult = { sessions: 0, preferences: 0 };
+    if (options.conversations) {
+      const now = new Date().toISOString();
+      for (const [id, entry] of this.sessions) {
+        if (!inScope(entry.summary, scope)) continue;
+        if (options.conversations === "delete") {
+          this.sessions.delete(id);
+          result.sessions += 1;
+        } else if (!entry.summary.forgottenAt) {
+          entry.summary = { ...entry.summary, forgottenAt: now };
+          result.sessions += 1;
+        }
+      }
+    }
+    if (options.preferences) {
+      result.preferences = this.preferences.get(scopeKey(scope))?.size ?? 0;
+      this.preferences.delete(scopeKey(scope));
     }
     return result;
   }

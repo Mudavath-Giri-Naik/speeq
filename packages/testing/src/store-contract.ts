@@ -171,5 +171,101 @@ export function runConversationStoreContract(
       }
       expect(isSpeeqError(error) && error.code).toBe("NOT_FOUND");
     });
+
+    // Memory methods (0.12+) are optional; stores that implement them must pass these.
+    const future = () => new Date(Date.now() + 86_400_000).toISOString();
+    const A = { userId: "u1", tenantId: null };
+    const A2 = { userId: "u1", tenantId: "acme" };
+    const B = { userId: "u2", tenantId: null };
+
+    it("keeps preferences per user and tenant, one per category", async () => {
+      if (!store.setPreference || !store.getPreferences) return;
+      await store.setPreference(A, "language", "Telugu", future());
+      await store.setPreference(A, "language", "Hindi", future());
+      await store.setPreference(A, "subject", "DBMS", future());
+      await store.setPreference(A2, "subject", "OS", future());
+      await store.setPreference(B, "subject", "Networks", future());
+      const a = await store.getPreferences(A);
+      expect(a.map((p) => [p.category, p.value]).sort()).toEqual([
+        ["language", "Hindi"],
+        ["subject", "DBMS"],
+      ]);
+      expect((await store.getPreferences(A2)).map((p) => p.value)).toEqual(["OS"]);
+      expect((await store.getPreferences(B)).map((p) => p.value)).toEqual(["Networks"]);
+      expect(await store.getPreferences({ userId: "nobody", tenantId: null })).toEqual([]);
+    });
+
+    it("ignores expired preferences", async () => {
+      if (!store.setPreference || !store.getPreferences) return;
+      await store.setPreference(A, "language", "Tamil", new Date(Date.now() - 1000).toISOString());
+      await store.setPreference(A, "subject", "DBMS", future());
+      expect((await store.getPreferences(A)).map((p) => p.category)).toEqual(["subject"]);
+    });
+
+    it("forgets a scope's sessions but keeps their events, and leaves other scopes alone", async () => {
+      if (!store.clearScope) return;
+      const base = { language: "en-IN" } as const;
+      await store.createSession({
+        ...base,
+        id: "a",
+        userId: "u1",
+        tenantId: null,
+        startedAt: iso(0),
+      });
+      await store.createSession({ ...base, id: "legacy", userId: "u1", startedAt: iso(1000) });
+      await store.createSession({
+        ...base,
+        id: "t",
+        userId: "u1",
+        tenantId: "acme",
+        startedAt: iso(2000),
+      });
+      await store.createSession({
+        ...base,
+        id: "b",
+        userId: "u2",
+        tenantId: null,
+        startedAt: iso(3000),
+      });
+      await store.appendEvents("a", [userMessage("a", 1)]);
+      await store.setPreference?.(A, "language", "Telugu", future());
+      await store.setPreference?.(A2, "language", "Hindi", future());
+      const result = await store.clearScope(A, { conversations: "forget", preferences: true });
+      expect(result.sessions).toBe(2);
+      expect((await store.getSessionSummary("a"))?.forgottenAt).toEqual(expect.any(String));
+      expect((await store.getSessionSummary("legacy"))?.forgottenAt).toEqual(expect.any(String));
+      expect((await store.getSessionSummary("t"))?.forgottenAt).toBeUndefined();
+      expect((await store.getSessionSummary("b"))?.forgottenAt).toBeUndefined();
+      expect(await store.listEvents("a")).toHaveLength(1);
+      if (store.getPreferences) {
+        expect(result.preferences).toBe(1);
+        expect(await store.getPreferences(A)).toEqual([]);
+        expect(await store.getPreferences(A2)).toHaveLength(1);
+      }
+      // Forgetting again changes nothing.
+      expect(
+        (await store.clearScope(A, { conversations: "forget", preferences: false })).sessions,
+      ).toBe(0);
+    });
+
+    it("deletes a scope's sessions with their events", async () => {
+      if (!store.clearScope) return;
+      await session("a", 0, "u1");
+      await session("b", 1000, "u2");
+      await store.appendEvents("a", [userMessage("a", 1)]);
+      await store.appendEvents("b", [userMessage("b", 1)]);
+      const result = await store.clearScope(A, { conversations: "delete", preferences: false });
+      expect(result.sessions).toBe(1);
+      expect(await store.getSessionSummary("a")).toBeNull();
+      expect(await store.listEvents("a")).toEqual([]);
+      expect(await store.listEvents("b")).toHaveLength(1);
+    });
+
+    it("keeps preferences when only conversations are cleared", async () => {
+      if (!store.clearScope || !store.setPreference || !store.getPreferences) return;
+      await store.setPreference(A, "language", "Telugu", future());
+      await store.clearScope(A, { conversations: "forget", preferences: false });
+      expect(await store.getPreferences(A)).toHaveLength(1);
+    });
   });
 }

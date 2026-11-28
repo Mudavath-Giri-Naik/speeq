@@ -1,4 +1,5 @@
 ---
+
 "speeq": minor
 "@speeq/core": minor
 "@speeq/server": minor

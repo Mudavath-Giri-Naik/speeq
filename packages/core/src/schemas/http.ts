@@ -19,6 +19,11 @@ export const CreateSessionRequestSchema = z.object({
   context: PageContextSchema.optional(),
   /** Optional protocol features this client understands. Unlisted features are never used. */
   capabilities: z.array(SessionCapabilitySchema).max(4).optional(),
+  /**
+   * Continue the signed-in user's latest conversation if the server keeps persistent memory (0.12+).
+   * The server chooses the session; the client never names one.
+   */
+  resume: z.boolean().optional(),
 });
 /** Body of `POST /session`. */
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
@@ -35,6 +40,18 @@ export const ClientGreetingSchema = z.object({
 });
 /** Greeting and starter prompts for one visitor. */
 export type ClientGreeting = z.infer<typeof ClientGreetingSchema>;
+
+/** What the server remembers for this visitor (0.12+). All false for anonymous visitors. */
+export const ClientMemorySchema = z.object({
+  /** A previous conversation can be continued (persistent memory, signed in). */
+  resume: z.boolean(),
+  /** The visitor can clear what is kept about them. */
+  clear: z.boolean(),
+  /** Stated preferences are kept. */
+  preferences: z.boolean(),
+});
+/** What the server remembers for this visitor. */
+export type ClientMemory = z.infer<typeof ClientMemorySchema>;
 
 /** Public configuration the client receives when a session starts. */
 export const ClientConfigSchema = z.object({
@@ -54,6 +71,8 @@ export const ClientConfigSchema = z.object({
   routes: z.array(z.object({ id: z.string(), title: z.string() })),
   /** Absent when the server configures no greeting or starters, or is older than 0.12. */
   greeting: ClientGreetingSchema.optional(),
+  /** Absent from servers older than 0.12. */
+  memory: ClientMemorySchema.optional(),
 });
 /** Public configuration the client receives when a session starts. */
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
@@ -83,6 +102,8 @@ export const IdentityResponseSchema = z.object({
   identity: IdentitySummarySchema,
   /** Greeting for this visitor and page (`?path=`), when configured. */
   greeting: ClientGreetingSchema.optional(),
+  /** What the server remembers for this visitor (0.12+). */
+  memory: ClientMemorySchema.optional(),
 });
 /** Response of `GET /identity`. */
 export type IdentityResponse = z.infer<typeof IdentityResponseSchema>;
@@ -97,9 +118,45 @@ export const CreateSessionResponseSchema = z.object({
   config: ClientConfigSchema,
   /** Absent from servers older than 0.12. */
   identity: IdentitySummarySchema.optional(),
+  /** True when this is the user's earlier conversation, continued (persistent memory). */
+  resumed: z.boolean().optional(),
 });
 /** Response of `POST /session`. */
 export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;
+
+/** One line of a stored transcript: user and assistant text only. */
+export const TranscriptMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  text: z.string(),
+  ts: z.string(),
+});
+/** One line of a stored transcript. */
+export type TranscriptMessage = z.infer<typeof TranscriptMessageSchema>;
+
+/** Response of `GET /session/:id/messages`. */
+export const SessionMessagesResponseSchema = z.object({
+  protocolVersion: z.literal(PROTOCOL_VERSION),
+  messages: z.array(TranscriptMessageSchema),
+});
+/** Response of `GET /session/:id/messages`. */
+export type SessionMessagesResponse = z.infer<typeof SessionMessagesResponseSchema>;
+
+/** Body of `DELETE /session/:id/memory`. */
+export const ClearMemoryRequestSchema = z.object({
+  /** Also delete stated preferences. Default true. */
+  preferences: z.boolean().optional(),
+});
+/** Body of `DELETE /session/:id/memory`. */
+export type ClearMemoryRequest = z.infer<typeof ClearMemoryRequestSchema>;
+
+/** Response of `DELETE /session/:id/memory`. */
+export const ClearMemoryResponseSchema = z.object({
+  protocolVersion: z.literal(PROTOCOL_VERSION),
+  sessions: z.number().int().nonnegative(),
+  preferences: z.number().int().nonnegative(),
+});
+/** Response of `DELETE /session/:id/memory`. */
+export type ClearMemoryResponse = z.infer<typeof ClearMemoryResponseSchema>;
 
 /** Body of `POST /session/:id/turn`. */
 export const TurnRequestSchema = z.object({

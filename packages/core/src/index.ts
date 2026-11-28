@@ -34,10 +34,14 @@ export type {
 } from "./interfaces/speech.js";
 export type * from "./interfaces/speech-provider.js";
 export type {
+  ClearScopeOptions,
+  ClearScopeResult,
   ConversationStore,
   ListEventsOptions,
+  MemoryScope,
   RetentionResult,
   SessionPage,
+  StoredPreference,
 } from "./interfaces/store.js";
 export type { TelemetryTransport } from "./interfaces/telemetry.js";
 export * from "./language.js";

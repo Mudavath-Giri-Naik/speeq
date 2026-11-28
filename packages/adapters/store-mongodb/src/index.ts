@@ -4,11 +4,14 @@
  * @packageDocumentation
  */
 import {
+  type ClearScopeOptions,
+  type ClearScopeResult,
   type ConversationEvent,
   type ConversationStore,
   decodeCursor,
   encodeCursor,
   type ListEventsOptions,
+  type MemoryScope,
   type NewConversationEvent,
   type NewSession,
   type RetentionResult,
@@ -16,6 +19,7 @@ import {
   type SessionPage,
   type SessionSummary,
   SpeeqError,
+  type StoredPreference,
 } from "@speeq/core";
 import type { Collection, Db, Filter } from "mongodb";
 
@@ -23,7 +27,10 @@ import type { Collection, Db, Filter } from "mongodb";
 export interface MongoStoreOptions {
   /** Your app's `Db`, a promise of it, or a function returning one (e.g. from a cached client). */
   db: Db | Promise<Db> | (() => Db | Promise<Db>);
-  /** Collection name prefix. Default `speeq_` → `speeq_sessions`, `speeq_events`. */
+  /**
+   * Collection name prefix. Default `speeq_` → `speeq_sessions`, `speeq_events` and, when preference
+   * memory is used, `speeq_preferences`.
+   */
   collectionPrefix?: string;
   /** Create indexes on first use. Default `true`. Set `false` if you manage indexes yourself. */
   ensureIndexes?: boolean;
@@ -37,6 +44,18 @@ interface SessionDoc extends Omit<SessionSummary, "id"> {
 
 /** Stored event document. */
 type EventDoc = Omit<ConversationEvent, "id"> & { _id: string };
+
+/** Stored preference document, one per user, tenant and category. */
+interface PreferenceDoc extends StoredPreference {
+  _id: string;
+  userId: string;
+  tenantId: string | null;
+}
+
+const prefId = (scope: MemoryScope, category: string) =>
+  JSON.stringify([scope.tenantId, scope.userId, category]);
+// `tenantId: null` also matches sessions written before 0.12, which have no tenant field.
+const scopeFilter = (scope: MemoryScope) => ({ userId: scope.userId, tenantId: scope.tenantId });
 
 const DUPLICATE_KEY = 11000;
 
@@ -80,6 +99,7 @@ export class MongoStore implements ConversationStore {
   private ready: Promise<{
     sessions: Collection<SessionDoc>;
     events: Collection<EventDoc>;
+    preferences: Collection<PreferenceDoc>;
   }> | null = null;
 
   constructor(private readonly options: MongoStoreOptions) {}
@@ -91,6 +111,7 @@ export class MongoStore implements ConversationStore {
       const prefix = this.options.collectionPrefix ?? "speeq_";
       const sessions = db.collection<SessionDoc>(`${prefix}sessions`);
       const events = db.collection<EventDoc>(`${prefix}events`);
+      const preferences = db.collection<PreferenceDoc>(`${prefix}preferences`);
       if (this.options.ensureIndexes !== false) {
         await Promise.all([
           events.createIndex({ sessionId: 1, seq: 1 }, { unique: true, name: "session_seq" }),
@@ -108,7 +129,7 @@ export class MongoStore implements ConversationStore {
           sessions.createIndex({ lastEventAt: 1 }, { name: "last_event" }),
         ]);
       }
-      return { sessions, events };
+      return { sessions, events, preferences };
     })().catch((error: unknown) => {
       this.ready = null; // retry on the next call
       throw error;
@@ -252,6 +273,85 @@ export class MongoStore implements ConversationStore {
       result.events += (await events.deleteMany({ sessionId: { $in: ids } })).deletedCount;
       result.sessions += (await sessions.deleteMany({ _id: { $in: ids } })).deletedCount;
     }
+  }
+
+  private prefsReady: Promise<void> | null = null;
+
+  /** The preference collection, with its index created on first use only (not for every app). */
+  private async preferenceCollection(): Promise<Collection<PreferenceDoc>> {
+    const { preferences } = await this.collections();
+    if (this.options.ensureIndexes !== false) {
+      this.prefsReady ??= preferences
+        .createIndex({ userId: 1, tenantId: 1 }, { name: "scope" })
+        .then(() => undefined)
+        .catch((error: unknown) => {
+          this.prefsReady = null;
+          throw error;
+        });
+      await this.prefsReady;
+    }
+    return preferences;
+  }
+
+  async getPreferences(scope: MemoryScope): Promise<StoredPreference[]> {
+    const preferences = await this.preferenceCollection();
+    const now = new Date().toISOString();
+    await preferences.deleteMany({ ...scopeFilter(scope), expiresAt: { $lte: now } });
+    const docs = await preferences.find(scopeFilter(scope)).sort({ category: 1 }).toArray();
+    return docs.map(({ category, value, updatedAt, expiresAt }) => ({
+      category,
+      value,
+      updatedAt,
+      expiresAt,
+    }));
+  }
+
+  async setPreference(
+    scope: MemoryScope,
+    category: string,
+    value: string,
+    expiresAt: string,
+  ): Promise<void> {
+    const preferences = await this.preferenceCollection();
+    const doc: PreferenceDoc = {
+      _id: prefId(scope, category),
+      userId: scope.userId,
+      tenantId: scope.tenantId,
+      category,
+      value,
+      updatedAt: new Date().toISOString(),
+      expiresAt,
+    };
+    await preferences.replaceOne({ _id: doc._id }, doc, { upsert: true });
+  }
+
+  async clearScope(scope: MemoryScope, options: ClearScopeOptions): Promise<ClearScopeResult> {
+    const { sessions, events } = await this.collections();
+    const result: ClearScopeResult = { sessions: 0, preferences: 0 };
+    if (options.conversations === "forget") {
+      result.sessions = (
+        await sessions.updateMany(
+          { ...scopeFilter(scope), forgottenAt: { $exists: false } },
+          { $set: { forgottenAt: new Date().toISOString() } },
+        )
+      ).modifiedCount;
+    } else if (options.conversations === "delete") {
+      for (;;) {
+        const batch = await sessions
+          .find(scopeFilter(scope), { projection: { _id: 1 } })
+          .limit(500)
+          .toArray();
+        if (batch.length === 0) break;
+        const ids = batch.map((d) => d._id);
+        await events.deleteMany({ sessionId: { $in: ids } });
+        result.sessions += (await sessions.deleteMany({ _id: { $in: ids } })).deletedCount;
+      }
+    }
+    if (options.preferences) {
+      const preferences = await this.preferenceCollection();
+      result.preferences = (await preferences.deleteMany(scopeFilter(scope))).deletedCount;
+    }
+    return result;
   }
 }
 

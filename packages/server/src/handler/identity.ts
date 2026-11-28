@@ -10,6 +10,7 @@ import type { ResolvedConfig } from "../resolve.js";
 import type { Runtime } from "../runtime.js";
 import { identityFingerprint } from "../security/token.js";
 import { json } from "./http.js";
+import { clientMemory } from "./memory.js";
 
 /** Profile fields that may leave the server, in the order they are copied. */
 export const EXPOSABLE_PROFILE_FIELDS = ["displayName", "preferredName", "locale"] as const;
@@ -77,6 +78,7 @@ export async function handleIdentity<TUser extends AgentUser>(
     protocolVersion: PROTOCOL_VERSION,
     identity: await identitySummary(rt.config as ResolvedConfig, user),
     ...(greeting ? { greeting } : {}),
+    memory: clientMemory(rt, user),
   };
   return json(body, 200, { ...headers, "cache-control": "no-store" });
 }

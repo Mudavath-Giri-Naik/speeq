@@ -17,6 +17,7 @@ const names = new Set([
   "ClientConfig",
   "IdentitySummary",
   "ClientGreeting",
+  "ClientMemory",
   "ProtocolEvent",
   "SessionListResponse",
   "SessionDetailResponse",

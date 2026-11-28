@@ -27,6 +27,8 @@ export interface UseSpeeqResult extends SpeeqSnapshot {
   speak: SpeeqClient["speak"];
   refreshIdentity: SpeeqClient["refreshIdentity"];
   newConversation: SpeeqClient["newConversation"];
+  restoreConversation: SpeeqClient["restoreConversation"];
+  clearMemory: SpeeqClient["clearMemory"];
 }
 
 /** Reads the current snapshot and actions of the provider's client. */
@@ -50,6 +52,8 @@ export function useSpeeq(): UseSpeeqResult {
         speak: client.speak.bind(client),
         refreshIdentity: client.refreshIdentity.bind(client),
         newConversation: client.newConversation.bind(client),
+        restoreConversation: client.restoreConversation.bind(client),
+        clearMemory: client.clearMemory.bind(client),
       },
     }),
     [client],
