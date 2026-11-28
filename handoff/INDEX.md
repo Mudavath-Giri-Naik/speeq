@@ -28,5 +28,6 @@ Status: `briefed | in-progress | reviewed-accepted | redo`
 | 022 | Identity lifecycle and account isolation (release 0.12)                                      | reviewed-accepted | task/022-identity-lifecycle   |
 | 023 | Context providers, get_context, page context allow-list                                      | reviewed-accepted | task/023-context-providers    |
 | 024 | Business profile, style, greetings, starters, error reasons, presets                         | reviewed-accepted | task/024-greetings-and-style  |
+| 025 | Memory modes: persistent conversations, preferences, clearing                                | reviewed-accepted | task/025-memory-modes         |
 
 Release 0.12 (tasks 022 to 028) is planned in `docs/maintainers/release-0.12-plan.md`; it replaces the Phase 2 tasks 022 and 023. Briefs are written one at a time after the previous task is accepted.
