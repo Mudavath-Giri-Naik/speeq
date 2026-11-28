@@ -1,6 +1,9 @@
 # ADR-0024 — Agent settings live in one CLI-owned module; `speeq setup` is the control center
 
-Status: Proposed (accepted with tasks 024 and 027).
+Status: Accepted (tasks 024 and 027). Amended in 027: edits go to a draft and one Save reviews all of them
+(instead of a save per section); `agent.ts` exports `agentProfile` (spread into `agent`) and `agentSettings`;
+an `agent.ts` edited by hand is overwritten only after an explicit yes; `init` stays linear and points to
+`speeq setup` instead of opening the home screen; status `✕ broken` covers a missing provider key or MongoDB URI.
 
 ## Context
 

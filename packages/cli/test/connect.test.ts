@@ -233,7 +233,11 @@ describe("speeq setup", () => {
       ".env.local": "SPEEQ_SECRET=abc\nGROQ_API_KEY=\nSPEEQ_LLM_MODEL=\n",
     });
     const { f } = fake(groqRoutes);
-    const { prompts, run } = tty(a, ["model", "groq", "paste", KEY, "llama-fast", "apply"], f);
+    const { prompts, run } = tty(
+      a,
+      ["model", "provider", "groq", "paste", KEY, "llama-fast", "__done", "apply"],
+      f,
+    );
     const r = await run();
     expect(r.code).toBe(0);
     const env = await a.read(".env.local");
@@ -252,7 +256,18 @@ describe("speeq setup", () => {
     const { f } = fake(groqRoutes);
     const r = await tty(
       a,
-      ["model", "groq", "paste", "gsk_wrong", "paste", KEY, "llama-fast", "apply"],
+      [
+        "model",
+        "provider",
+        "groq",
+        "paste",
+        "gsk_wrong",
+        "paste",
+        KEY,
+        "llama-fast",
+        "__done",
+        "apply",
+      ],
       f,
     ).run();
     expect(r.stdout).toContain("rejected");
@@ -263,7 +278,7 @@ describe("speeq setup", () => {
     const a = await project();
     const { f, calls } = fake(groqRoutes);
     const before = await a.snapshot();
-    const r = await tty(a, ["model", "groq", "__skip", "apply"], f).run();
+    const r = await tty(a, ["model", "provider", "groq", "__skip", "__done", "apply"], f).run();
     expect(r.code).toBe(0);
     expect(calls).toHaveLength(0);
     expect(await a.snapshot()).toEqual(before);
@@ -271,7 +286,11 @@ describe("speeq setup", () => {
   it("offers the key that is already in .env.local, checks it, and only adds the model", async () => {
     const a = await project({ ".env.local": `GROQ_API_KEY=${KEY}\n` });
     const { f } = fake(groqRoutes);
-    const { prompts, run } = tty(a, ["model", "groq", "use", "llama-fast", "apply"], f);
+    const { prompts, run } = tty(
+      a,
+      ["model", "provider", "groq", "use", "llama-fast", "__done", "apply"],
+      f,
+    );
     const r = await run();
     expect(prompts.asked).toContain("Your Groq key");
     const env = await a.read(".env.local");
@@ -285,7 +304,7 @@ describe("speeq setup", () => {
     const { f } = fake(groqRoutes);
     const { prompts, run } = tty(
       a,
-      ["model", "groq", "paste", KEY, "llama-fast", "apply", false],
+      ["model", "provider", "groq", "paste", KEY, "llama-fast", "__done", "apply", false],
       f,
     );
     await run();
@@ -301,7 +320,11 @@ export const speeq = createSpeeq({
 `;
     const a = await project({ "speeq.config.ts": config });
     const { f } = fake(groqRoutes);
-    const r = await tty(a, ["model", "groq", "paste", KEY, "llama-fast", "apply", true], f).run();
+    const r = await tty(
+      a,
+      ["model", "provider", "groq", "paste", KEY, "llama-fast", "__done", "apply", true],
+      f,
+    ).run();
     expect(r.stdout).toContain("Updated speeq.config.ts");
     expect(await a.read("speeq.config.ts")).toContain("https://api.groq.com/openai/v1");
     expect(await a.read(".speeq/backups/speeq.config.before-setup.ts")).toBe(config);
@@ -310,7 +333,11 @@ export const speeq = createSpeeq({
     const config = `import { createGeminiProvider } from "speeq/llm-gemini";\nexport const speeq = createSpeeq({ llm: createGeminiProvider({ apiKey: "" }) });\n`;
     const a = await project({ "speeq.config.ts": config });
     const { f } = fake(groqRoutes);
-    await tty(a, ["model", "groq", "paste", KEY, "llama-fast", "apply", false], f).run();
+    await tty(
+      a,
+      ["model", "provider", "groq", "paste", KEY, "llama-fast", "__done", "apply", false],
+      f,
+    ).run();
     expect(await a.read("speeq.config.ts")).toBe(config);
   });
   it("Sarvam voice: checks the key without credits, speaks a test, saves the key, switches the config", async () => {
@@ -326,7 +353,11 @@ export const speeq = createSpeeq({
       if (c.headers["api-subscription-key"] !== SARVAM_KEY) return json({}, 403);
       return JSON.parse(c.body).text === "" ? json({}, 400) : json({ audios: ["UklGRg=="] });
     });
-    const { run } = tty(a, ["voice", "sarvam", "paste", SARVAM_KEY, true, "apply", true, true], f);
+    const { run } = tty(
+      a,
+      ["voice", "how", "sarvam", "paste", SARVAM_KEY, true, "__done", "apply", true, true],
+      f,
+    );
     const r = await run();
     expect(r.stdout).toContain("Sarvam voice works");
     expect(r.stdout + r.stderr).not.toContain(SARVAM_KEY);
@@ -335,10 +366,12 @@ export const speeq = createSpeeq({
     expect(JSON.parse(await a.read(".speeq/setup.json")).voice).toBe("sarvam");
     expect(calls.filter((c) => JSON.parse(c.body).text !== "")).toHaveLength(1); // the one spoken test
   });
-  it("needs a terminal, so a script or --json run exits with a usage error and calls nothing", async () => {
+  it("needs a terminal to change anything; --json only prints the state and calls nothing", async () => {
     const a = await project();
     const { f, calls } = fake(groqRoutes);
-    expect((await a.cli(["setup", "--json"], { fetch: f })).code).toBe(2);
+    const state = await a.cli(["setup", "--json"], { fetch: f });
+    expect(state.code).toBe(0);
+    expect((state.json().sections as unknown[]).length).toBe(12);
     expect((await a.cli(["connect"], { fetch: f })).code).toBe(2);
     expect(calls).toHaveLength(0);
   });

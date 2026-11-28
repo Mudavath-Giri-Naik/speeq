@@ -93,7 +93,8 @@ Usage: speeq [command] [options]
 
 Commands
   init                      Scan, review and integrate speeq into this app
-  setup                     Change the model, voice, languages and keys step by step (alias: connect)
+  setup [section]           Control center: agent, business, model, voice, sign-in, customer data,
+                            greetings, memory, storage, checks (alias: connect; --json prints state)
   remove                    Take speeq out of the project: only what it added (alias: uninstall)
   scan                      Rediscover capabilities and refresh .speeq/manifest.json
   configure                 Control center (also: bare \`speeq\`)

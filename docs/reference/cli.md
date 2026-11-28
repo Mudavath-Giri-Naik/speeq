@@ -75,7 +75,24 @@ If you would rather not paste a key into the terminal, choose **Skip** and fill 
 
 ## Change anything later: `speeq setup`
 
-`npx speeq setup` (alias `connect`) opens the same review screen on your current setup. Change the model, the voice, the languages or the chat box, paste a new key, or switch from Groq to Gemini; each key is checked as you give it. When you apply, it saves the keys, updates `speeq.config.ts` (after asking), and regenerates the chat box. It needs a terminal.
+`npx speeq setup` (alias `connect`) opens the control center: a status card, twelve sections with a badge each (`✓ set`, `! review`, `○ off`, `✕ broken`) and one recommended next step. See the [control center guide](../guides/control-center.md).
+
+| #   | Section                          | What you change                                                           |
+| --- | -------------------------------- | ------------------------------------------------------------------------- |
+| 01  | Agent identity and personality   | Name, preset, purpose, personality, length, depth, name use, instructions |
+| 02  | Business information             | Name, description, offerings, terms, support (prefilled from your code)   |
+| 03  | Model provider and behavior      | Provider, model (keys checked at once), temperature, steps, history       |
+| 04  | Voice and languages              | Browser, cloud, Sarvam or text only; languages                            |
+| 05  | Authentication and identity      | Bind the detected sign-in; profile fields the agent may know              |
+| 06  | Customer context and permissions | Approve discovered endpoints and the fields the agent may see             |
+| 07  | Page and application context     | Page keys from `useSpeeqContext` the agent may see                        |
+| 08  | Greetings and starter prompts    | Guest, member and returning greetings with a sample preview; starters     |
+| 09  | Conversation memory              | Session, continue conversations, stated preferences; clearing             |
+| 10  | Storage and retention            | Memory or MongoDB (hidden URI, connection check); retention               |
+| 11  | Chat box appearance              | Add the generated chat box to your layout                                 |
+| 12  | Verification and diagnostics     | Static checks and a mock-model smoke test                                 |
+
+Nothing is written until **Save and finish**, which shows every change as a diff, writes it through the integration journal and tells you what to restart; `npx speeq rollback` undoes the save. **Exit without saving** (or Ctrl+C) writes nothing. Open one section directly with `npx speeq setup auth` or `npx speeq setup 06`. Without a terminal, `npx speeq setup --json` prints the state (sections, recommendation, discovered sign-in, data sources, business facts) and never any key or URI.
 
 ## Remove speeq completely: `speeq remove`
 
@@ -100,14 +117,15 @@ Model ids change often, so speeq never guesses one: `connect` lists the models t
 
 ## What gets written
 
-| File                                     | Owner   | Rule                                                                                         |
-| ---------------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
-| `.speeq/manifest.json`                   | scanner | Rewritten on every scan. Facts and evidence only, no source text or data.                    |
-| `.speeq/decisions.json`                  | you     | Changed only by `capabilities enable/disable` or the init review. Never regenerated.         |
-| `.speeq/generated/tools.ts`, `routes.ts` | speeq   | First line `// speeq:generated sha256=...`. Overwritten only while the hash matches.         |
-| `app/api/speeq/[[...speeq]]/route.ts`    | speeq   | Same marker. `src/app` is used when your app uses `src/`.                                    |
-| `speeq.config.ts`                        | you     | Created once. Only `setup` can change its provider or voice, after asking, with a copy kept. |
-| Root layout, anything else               | you     | Never edited. `init` prints the snippet to paste.                                            |
+| File                                                     | Owner   | Rule                                                                                                                                                 |
+| -------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.speeq/manifest.json`                                   | scanner | Rewritten on every scan. Facts and evidence only, no source text or data.                                                                            |
+| `.speeq/decisions.json`                                  | you     | Changed only by `capabilities enable/disable` or the init review. Never regenerated.                                                                 |
+| `.speeq/generated/tools.ts`, `routes.ts`                 | speeq   | First line `// speeq:generated sha256=...`. Overwritten only while the hash matches.                                                                 |
+| `app/api/speeq/[[...speeq]]/route.ts`                    | speeq   | Same marker. `src/app` is used when your app uses `src/`.                                                                                            |
+| `speeq.config.ts`                                        | you     | Created once. Only `setup` can change its provider or voice, after asking, with a copy kept. Its first save adds one import and `...agentSettings,`. |
+| `.speeq/generated/agent.ts`, `identity.ts`, `context.ts` | speeq   | Written by `setup` from `.speeq/setup.json`. Server-only. Same marker rule.                                                                          |
+| Root layout, anything else                               | you     | Never edited. `init` prints the snippet to paste.                                                                                                    |
 
 Edit a generated file and speeq refuses to overwrite it (exit code 1). Delete its first line to take
 ownership of it for good. Add `.speeq/backups/` to `.gitignore`.

@@ -30,6 +30,8 @@ export interface Choices {
   values: Record<string, string>;
   /** Keys already saved in the app's env files and checked this session. Kept in memory, never written. */
   known: Record<string, string>;
+  /** More variable names to save from `values` (the control center's MongoDB settings). */
+  extraEnv?: string[];
   /** Short facts for the review screen. */
   model?: string;
   voiceNote?: string;
@@ -531,8 +533,10 @@ const STEPS = [
   { id: "languages", title: "Languages" },
   { id: "chat", title: "Chat box" },
 ] as const;
-type StepId = (typeof STEPS)[number]["id"];
-async function runStep(ctx: Ctx, io: WizardIo, c: Choices, id: StepId, canBack: boolean) {
+/** A wizard step the control center can open on its own. */
+export type StepId = (typeof STEPS)[number]["id"];
+/** Runs one wizard step (also used by the control center sections). */
+export async function runStep(ctx: Ctx, io: WizardIo, c: Choices, id: StepId, canBack: boolean) {
   if (id === "model") return modelStep(ctx, io, c, canBack);
   if (id === "voice") return voiceStep(ctx, io, c);
   if (id === "languages") return languagesStep(ctx, c);
@@ -615,5 +619,6 @@ export function neededValues(c: Choices): Record<string, string> {
     for (const n of ["GROQ_API_KEY", "GEMINI_API_KEY", "GROQ_STT_MODEL", "GEMINI_STT_MODEL"])
       names.add(n);
   if (c.voice === "sarvam") names.add("SARVAM_API_KEY");
+  for (const n of c.extraEnv ?? []) names.add(n);
   return Object.fromEntries(Object.entries(c.values).filter(([k]) => names.has(k)));
 }

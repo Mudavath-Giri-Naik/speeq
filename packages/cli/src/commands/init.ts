@@ -96,6 +96,9 @@ function showNextSteps(ctx: Ctx, loaded: Loaded, plan: IntegrationPlan, saved: s
     lines.push(
       "  To connect a real model, voice or Sarvam later: npx speeq setup (it checks your keys for you).",
     );
+  lines.push(
+    `  Personalise it (name, sign-in, customer data, greetings, memory): ${pc.cyan("npx speeq setup")}`,
+  );
   ctx.say(lines.join("\n"));
 }
 /** `speeq init`: scan, review, integrate. */

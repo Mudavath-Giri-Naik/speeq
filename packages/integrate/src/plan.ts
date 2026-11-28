@@ -11,6 +11,7 @@ import type {
   RouteCapability,
 } from "@speeq/core/manifest";
 import { defineFormFill } from "@speeq/server";
+import { readAgentChoices } from "./agent-settings.js";
 import { manifestPath } from "./decisions.js";
 import { type EnvName, ignoresEnvLocal, newSecret, planEnv } from "./env.js";
 import type { ProjectFs } from "./fsx.js";
@@ -32,7 +33,7 @@ import {
   type ToolSpec,
 } from "./render.js";
 import { renderObject, renderZod } from "./schema.js";
-import { setupOf, setupPath } from "./setup.js";
+import { setupOf, setupPath, setupText } from "./setup.js";
 import { renderAssistant, type VoiceMode } from "./ui-template.js";
 
 /** Versions the engine may add to the host. Exact, from a fixed allow-list. */
@@ -425,8 +426,15 @@ export async function buildPlan(input: {
   );
   if (options.remember) {
     const sPath = setupPath(prefix);
-    const sText = `${JSON.stringify(setupOf(options), null, 2)}\n`;
     const sCurrent = await read(sPath);
+    // Keep the control-center settings (`speeq setup`) when init or upgrade remembers its choices.
+    let kept = {};
+    try {
+      kept = sCurrent ? readAgentChoices(JSON.parse(sCurrent)) : {};
+    } catch {
+      kept = {};
+    }
+    const sText = setupText({ ...setupOf(options), ...kept });
     changes.push(
       sCurrent === sText
         ? { path: sPath, action: "keep", ownership: "owned" }

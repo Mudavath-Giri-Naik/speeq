@@ -1,3 +1,22 @@
+export {
+  type AgentChoices,
+  agentWiring,
+  type ControlInput,
+  hasAgentChoices,
+  type Recommendation,
+  readAgentChoices,
+  recommend,
+  renderAgentModule,
+  restartHint,
+  SECTIONS,
+  type SectionId,
+  type SectionStatus,
+  type SourceChoice,
+  type StyleChoice,
+  sectionStatuses,
+  settingsPaths,
+  wireAgentSettings,
+} from "./agent-settings.js";
 /**
  * `@speeq/integrate`: plans, previews, applies and rolls back speeq's changes to a host app.
  * The only package that writes files in a developer's project (ADR-0016).
@@ -93,7 +112,8 @@ export {
 } from "./remove.js";
 export type { FormSpec } from "./render.js";
 export { isSecretName, renderZod } from "./schema.js";
-export { readSetup, type Setup, setupOf, setupPath } from "./setup.js";
+export { planSettingsSave, type SettingsPlan } from "./settings-plan.js";
+export { readSetup, type Setup, setupOf, setupPath, setupText } from "./setup.js";
 export { type AssistantOptions, renderAssistant, type VoiceMode } from "./ui-template.js";
 export {
   type Check,
